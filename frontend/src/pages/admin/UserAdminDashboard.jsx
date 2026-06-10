@@ -7,7 +7,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 
-const BASE       = `${import.meta.env.VITE_API_URL}`;
+const BASE       = `${import.meta.env.VITE_API_URL}/user`;
 const getToken   = () => localStorage.getItem("token");
 const authHeader = () => ({
   Authorization:  `Bearer ${getToken()}`,
@@ -50,7 +50,7 @@ function UpdateModal({ user, onClose, onUpdated, showToast }) {
     setLoading(true);
     try {
       // PUT /UpdateUser/:id
-      const res  = await fetch(`${BASE}/user/UpdateUser/${user._id}`, {
+      const res  = await fetch(`${BASE}/UpdateUser/${user._id}`, {
         method: "PUT", headers: authHeader(), body: JSON.stringify(form),
       });
       const json = await res.json();
@@ -188,7 +188,7 @@ export default function UserAdminDashboard() {
   const handleDelete = async () => {
     setDeleteLoading(true);
     try {
-      const res  = await fetch(`${BASE}/user/deleteUser/${deleteTarget._id}`, { method: "DELETE", headers: authHeader() });
+      const res  = await fetch(`${BASE}/deleteUser/${deleteTarget._id}`, { method: "DELETE", headers: authHeader() });
       const json = await res.json();
       if (!res.ok) throw new Error(json.msg);
       showToast("User deleted successfully");

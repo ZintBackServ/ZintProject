@@ -7,16 +7,16 @@ const {
   deleteRegistration,
 } = require("../controllers/registrationController");
 
-// POST   /api/register                     → student registers for event
-router.post("/", registerForEvent);
+// POST   /register                     → student registers for event
+router.post("/add", registerForEvent);
 
-// GET    /api/register/all                 → admin: all registrations
+// GET    /register/all                 → admin: all registrations
 router.get("/all", getAllRegistrations);
 
-// GET    /api/register/event/:eventId      → admin: registrations for one event
+// GET    /register/event/:eventId      → admin: registrations for one event
 router.get("/event/:eventId", getRegistrationsByEvent);
 
-// DELETE /api/register/:id                 → admin: remove a registration
+// DELETE /register/:id                 → admin: remove a registration
 router.delete("/:id", deleteRegistration);
 
 module.exports = router;

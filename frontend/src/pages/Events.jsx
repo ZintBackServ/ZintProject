@@ -6,7 +6,7 @@ import eventImg2 from "../assets/zintRojgarImg2.jpeg";
 import eventImg3 from "../assets/zintRojgarMission2026.png";
 
 const API_URL      = `${import.meta.env.VITE_API_URL}/event/allEvent`;
-const REGISTER_URL = `${import.meta.env.VITE_API_URL}/api/register`;
+const REGISTER_URL = `${import.meta.env.VITE_API_URL}/registration/add`;
 
 const MONTHS = [
   "All","January","February","March","April","May","June",
