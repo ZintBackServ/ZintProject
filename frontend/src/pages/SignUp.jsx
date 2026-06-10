@@ -117,8 +117,8 @@ function SignUp(){
 
          if (Object.keys(validate).length === 0) {
              const { confirmPassword, ...userData } = formData;     //confirm passwrod key is not stored in userData
-            const response = await fetch(`http://localhost:2000/newUser`, {
-              method: "POST",
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/user/newUser`, {
+              method: "POST",    
              headers:{
                "Content-Type":"application/json",
              },
@@ -138,8 +138,6 @@ function SignUp(){
                 await alert("Form submitted successfully")
                 navigate("/login");  //navigate to login page after signup successfully
              }
-
-            
 
            if(response.ok){
                 setFormData({

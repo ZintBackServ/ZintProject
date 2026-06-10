@@ -7,7 +7,9 @@
     return true;
 };
 
-
+const isEmpty = (input) =>{
+    return true;
+}
 
 const  isValidName = (input) => {  
     if(!isValid(input)){
@@ -37,20 +39,30 @@ const isValidPassword = (input) =>{
  const validators = {
   firstName : isValidName,
   lastName : isValidName,
-  email :isValidEmail,
-  contactNo :isValidContact,
-  address :isValid,
-  city:isValidName,
-  state:isValidName,
-  password:isValidPassword
+  email : isValidEmail,
+  contactNo : isValidContact,
+  address : isValid,
+  city : isValidName,
+  state : isValidName,
+  password : isValidPassword
 };
 
 const courseValidation = {
   courseImage:isValid,
-  courseName:isValidName,
+  courseName:isValid,
   duration:isValid,
   fee:isValid,
-  about:isValid
+  about:isValid,
+  type:isValid,
+  category:isValid,
+  subCategory:isValid,
+  trending:isValid,
+  mode:isValid,
+  startDate:isEmpty,
+  language:isEmpty,
+  courseCurriculum:isEmpty,
+  certificateImage:isEmpty,
+  rating:isEmpty,
 }
 module.exports = {
     isValid,

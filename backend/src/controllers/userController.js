@@ -81,10 +81,10 @@ const signUpUser = async (req, res) => {
       userData.role = "user";
        //  reply.length = 0
        let createUser = await userModel.create(userData);
-       return res.status(201).json({msg:"user signed up    successfully", data: createUser})
+       return res.status(201).json({msg:"user signed up successfully", data: createUser})
     }catch(error){
         console.log(error);
-        return res.status(500).json({msg:"Internal   Server Error"});
+        return res.status(500).json({msg:"Internal Server Error"});
     }
 }; 
 

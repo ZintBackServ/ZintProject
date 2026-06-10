@@ -1,77 +1,72 @@
 import React from "react";
 import Home from "./pages/Home";
 import Courses from "./pages/Courses";
+import CourseDetail from "./pages/CourseDetail";
 import About from "./pages/About";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Navbar from "./components/Navbar";
-import { FaFacebook, FaPhoneAlt, FaInstagramSquare, FaWhatsapp, FaYoutube, FaLinkedin  } from "react-icons/fa";
-import { CiMail, CiLocationOn } from "react-icons/ci";
+import Events from "./pages/Events";
+import Internship from "./pages/Internship";
+import Admission from "./components/Admission";
+import Blog from "./pages/Blog";
 
+  //placement
+import PlacementRegistration from "./pages/PlacementRegistration";
+import PlacedStudent from "./components/PlacedStudentSlider";
+
+import AdminDashboard from "./pages/admin/AdminDashboard";  // admin dashboard
+import Dashboard from "./pages/user/Dashboard";
+import OnlineTraining from "./pages/OnlineTraining";
+import { Routes, Route } from "react-router-dom"; // removed BrowserRouter
+import Navbar from "./components/Navbar";
+import TopInfo from "./pages/TopInfo";  //top info bar
+import Footer from "./pages/Footer";   //footer
+import DataProvider from "./context/DataProvider";
+import { AdminRoute, PrivateRoute } from "./components/ProtectedRoute";
+import { AdminRatingDashboard } from "./pages/admin/Rating";
 
 function App() {
   return (
-   
-    <BrowserRouter>
-     <div >
-         <div className="bg-slate-950 text-white">
-           <div 
-             className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 text-sm sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
-             <div className="flex flex-wrap gap-x-5 gap-y-2">
-                 <a 
-                   className="inline-flex items-center gap-2 hover:text-amber-300" 
-                   href="tel:+919876543210">
-                   <FaPhoneAlt className="h-4 w-4" />+91 98765 43210
-                 </a>
-                 <a 
-                   className="inline-flex items-center gap-2 hover:text-amber-300" href="mailto:info@zinstitute.in">
-                   <CiMail className="h-4 w-4" />info@zinstitute.in
-                 </a>
-                 <span className="inline-flex items-center gap-2">
-                    <CiLocationOn className="h-4 w-4" />Main Campus, Gwalior
-                 </span>
-              </div>
-              <div className="flex gap-3">
-                <a 
-                  target="_blank" rel="noopener noreferrer"
-                  className="rounded-full border border-white/10 p-2 hover:bg-blue-700" href="https://www.linkedin.com/in/zint-institute-05a4a12a8/">
-                  <FaLinkedin className="h-4 w-4" />
-                </a>
-                <a 
-                  target="_blank" rel="noopener noreferrer"
-                  className="rounded-full border border-white/10 p-2 hover:bg-red-600" href="https://youtube.com/@zintinstitute?si=hs6oYmKtUX6nuji8">
-                  <FaYoutube className="h-4 w-4" />
-                </a>
-                <a 
-                  target="_blank" rel="noopener noreferrer"
-                  className="rounded-full border border-white/10 p-2 hover:bg-green-500" href="https://wa.me/919876543210">
-                  <FaWhatsapp className="h-4 w-4" />
-                </a>
-                <a 
-                  target="_blank" rel="noopener noreferrer"
-                  className="rounded-full border border-white/10 p-2 hover:bg-sky-500" href="https://www.facebook.com/share/1Cwfquebni/">
-                  <FaFacebook className="h-4 w-4" />
-                </a>
-                <a 
-                  target="_blank" rel="noopener noreferrer"
-                  className="rounded-full border border-white/10 p-2 hover:bg-fuchsia-700" href="https://www.instagram.com/zintinstitute/">
-                  <FaInstagramSquare  className="h-4 w-4" />
-                </a>
-              </div>
-            </div>
-         </div>
-      </div>
+    // No BrowserRouter here — it lives in main.jsx now
+    <DataProvider>
+      <TopInfo />
       <Navbar />
       <Routes>
+        {/* Public routes */}
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
         <Route path="/courses" element={<Courses />} />
+        <Route path="/OnlineTraining" element={<OnlineTraining />} />
+
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
+        <Route path="/courses/:id" element={<CourseDetail />} />
+        <Route path="/Events" element={<Events />} />
+        <Route path="/Blog" element={<Blog />} />
+        <Route path="/Internship" element={<Internship />} />
+        <Route path="/PlacedStudent" element={<PlacedStudent />} />
+        <Route path="/OnlineAdmission" element={<Admission />} />
+        <Route path="/PlacementRegistration" element={<PlacementRegistration />} />
+       
         
+
+        {/* Logged in users only */}
+      <Route path="/user/dashboard" element={
+        <PrivateRoute>
+          <Dashboard />
+        </PrivateRoute>
+      } />
+
+        {/* Admin only route */}
+        <Route path="/admin/dashboard/*" element={
+          <AdminRoute>
+            <AdminDashboard />
+          </AdminRoute>
+        } />
+        <Route path="/admin/ratings" element={<AdminRatingDashboard />} />
       </Routes>
-    </BrowserRouter>
+      <Footer/>
+    </DataProvider>
   );
 }
 

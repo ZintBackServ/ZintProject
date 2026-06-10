@@ -1,11 +1,20 @@
 import {useState, useEffect} from "react";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
-import ImageSlider from "../components/ImageSlider";
+import ImageSlider from "../components/HomeImageSlider";
+import LatestUpdates from "../components/LatestUpdates";
+import CompanyLogo from "../components/CompanyLogoSlider";
+import CourseSlider from "./trendingCourseSlider";
+import PlacedStudentsSlider from "../components/PlacedStudentSlider"
+import Location from "../components/Location"
+import Reviews from "../components/Reviews"
+import ContactUs from "../components/ContactUs"
+import Mentor from "./Mentor"; 
+
 
 const trend=[["Full Stack Programming","6 Months"],["AI Tools and Prompting","10 Weeks"],["Cloud and DevOps","4 Months"],["Tally with GST","8 Weeks"]];
 
 const Title=({tag,title,text})=><div className="max-w-2xl"><p className="text-sm font-bold uppercase tracking-[0.28em] text-sky-700">{tag}</p><h2 className="mt-3 text-3xl font-extrabold tracking-tight text-slate-950 sm:text-4xl">{title}</h2><p className="mt-4 text-base leading-7 text-slate-600">{text}</p></div>;
-const hero=[["Admissions Open","Build job-ready skills at ZInstitute.","Learn programming, AI, cloud, steno, tally, and more with practical classes."],["Upcoming Events","Join workshops, seminars, and scholarship offers.","We run demo classes, career guidance sessions, and admission campaigns."],["Placement Focus","Training that moves students toward real careers.","Projects, interview prep, and company exposure are built into our programs."]];
+const hero=[["Admissions Open","Build job-ready skills at Zint Institute.","Learn programming, AI, cloud, steno, tally, and more with practical classes."],["Upcoming Events","Join workshops, seminars, and scholarship offers.","We run demo classes, career guidance sessions, and admission campaigns."],["Placement Focus","Training that moves students toward real careers.","Projects, interview prep, and company exposure are built into our programs."]];
 
 function Home() {
 
@@ -18,43 +27,51 @@ function Home() {
         return()=>{clearInterval(a);clearInterval(b);};},[]);
      const visible=[0,1,2].map(i=>trend[(trendIndex+i)%trend.length]);
   return (
-   <>
+   <div className="">
      <ImageSlider/>
+     <LatestUpdates/>
+     <CourseSlider/>
+     <PlacedStudentsSlider/>
+     <CompanyLogo/>
+     
+
     <section 
       id="home" className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1.2fr_0.8fr] lg:px-8 lg:py-20">
       <div  
-          className="rounded-[36px] bg-slate-950 p-8 text-white shadow-[0_30px_90px_rgba(15,23,42,0.22)] sm:p-10">
-        <p className="inline-flex rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-amber-300">{hero[heroIndex][0]}</p>
-        <h1 className="mt-6 text-4xl font-black leading-tight tracking-tight sm:text-5xl">{hero[heroIndex][1]}</h1>
-        <p className="mt-5 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">{hero[heroIndex][2]}</p>
-        <div className="mt-8 flex flex-wrap gap-3">
-          <a 
-            href="#course" className="rounded-full bg-white px-6 py-3 text-sm font-bold text-slate-950">Explore Courses
-          </a>
-          <a 
-            href="#events" className="rounded-full border border-white/15 px-6 py-3 text-sm font-semibold text-white hover:bg-white/10">Upcoming Events
-          </a>
-        </div>
-        <div className="mt-8 flex items-center justify-between">
-          <div 
-            className="flex gap-2">{hero.map((s,i)=>
-            <button
-              key={s[0]} 
-              type="button" 
-              onClick={()=>setHeroIndex(i)} 
-              className={`h-3 rounded-full ${i===heroIndex?"w-10 bg-amber-300":"w-3 bg-white/30"}`} 
-           /> 
-           )}
-          </div>
-          <div className="flex gap-2">
-            <button 
+          className="rounded-[36px] bg-gray-800 p-8 text-white shadow-[0_30px_90px_rgba(15,23,42,0.22)] sm:p-10"
+        >
+           <p className="inline-flex rounded-full  bg-white/10 px-4 py-2 text-sm font-semibold text-amber-300">{hero[heroIndex][0]}</p>
+           <h1 className="mt-6 text-4xl font-black h-40 leading-tight tracking-tight sm:text-5xl">{hero[heroIndex][1]}</h1>
+           <p className="mt-5 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">{hero[heroIndex][2]}</p>
+           <div className="mt-8 flex flex-wrap gap-3">
+              <a 
+                href="#course" className="rounded-full bg-white px-6 py-3 text-sm font-bold text-slate-950">Explore Courses
+              </a>
+              <a 
+                href="#events" className="rounded-full border border-white/15 px-6 py-3 text-sm font-semibold text-white hover:bg-white/10">Upcoming Events
+              </a>
+            </div>
+            <div className="mt-8  flex items-center justify-between">
+            <div 
+               className="flex gap-2">
+              {hero.map((s,i)=>
+               <button
+                key={s[0]} 
+                type="button" 
+                onClick={()=>setHeroIndex(i)} 
+                className={`h-3 rounded-full ${i===heroIndex?"w-10 bg-amber-300":"w-3 bg-white/30"}`} 
+               /> 
+              )}
+             </div>
+            <div className="flex gap-2">
+             <button 
               type="button" onClick={()=>setHeroIndex(i=>(i-1+hero.length)%hero.length)}   className="rounded-full border border-white/15 p-3">
               <ChevronLeft className="h-4 w-4" />
-            </button>
-            <button 
+             </button>
+             <button 
               type="button" onClick={()=>setHeroIndex(i=>(i+1)%hero.length)} className="rounded-full border border-white/15 p-3">
               <ChevronRight className="h-4 w-4" />
-            </button>
+             </button>
           </div>
         </div>
       </div>
@@ -83,40 +100,13 @@ function Home() {
         </div>
       </div>
     </section>
-    <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-      <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-        <Title tag="Trending Courses" title="Programs students are choosing the most." text="A rotating course slider for the most in-demand programs at ZInstitute." />
-         <div className="flex gap-2">
-            <button 
-             type="button" 
-             onClick={()=>setTrendIndex(i=>(i-1+trend.length)%trend.length)}  className="rounded-full border border-slate-200 bg-white p-3">
-             <ChevronLeft className="h-5 w-5" />
-            </button>
-            <button
-               type="button" onClick={()=>setTrendIndex(i=>(i+1)%trend.length)} className="rounded-full border border-slate-200 bg-white p-3">
-                <ChevronRight className="h-5 w-5" />
-            </button>
-         </div>
-        </div>
-        <div className="mt-8 grid gap-5 lg:grid-cols-3">
-           {visible.map(c=>
-           <article 
-            key={c[0]} className="rounded-[30px] border border-white bg-white p-6 shadow-[0_24px_60px_rgba(15,23,42,0.08)]">
-            <div  
-              className="rounded-[26px] bg-[linear-gradient(135deg,_#fde68a,_#fb7185)] p-6 text-slate-950">
-              <p className="text-sm font-bold uppercase tracking-[0.24em] text-slate-900/65">Trending</p>
-              <h3 className="mt-3 text-2xl font-extrabold">{c[0]}</h3>
-              <p className="mt-8 text-sm font-semibold">{c[1]}</p>
-            </div>
-            <a 
-             href="#course" className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-sky-700">View details
-              <ArrowRight className="h-4 w-4" />
-            </a>
-            </article>)}
-          </div>
-    </section>
-   </>
+    <Mentor/>
+    <ContactUs/>
+    <Reviews/>
+    <Location/>
+   </div>
   );
 };
 
 export default Home;
+

@@ -11,7 +11,7 @@ const addMentor = async (req, res) =>{
     try{
         const {mentorName, expertise, experience, bio } = req.body
         
-        if (!isValidName(mentorName)) {
+        if (!isValid(mentorName)) {
          return res.status(400).json({ msg: "Mentor Name is Missing Or Invalid" });
         }
         if (!isValid(expertise)) {
@@ -20,7 +20,7 @@ const addMentor = async (req, res) =>{
         
 
         if (!req.files || !req.files.profileImage) {
-          return res.status(400).json({ msg: "ProfileImage is needed" });
+          return res.status(400).json({ msg: "Profile Image is needed" });
         }
         console.log(req.files);
         const profileLocalPath =  req.files.profileImage[0].path;
@@ -28,7 +28,7 @@ const addMentor = async (req, res) =>{
        const profileImage =  await uploadOnCloudinary(profileLocalPath);
 
        if(!profileImage){
-         return res.status(400).json({ msg: "Profile upload is failed" });
+         return res.status(400).json({ msg: "Profile Image upload is failed" });
        }
 
        const mentor = await mentorModel.create({
@@ -61,7 +61,7 @@ const getAllMentor = async (req, res) => {
                 }
                 return res.status(200).json({
                      msg:"Mentors Fetched Successfully",  totalMentor: mentors.length,
-                     data:mentors,
+                     mentors:mentors,
                 });
 
     }catch(error){

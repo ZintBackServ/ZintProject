@@ -4,7 +4,6 @@ const mentorSchema = new mongoose.Schema(
         mentorName:{
             type:String,
             required:true,
-            lowercase:true,
             trim:true,
             index:true
         },
@@ -20,9 +19,8 @@ const mentorSchema = new mongoose.Schema(
         },
         profileImage: {
           type: String, // image URL (from backend/cloud)
-          required: true
-          
-        }
+          required: true 
+        },
 
     },
     {timestaps:true}

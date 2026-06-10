@@ -1,14 +1,12 @@
 {
-  "name": "task16project",
+  "name": "backend",
   "version": "1.0.0",
-  "main": "server.js",
+  "main": "src/server.js",
   "scripts": {
-    "test": "node server.js",
-    "start":"npx nodemon src/server"
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "build": "echo Build complete"
   },
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cloudinary": "^2.9.0",
