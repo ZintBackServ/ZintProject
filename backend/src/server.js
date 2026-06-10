@@ -35,7 +35,7 @@ app.use("/enrollment",enrollmentRoutes);
 app.use("/rating",ratingRoutes);
 
 app.get("/",(req, res)=>{
-    res.status(200).send({msg:"server is created"});
+    res.status(200).send({msg:"server is working fine, Don't worry!"});
 });
 
 // Connect DB

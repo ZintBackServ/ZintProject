@@ -2,28 +2,41 @@ const mongoose = require("mongoose");
 
 const ratingSchema = new mongoose.Schema(
   {
-    // what is being rated
-    // targetId: {
-    //   type: mongoose.Schema.Types.ObjectId,
-    //   required: true,
-    // },
+    // FIX: restore targetId — it was commented out, breaking the unique index below
+    targetId: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      index: true,
+      // Points to an Event, Course, Mentor, or Enrollment depending on targetType
+    },
+
     targetType: {
       type: String,
       enum: ["event", "course", "mentor", "internship"],
       required: true,
     },
+
     targetName: {
       type: String,
       required: true,
       trim: true,
     },
 
-    // who gave the rating
+    // FIX: link to User instead of storing name/email as plain strings
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true,
+    },
+
+    // Keep denormalized fields for display without extra lookups
     studentName: {
       type: String,
       required: true,
       trim: true,
     },
+
     studentEmail: {
       type: String,
       required: true,
@@ -31,13 +44,13 @@ const ratingSchema = new mongoose.Schema(
       lowercase: true,
     },
 
-    // the rating itself
     rating: {
       type: Number,
       required: true,
       min: 1,
       max: 5,
     },
+
     review: {
       type: String,
       trim: true,
@@ -54,7 +67,8 @@ const ratingSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// one student can rate same target only once
-ratingSchema.index({ targetId: 1, studentEmail: 1 }, { unique: true });
+// FIX: unique index now works because targetId is no longer commented out
+// One user can rate the same target only once
+ratingSchema.index({ targetId: 1, userId: 1 }, { unique: true });
 
 module.exports = mongoose.model("Rating", ratingSchema);
