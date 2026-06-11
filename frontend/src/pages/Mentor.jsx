@@ -14,9 +14,10 @@ const Mentor = () => {
       try {
         const res = await fetch(`${import.meta.env.VITE_API_URL}/mentor/allMentor`);
         const data = await res.json();
-        console.log(data.mentors);
+        console.log("I am mentor",data.mentors);
         setMentors(data.mentors);
       } catch (err) {
+        console.log("error in meentor",err,`${import.meta.env.VITE_API_URL}/mentor/allMentor`)
         console.log(err);
       }
     };

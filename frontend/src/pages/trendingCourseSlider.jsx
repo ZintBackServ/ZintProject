@@ -43,7 +43,7 @@ export default function CourseSlider() {
           {/* <h2 className="text-5xl md:text-6xl text-fuchsia-700 font-extrabold leading-tight">
             ⚡Trending Courses
           </h2> */}
-          <h1 className="text-5xl md:text-6xl font-black text-gray-900 leading-tight">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-gray-900 leading-tight">
               ⚡Trending <span className="text-fuchsia-600">Courses</span>
             </h1>
         </div>
