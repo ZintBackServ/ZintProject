@@ -51,7 +51,7 @@ const courseSchema = new mongoose.Schema(
     mode: {
       type: String,
       required: true,
-      enum: ["online", "offline", "hybrid"], // FIX: enumerate valid modes
+      enum: ["Online", "Offline", "Hybrid"], // FIX: enumerate valid modes
     },
 
     type: {

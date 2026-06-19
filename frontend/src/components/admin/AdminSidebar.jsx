@@ -11,6 +11,8 @@ const links = [
   { path: "/admin/dashboard/PlacedStudentAdminDashboard",  label: "🏆 Placements"   },
   { path: "/admin/dashboard/AllEventRegistration",         label: "AllEventRegistration"   },
   { path: "/admin/dashboard/Rating",                       label: "Rating"   },
+  { path: "/admin/dashboard/EnrolledStudent",              label: "EnrolledStudent"   },
+  { path: "/admin/dashboard/Notification",              label: "Notification"   },
 ];
 
 function AdminSidebar({ onClose }) {

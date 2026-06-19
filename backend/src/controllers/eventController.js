@@ -1,4 +1,4 @@
-const eventModel = require("../models/EventModel"); 
+const eventModel = require("../models/eventModel"); 
 const {uploadOnCloudinary} = require("../utils/cloudinary");
 const mongoose = require("mongoose");
 

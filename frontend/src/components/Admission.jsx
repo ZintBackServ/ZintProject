@@ -1,678 +1,534 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useAuth } from "../context/AuthContext";
 
+const API = import.meta.env.VITE_API_URL;
+const getToken = () => localStorage.getItem("token");
 
+const inr = (n) => "₹" + Number(n).toLocaleString("en-IN");
 
-const STEPS = [
-  "Academic Details",
-  "Course Selection",
-  "Documents",
-  "Payment",
-  "Review & Submit",
-];
+// ── Safely resolve populated-or-plain fields ──────────────────────────────────
+const courseName = (c) =>
+  typeof c === "object" && c !== null
+    ? c.courseName || c.title || String(c._id)
+    : c || "Unknown Course";
 
-const COURSES = [
-  { id: 1, name: "Full Stack Web Development", duration: "6 months", fee: "₹45,000", icon: "🖥️", tag: "Popular" },
-  { id: 2, name: "Data Science & AI",           duration: "8 months", fee: "₹55,000", icon: "🤖", tag: "Trending" },
-  { id: 3, name: "Cloud Computing (AWS)",        duration: "4 months", fee: "₹35,000", icon: "☁️", tag: "" },
-  { id: 4, name: "Cyber Security",               duration: "5 months", fee: "₹40,000", icon: "🔐", tag: "New" },
-  { id: 5, name: "DevOps & Docker",              duration: "4 months", fee: "₹38,000", icon: "⚙️", tag: "" },
-  { id: 6, name: "Mobile App Development",       duration: "6 months", fee: "₹42,000", icon: "📱", tag: "" },
-];
+const courseImage = (c) =>
+  typeof c === "object" && c !== null ? c.courseImage : null;
 
-const TAG_COLOR = {
-  Popular:  { bg: "#fdf2f8", text: "#be185d", border: "#fbcfe8" },
-  Trending: { bg: "#fff7ed", text: "#c2410c", border: "#fed7aa" },
-  New:      { bg: "#f0fdf4", text: "#15803d", border: "#bbf7d0" },
+// ─── Badge maps ───────────────────────────────────────────────────────────────
+const STATUS_BADGE = {
+  active:    "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200",
+  completed: "bg-sky-100 text-sky-700 ring-1 ring-sky-200",
+  pending:   "bg-amber-100 text-amber-700 ring-1 ring-amber-200",
+  cancelled: "bg-red-100 text-red-700 ring-1 ring-red-200",
+  expired:   "bg-slate-100 text-slate-500 ring-1 ring-slate-200",
 };
 
-// ─── Design tokens ────────────────────────────────────────────────────────────
-
-const C = {
-  bg:         "#fff5f8",
-  card:       "#ffffff",
-  primary:    "#e91e8c",
-  primary2:   "#f43f9a",
-  soft:       "#fce7f3",
-  softBorder: "#f9a8d4",
-  muted:      "#9d174d",
-  mutedLight: "#fbcfe8",
-  text:       "#1a0a12",
-  textSub:    "#6b2150",
-  textHint:   "#be85a6",
-  success:    "#059669",
-  successBg:  "#ecfdf5",
-  successBdr: "#6ee7b7",
-  warn:       "#b45309",
-  warnBg:     "#fffbeb",
-  warnBdr:    "#fcd34d",
+const PAYMENT_BADGE = {
+  paid:     { cls: "bg-violet-100 text-violet-700 ring-1 ring-violet-200",   label: "💳 Paid"    },
+  free:     { cls: "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200", label: "🎁 Free"   },
+  pending:  { cls: "bg-amber-100 text-amber-700 ring-1 ring-amber-200",       label: "⏳ Pending" },
+  failed:   { cls: "bg-red-100 text-red-700 ring-1 ring-red-200",             label: "✗ Failed"   },
+  refunded: { cls: "bg-slate-100 text-slate-500 ring-1 ring-slate-200",       label: "↩ Refunded" },
 };
 
-// ─── Shared primitives ────────────────────────────────────────────────────────
-
-const baseInput = {
-  width: "100%",
-  padding: "10px 14px",
-  borderRadius: 10,
-  border: `1px solid ${C.softBorder}`,
-  background: "#fff",
-  color: C.text,
-  fontSize: 14,
-  outline: "none",
-  transition: "border-color .15s",
-  boxSizing: "border-box",
-};
-
-function Label({ children }) {
+// ─── Primitives ───────────────────────────────────────────────────────────────
+function Badge({ status, type = "enrollment" }) {
+  if (!status) return null;
+  const map   = type === "payment" ? PAYMENT_BADGE : STATUS_BADGE;
+  const entry = type === "payment" ? map[status] : { cls: map[status], label: status };
+  if (!entry) return null;
   return (
-    <label style={{ display: "block", fontSize: 12, fontWeight: 600, marginBottom: 5,
-      color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>
-      {children}
-    </label>
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold capitalize ${entry.cls}`}>
+      {entry.label}
+    </span>
   );
 }
 
-function Input({ label, placeholder, type = "text", value, onChange }) {
-  const [focus, setFocus] = useState(false);
+function ProgressBar({ value }) {
   return (
-    <div>
-      {label && <Label>{label}</Label>}
-      <input
-        type={type}
-        placeholder={placeholder}
-        value={value}
-        onChange={onChange}
-        style={{ ...baseInput, borderColor: focus ? C.primary : C.softBorder }}
-        onFocus={() => setFocus(true)}
-        onBlur={() => setFocus(false)}
+    <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
+      <div
+        className="h-full rounded-full bg-gradient-to-r from-violet-500 to-sky-400 transition-all duration-500"
+        style={{ width: `${value}%` }}
       />
     </div>
   );
 }
 
-function Sel({ label, value, onChange, children }) {
-  const [focus, setFocus] = useState(false);
+function Toast({ toast }) {
+  if (!toast) return null;
+  const colorMap = {
+    success: "border-emerald-400 text-emerald-700 bg-emerald-50",
+    error:   "border-red-400 text-red-700 bg-red-50",
+    info:    "border-violet-400 text-violet-700 bg-violet-50",
+  };
   return (
-    <div>
-      {label && <Label>{label}</Label>}
-      <select
-        value={value}
-        onChange={onChange}
-        style={{ ...baseInput, borderColor: focus ? C.primary : C.softBorder, appearance: "none",
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23e91e8c' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`,
-          backgroundRepeat: "no-repeat", backgroundPosition: "right 12px center" }}
-        onFocus={() => setFocus(true)}
-        onBlur={() => setFocus(false)}
-      >
+    <div className={`fixed bottom-7 right-7 z-50 max-w-xs border rounded-xl px-5 py-3.5 text-sm font-medium shadow-xl transition-all duration-300 ${colorMap[toast.type] || colorMap.info}`}>
+      {toast.msg}
+    </div>
+  );
+}
+
+function Modal({ open, onClose, title, subtitle, children }) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-white border border-slate-200 rounded-2xl p-7 w-full max-w-md mx-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <h3 className="text-lg font-bold text-slate-800 mb-1">{title}</h3>
+        {subtitle && <p className="text-sm text-slate-500 mb-5">{subtitle}</p>}
         {children}
-      </select>
+      </div>
     </div>
   );
 }
 
-
-// ─── Step 1 — Academic Details ────────────────────────────────────────────────
-
-function Step1({ data, set }) {
-  const u = (k) => (e) => set({ ...data, [k]: e.target.value });
+function StatCard({ label, value, color }) {
+  const colorMap = {
+    purple: "text-violet-600",
+    cyan:   "text-sky-600",
+    green:  "text-emerald-600",
+    orange: "text-amber-600",
+  };
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-      <Sel label="Highest Qualification" value={data.qualification} onChange={u("qualification")}>
-        <option value="">Select qualification</option>
-        <option value="10th">10th (SSC)</option>
-        <option value="12th">12th (HSC)</option>
-        <option value="diploma">Diploma</option>
-        <option value="ug">Under Graduate (UG)</option>
-        <option value="pg">Post Graduate (PG)</option>
-        <option value="pg">Others</option>
-      </Sel>
-      
-      <Input label="Year of Passing"      placeholder="2024"             value={data.yearOfPassing} onChange={u("yearOfPassing")} />
-      <Input label="Board / University"   placeholder="CBSE / Osmania"   value={data.board}         onChange={u("board")} />
-      <Input label="Stream / Specialization" placeholder="Science / B.Tech (CSE)" value={data.stream} onChange={u("stream")} />
-      <Sel   label="Employment Status"   value={data.employment} onChange={u("employment")}>
-        <option value="">Select status</option>
-        <option value="student">Student</option>
-        <option value="fresher">Fresher</option>
-        <option value="employed">Employed</option>
-        <option value="self-employed">Self-Employed</option>
-      </Sel>
+    <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+      <div className="text-[11px] uppercase tracking-widest text-slate-400 font-semibold mb-1.5">{label}</div>
+      <div className={`text-3xl font-bold tracking-tight ${colorMap[color]}`}>{value}</div>
     </div>
   );
 }
 
-// ─── Step 2 — Course Selection ────────────────────────────────────────────────
+// ─── Course card (enrolled) ───────────────────────────────────────────────────
+function CourseCard({ enrollment, onProgress, onCancel }) {
+  const title    = courseName(enrollment.courseId);
+  const progress = enrollment.progress || 0;
+  const thumb    = courseImage(enrollment.courseId);
 
-function Step2({ data, set }) {
-  const u = (k) => (e) => set({ ...data, [k]: e.target.value });
+  return (
+    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden hover:-translate-y-0.5 hover:border-violet-400 hover:shadow-md transition-all duration-150 shadow-sm">
+      <div className="h-36 flex items-center justify-center text-5xl bg-gradient-to-br from-violet-50 to-sky-50 overflow-hidden">
+        {thumb ? <img src={thumb} alt={title} className="w-full h-full object-cover" /> : "📖"}
+      </div>
+      <div className="p-4">
+        <div className="text-[15px] font-semibold text-slate-800 mb-2 leading-snug">{title}</div>
+        <div className="flex flex-wrap items-center gap-2 mb-3">
+          <Badge status={enrollment.status} />
+          <Badge status={enrollment.paymentStatus} type="payment" />
+          {enrollment.amount > 0 && (
+            <span className="text-[11px] text-slate-400">{inr(enrollment.amount)}</span>
+          )}
+        </div>
+        <div className="mb-3">
+          <div className="flex justify-between text-[11px] text-slate-400 mb-1.5">
+            <span>Progress</span><span>{progress}%</span>
+          </div>
+          <ProgressBar value={progress} />
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {enrollment.status === "active" && (
+            <>
+              <button
+                onClick={() => onProgress(enrollment._id, title, progress)}
+                className="px-3 py-1.5 text-xs font-semibold bg-violet-600 hover:bg-violet-500 text-white rounded-lg transition-colors"
+              >
+                Update Progress
+              </button>
+              <button
+                onClick={() => onCancel(enrollment._id)}
+                className="px-3 py-1.5 text-xs font-semibold bg-white border border-slate-300 hover:border-red-400 text-slate-600 hover:text-red-500 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+            </>
+          )}
+          {enrollment.status === "completed" && (
+            <span className="text-xs text-emerald-600 font-semibold">✓ Completed</span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Shop card (catalog) ──────────────────────────────────────────────────────
+function ShopCard({ course, enrolled, onBuy, onFree }) {
+  const title = course.courseName || course.title;
+  const price = course.fee ?? course.price ?? 0;
+  const thumb = course.courseImage;
+
+  return (
+    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden hover:-translate-y-0.5 hover:border-violet-400 hover:shadow-md transition-all duration-150 shadow-sm">
+      <div className="h-32 flex items-center justify-center text-5xl bg-gradient-to-br from-violet-50 to-sky-50 overflow-hidden">
+        {thumb ? <img src={thumb} alt={title} className="w-full h-full object-cover" /> : "📚"}
+      </div>
+      <div className="p-4">
+        <div className="text-[15px] font-semibold text-slate-800 mb-1">{title}</div>
+        <div className="text-xs text-slate-400 mb-4 leading-relaxed line-clamp-2">
+          {course.category}
+          {course.subCategory ? ` · ${course.subCategory}` : ""}
+          {course.duration    ? ` · ${course.duration} months` : ""}
+        </div>
+        <div className="flex items-center justify-between">
+          <div className={`text-xl font-bold ${price === 0 ? "text-emerald-600" : "text-violet-600"}`}>
+            {price === 0 ? "Free" : inr(price)}
+          </div>
+          {enrolled ? (
+            <Badge status="active" />
+          ) : price === 0 ? (
+            <button onClick={() => onFree(course._id)} className="px-3 py-1.5 text-xs font-semibold bg-violet-600 hover:bg-violet-500 text-white rounded-lg transition-colors">
+              Enroll Free
+            </button>
+          ) : (
+            <button onClick={() => onBuy(course._id, price, title)} className="px-3 py-1.5 text-xs font-semibold bg-violet-600 hover:bg-violet-500 text-white rounded-lg transition-colors">
+              Buy Now
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Views ────────────────────────────────────────────────────────────────────
+function Dashboard({ enrollments, onProgress, onCancel, onNavigate }) {
+  const active     = enrollments.filter((e) => e.status === "active").length;
+  const completed  = enrollments.filter((e) => e.status === "completed").length;
+  const spent      = enrollments.filter((e) => e.paymentStatus === "paid").reduce((s, e) => s + (e.amount || 0), 0);
+  const inProgress = enrollments.filter((e) => e.status === "active" && e.progress < 100);
+
   return (
     <div>
-      <p style={{ fontSize: 13, color: C.textSub, marginBottom: 16 }}>
-        Select the course you want to enrol in:
-      </p>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 20 }}>
-        {COURSES.map((c) => {
-          const sel = data.course === c.id;
-          return (
-            <div
-              key={c.id}
-              onClick={() => set({ ...data, course: c.id })}
-              style={{
-                position: "relative",
-                padding: "14px 14px 12px",
-                borderRadius: 14,
-                border: sel ? `2px solid ${C.primary}` : `1px solid ${C.softBorder}`,
-                background: sel ? C.soft : "#fff",
-                cursor: "pointer",
-                transition: "all .18s",
-                boxShadow: sel ? `0 0 0 3px ${C.soft}` : "none",
-              }}
-            >
-              {c.tag && (
-                <span style={{
-                  position: "absolute", top: 10, right: 10,
-                  fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 20,
-                  background: TAG_COLOR[c.tag].bg, color: TAG_COLOR[c.tag].text,
-                  border: `1px solid ${TAG_COLOR[c.tag].border}`,
-                }}>
-                  {c.tag}
-                </span>
-              )}
-              {sel && (
-                <div style={{
-                  position: "absolute", top: 10, left: 10,
-                  width: 18, height: 18, borderRadius: "50%",
-                  background: C.primary, display: "flex", alignItems: "center",
-                  justifyContent: "center", fontSize: 10, color: "#fff",
-                }}>✓</div>
-              )}
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-                <span style={{ fontSize: 22 }}>{c.icon}</span>
-                <div>
-                  <p style={{ fontSize: 13, fontWeight: 600, color: C.text, margin: 0 }}>{c.name}</p>
-                  <p style={{ fontSize: 11, color: C.textHint, margin: "2px 0 0" }}>{c.duration}</p>
-                </div>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", paddingTop: 10,
-                borderTop: `1px solid ${C.mutedLight}` }}>
-                <span style={{ fontSize: 11, color: C.textSub }}>Course Fee</span>
-                <span style={{ fontSize: 13, fontWeight: 700, color: C.primary }}>{c.fee}</span>
-              </div>
-            </div>
-          );
-        })}
+      <div className="flex items-start justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Dashboard 👋</h1>
+          <p className="text-sm text-slate-500 mt-1">Track your learning progress and manage enrollments</p>
+        </div>
+        <button
+          onClick={() => onNavigate("browse")}
+          className="flex items-center gap-1.5 px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
+        >
+          + Enroll in a Course
+        </button>
       </div>
 
-      <Sel label="Preferred Batch Timing" value={data.timing} onChange={u("timing")}>
-        <option value="">Select timing</option>
-        <option value="morning">Morning (7 AM – 10 AM)</option>
-        <option value="afternoon">Afternoon (12 PM – 3 PM)</option>
-        <option value="evening">Evening (5 PM – 8 PM)</option>
-        <option value="weekend">Weekend Only</option>
-      </Sel>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <StatCard label="Enrolled"    value={enrollments.length} color="purple" />
+        <StatCard label="Active"      value={active}             color="cyan"   />
+        <StatCard label="Completed"   value={completed}          color="green"  />
+        <StatCard label="Spent (INR)" value={inr(spent)}         color="orange" />
+      </div>
+
+      <h2 className="text-base font-semibold text-slate-700 mb-4">Continue Learning</h2>
+
+      {inProgress.length === 0 ? (
+        <div className="text-center py-16 text-slate-400">
+          <div className="text-5xl mb-3">📚</div>
+          <h3 className="text-base font-semibold text-slate-600 mb-1">No active courses yet</h3>
+          <p className="text-sm">Browse the catalog to get started</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {inProgress.map((e) => (
+            <CourseCard key={e._id} enrollment={e} onProgress={onProgress} onCancel={onCancel} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
-// ─── Step 3 — Documents ───────────────────────────────────────────────────────
+function MyCourses({ enrollments, onProgress, onCancel }) {
+  const [filter, setFilter] = useState("all");
+  const filters  = ["all", "active", "completed", "pending", "cancelled"];
+  const filtered = filter === "all" ? enrollments : enrollments.filter((e) => e.status === filter);
 
-function Step3({ data, set }) {
-  const docs = [
-    { key: "photo",     label: "Passport Photo",        hint: "JPG/PNG · max 2 MB" },
-    { key: "idProof",   label: "Aadhaar / PAN Card",    hint: "PDF/JPG · max 5 MB" },
-    
-  ];
   return (
     <div>
-      <p style={{ fontSize: 13, color: C.textSub, marginBottom: 16 }}>
-        Upload required documents. All files are securely stored.
-      </p>
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        {docs.map((doc) => (
-          <div key={doc.key} style={{
-            display: "flex", alignItems: "center", justifyContent: "space-between",
-            padding: "14px 16px", borderRadius: 12,
-            border: `1px solid ${C.softBorder}`, background: "#fff",
-          }}>
-            <div>
-              <p style={{ fontSize: 13, fontWeight: 600, color: C.text, margin: 0 }}>{doc.label}</p>
-              <p style={{ fontSize: 11, color: C.textHint, margin: "2px 0 0" }}>{doc.hint}</p>
-            </div>
-            <label style={{
-              cursor: "pointer", padding: "7px 16px", borderRadius: 8, fontSize: 12, fontWeight: 600,
-              background: data[doc.key] ? C.successBg : C.soft,
-              border: `1px solid ${data[doc.key] ? C.successBdr : C.softBorder}`,
-              color: data[doc.key] ? C.success : C.primary,
-              display: "flex", alignItems: "center", gap: 6,
-            }}>
-              {data[doc.key] ? "✓ Uploaded" : "↑ Upload"}
-              <input type="file" style={{ display: "none" }}
-                onChange={(e) => e.target.files[0] && set({ ...data, [doc.key]: e.target.files[0].name })} />
-            </label>
-          </div>
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-slate-800 tracking-tight">My Courses</h1>
+        <p className="text-sm text-slate-500 mt-1">All your enrollments in one place</p>
+      </div>
+      <div className="flex flex-wrap gap-2 mb-6">
+        {filters.map((f) => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            className={`px-4 py-1.5 rounded-full text-xs font-semibold border transition-all ${
+              filter === f
+                ? "bg-violet-600 border-violet-600 text-white shadow-sm"
+                : "bg-white border-slate-300 text-slate-500 hover:border-violet-400 hover:text-violet-600"
+            }`}
+          >
+            {f.charAt(0).toUpperCase() + f.slice(1)}
+          </button>
         ))}
       </div>
-
-      <div style={{ marginTop: 16, padding: "12px 16px", borderRadius: 10,
-        background: C.soft, border: `1px solid ${C.softBorder}` }}>
-        <p style={{ fontSize: 12, color: C.muted, margin: 0 }}>
-          🔒 Your documents are encrypted and securely stored. We never share your data with third parties.
-        </p>
-      </div>
-    </div>
-  );    
-}
-
-// ─── Step 5 — Payment ─────────────────────────────────────────────────────────
-
-// Simple inline QR code using a public QR API (replace UPI ID as needed)
-const UPI_ID   = "7879547759@ybl";
-const UPI_NAME = "Shivam Savita";
-
-function Step4({ payment, setPayment, courseData }) {
-  const u = (k) => (e) => setPayment({ ...payment, [k]: e.target.value });
-  const selectedCourse = COURSES.find((x) => x.id === courseData.course);
-  const upiLink = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(UPI_NAME)}&am=${selectedCourse?.fee.replace(/[^0-9]/g, "") || ""}&cu=INR`;
-  const qrUrl   = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(upiLink)}`;
-
-  return (
-    <div>
-      {/* QR section */}
-      <div style={{
-        display: "flex", flexDirection: "column", alignItems: "center",
-        padding: "24px 20px", borderRadius: 16, marginBottom: 20,
-        background: "linear-gradient(145deg, #fff0f6, #fce7f3)",
-        border: `1px solid ${C.softBorder}`,
-      }}>
-        <p style={{ fontSize: 13, fontWeight: 600, color: C.muted, marginBottom: 4 }}>
-          Scan &amp; Pay via UPI
-        </p>
-        {selectedCourse ? (
-          <p style={{ fontSize: 22, fontWeight: 700, color: C.primary, marginBottom: 16 }}>
-            {selectedCourse.fee}
-          </p>
-        ) : (
-          <p style={{ fontSize: 13, color: C.textHint, marginBottom: 16 }}>
-            (Select a course first to see the amount)
-          </p>
-        )}
-
-        {/* QR code image — sourced from free QR API */}
-        <div style={{
-          padding: 10, borderRadius: 14, background: "#fff",
-          border: `2px solid ${C.softBorder}`,
-          boxShadow: "0 4px 20px rgba(233,30,140,0.10)",
-        }}>
-          <img
-            src={qrUrl}
-            alt="UPI QR Code"
-            width={180}
-            height={180}
-            style={{ display: "block", borderRadius: 6 }}
-          />
+      {filtered.length === 0 ? (
+        <div className="text-center py-16 text-slate-400">
+          <div className="text-5xl mb-3">🎓</div>
+          <h3 className="text-base font-semibold text-slate-600 mb-1">No courses here</h3>
+          <p className="text-sm">Try a different filter</p>
         </div>
-
-        <p style={{ fontSize: 12, color: C.textHint, marginTop: 12, textAlign: "center" }}>
-          UPI ID: <strong style={{ color: C.primary }}>{UPI_ID}</strong>
-        </p>
-        <p style={{ fontSize: 11, color: C.textHint, marginTop: 4, textAlign: "center" }}>
-          Pay using PhonePe · Google Pay · Paytm · Any UPI App
-        </p>
-      </div>
-
-      {/* Payment details form */}
-      <p style={{ fontSize: 13, fontWeight: 600, color: C.text, marginBottom: 12 }}>
-        After payment, fill in your transaction details:
-      </p>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-        <div style={{ gridColumn: "1 / -1" }}>
-          <Input
-            label="UTR Number / Transaction ID"
-            placeholder="12-digit transaction ID"
-            value={payment.transactionId}
-            onChange={u("transactionId")}
-          />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {filtered.map((e) => (
+            <CourseCard key={e._id} enrollment={e} onProgress={onProgress} onCancel={onCancel} />
+          ))}
         </div>
-        <Input label="Sender UPI Name"   placeholder="Name on UPI account" value={payment.senderName}   onChange={u("senderName")} />
-        <Input label="Amount Paid (₹)" placeholder="e.g. 45000"          value={`${selectedCourse?.fee.replace(/[^0-9]/g, "")}`}       onChange={u("amount")} />
-        <Input label="Payment Date"      type="date"                        value={payment.paymentDate}  onChange={u("paymentDate")} />
-        <Input label="Payment Time"      type="time"                        value={payment.paymentTime}  onChange={u("paymentTime")} />
-        <div style={{ gridColumn: "1 / -1" }}>
-          <Label>Payment Screenshot</Label>
-          <label style={{
-            display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-            padding: "14px", borderRadius: 10, cursor: "pointer",
-            border: `1.5px dashed ${payment.screenshot ? C.primary : C.softBorder}`,
-            background: payment.screenshot ? C.soft : "#fafafa",
-            color: payment.screenshot ? C.primary : C.textHint,
-            fontSize: 13, fontWeight: 500,
-          }}>
-            {payment.screenshot ? `✓ ${payment.screenshot}` : "↑ Upload payment screenshot"}
-            <input type="file" accept="image/*,.pdf" style={{ display: "none" }}
-              onChange={(e) => e.target.files[0] && setPayment({ ...payment, screenshot: e.target.files[0].name })} />
-          </label>
-        </div>
-      </div>
-
-      <div style={{ marginTop: 16, padding: "12px 16px", borderRadius: 10,
-        background: C.warnBg, border: `1px solid ${C.warnBdr}` }}>
-        <p style={{ fontSize: 12, color: C.warn, margin: 0 }}>
-          ⚠️ Do not close this page before completing the form. Admission is confirmed only after payment verification.
-        </p>
-      </div>
+      )}
     </div>
   );
 }
 
-// ─── Step 6 — Review & Submit ─────────────────────────────────────────────────
+function Browse({ enrollments, onBuy, onFree }) {
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError]     = useState(null);
 
-function Step5({ personal, academic, course, payment }) {
-  const sel = COURSES.find((x) => x.id === course.course);
-  const rows = [
-    ["Qualification",     academic.qualification   || "—"],
-    ["Year of Passing",   academic.yearOfPassing   || "—"],
-    ["Course",            sel?.name       || "—"],
-    ["Duration",          sel?.duration   || "—"],
-    ["Batch Timing",      course.timing   || "—"],
-    ["Course Fee",        sel?.fee        || "—"],
-    ["Transaction ID",    payment.transactionId || "—"],
-    ["Sender Name",       payment.senderName    || "—"],
-    ["Amount Paid",       payment.amount ? `₹${payment.amount}` : "—"],
-    ["Payment Date",      payment.paymentDate   || "—"],
-  ];
+  useEffect(() => {
+    (async () => {
+      try {
+        const res  = await fetch(`${API}/course/getAllCourse`);
+        const data = await res.json();
+        setCourses(data.courses || data.data || []);
+      } catch {
+        setError("Failed to load courses");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  const enrolledIds = new Set(
+    enrollments
+      .filter((e) => ["active", "completed", "pending"].includes(e.status))
+      .map((e) => e.courseId?._id || e.courseId)
+  );
 
   return (
     <div>
-      <p style={{ fontSize: 13, color: C.textSub, marginBottom: 16 }}>
-        Review all details before submitting your application.
-      </p>
-      <div style={{ borderRadius: 14, overflow: "hidden", border: `1px solid ${C.softBorder}` }}>
-        {rows.map(([label, value], i) => (
-          <div key={label} style={{
-            display: "flex", alignItems: "center", justifyContent: "space-between",
-            padding: "10px 16px",
-            background: i % 2 === 0 ? "#fff" : C.soft,
-            borderBottom: i < rows.length - 1 ? `1px solid ${C.mutedLight}` : "none",
-          }}>
-            <span style={{ fontSize: 12, color: C.textSub, fontWeight: 500 }}>{label}</span>
-            <span style={{ fontSize: 13, fontWeight: 600, color: C.text }}>{value}</span>
-          </div>
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Browse Courses</h1>
+        <p className="text-sm text-slate-500 mt-1">Find your next learning adventure</p>
+      </div>
+      {loading && (
+        <div className="text-center py-16 text-slate-400">
+          <div className="text-5xl mb-3 animate-spin">⏳</div>
+          <p className="text-sm">Loading courses…</p>
+        </div>
+      )}
+      {error && (
+        <div className="text-center py-16 text-red-500">
+          <div className="text-5xl mb-3">⚠️</div>
+          <p className="text-sm">{error}</p>
+        </div>
+      )}
+      {!loading && !error && courses.length === 0 && (
+        <div className="text-center py-16 text-slate-400">
+          <div className="text-5xl mb-3">📭</div>
+          <p className="text-sm">No courses available</p>
+        </div>
+      )}
+      {!loading && !error && (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {courses.map((c) => (
+            <ShopCard key={c._id} course={c} enrolled={enrolledIds.has(c._id)} onBuy={onBuy} onFree={onFree} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Root ─────────────────────────────────────────────────────────────────────
+const NAV = [
+  { id: "dashboard",  icon: "📊", label: "Dashboard"       },
+  { id: "my-courses", icon: "🎓", label: "My Courses"      },
+  { id: "browse",     icon: "🛒", label: "Browse & Enroll" },
+];
+
+export default function UserDashboard() {
+  const { user } = useAuth();
+
+  const [view, setView]                   = useState("dashboard");
+  const [enrollments, setEnrollments]     = useState([]);
+  const [toast, setToast]                 = useState(null);
+  const [progressModal, setProgressModal] = useState(null);
+  const [progressVal, setProgressVal]     = useState(50);
+  const toastTimer = useRef(null);
+
+  const showToast = useCallback((msg, type = "info") => {
+    setToast({ msg, type });
+    clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 3200);
+  }, []);
+
+  const loadEnrollments = useCallback(async () => {
+    try {
+      const res  = await fetch(`${API}/api/enrollments`, {
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+      const data = await res.json();
+      setEnrollments(data.success ? data.data : []);
+    } catch {
+      setEnrollments([]);
+    }
+  }, []);
+
+  useEffect(() => { loadEnrollments(); }, [loadEnrollments]);
+
+  const navigate = (v) => {
+    setView(v);
+    if (v === "dashboard" || v === "my-courses") loadEnrollments();
+  };
+
+  const handleCancel = async (id) => {
+    if (!window.confirm("Cancel this enrollment?")) return;
+    try {
+      const res  = await fetch(`${API}/api/enrollments/${id}/cancel`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+      const data = await res.json();
+      showToast(data.message, data.success ? "success" : "error");
+      if (data.success)
+        setEnrollments((prev) => prev.map((e) => e._id === id ? { ...e, status: "cancelled" } : e));
+    } catch { showToast("Failed to cancel enrollment", "error"); }
+  };
+
+  const openProgress = (id, title, current) => { setProgressModal({ id, title, current }); setProgressVal(current); };
+
+  const submitProgress = async () => {
+    try {
+      const res  = await fetch(`${API}/api/enrollments/${progressModal.id}/progress`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${getToken()}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ progress: progressVal }),
+      });
+      const data = await res.json();
+      showToast(data.message, data.success ? "success" : "error");
+      if (data.success) {
+        setEnrollments((prev) =>
+          prev.map((e) => e._id === progressModal.id ? { ...e, progress: progressVal, status: data.data.status } : e)
+        );
+        setProgressModal(null);
+      }
+    } catch { showToast("Failed to update progress", "error"); }
+  };
+
+  const handleFree = async (courseId) => {
+    try {
+      const res  = await fetch(`${API}/api/payments/enroll-free`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${getToken()}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ courseId }),
+      });
+      const data = await res.json();
+      showToast(data.message, data.success ? "success" : "error");
+      if (data.success) setEnrollments((prev) => [...prev, data.data]);
+    } catch { showToast("Enrollment failed", "error"); }
+  };
+
+  const handleBuy = async (courseId, amount, courseTitle) => {
+    showToast("Creating order…", "info");
+    try {
+      const orderRes  = await fetch(`${API}/api/payments/create-order`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${getToken()}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ courseId, amount }),
+      });
+      const orderData = await orderRes.json();
+      if (!orderData.success) { showToast(orderData.message, "error"); return; }
+
+      const { order, key } = orderData;
+      const options = {
+        key, amount: order.amount, currency: order.currency,
+        name: "CourseEnroll", description: courseTitle, order_id: order.id,
+        handler: async (response) => {
+          showToast("Verifying payment…", "info");
+          const verifyRes  = await fetch(`${API}/api/payments/verify`, {
+            method: "POST",
+            headers: { Authorization: `Bearer ${getToken()}`, "Content-Type": "application/json" },
+            body: JSON.stringify({
+              razorpay_order_id:   response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature:  response.razorpay_signature,
+            }),
+          });
+          const verifyData = await verifyRes.json();
+          if (verifyData.success) {
+            showToast("Payment successful! You are enrolled 🎉", "success");
+            setEnrollments((prev) => [...prev, verifyData.data]);
+            setTimeout(() => navigate("my-courses"), 1500);
+          } else {
+            showToast(verifyData.message || "Payment verification failed", "error");
+          }
+        },
+        theme: { color: "#7c3aed" },
+        modal: { ondismiss: () => showToast("Payment cancelled", "info") },
+      };
+      const rzp = new window.Razorpay(options);
+      rzp.on("payment.failed", (r) => showToast("Payment failed: " + (r.error?.description || "Unknown error"), "error"));
+      rzp.open();
+    } catch { showToast("Could not initiate payment", "error"); }
+  };
+
+  return (
+    <div className="flex min-h-screen bg-slate-50 text-slate-800 font-sans">
+      {/* Sidebar */}
+      <nav className="hidden md:flex w-60 flex-shrink-0 flex-col gap-1 bg-white border-r border-slate-200 px-4 py-7 shadow-sm">
+        <div className="px-3 pb-6 text-lg font-bold tracking-tight bg-gradient-to-r from-violet-600 to-sky-500 bg-clip-text text-transparent">
+          CourseEnroll
+        </div>
+        {NAV.map((n) => (
+          <button
+            key={n.id}
+            onClick={() => navigate(n.id)}
+            className={`flex items-center gap-2.5 w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-left ${
+              view === n.id
+                ? "bg-violet-50 text-violet-700 font-semibold"
+                : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+            }`}
+          >
+            <span className="w-5 text-center text-base">{n.icon}</span>
+            {n.label}
+          </button>
         ))}
-      </div>
+      </nav>
 
-      <div style={{ marginTop: 16, display: "flex", gap: 10, alignItems: "flex-start",
-        padding: "14px 16px", borderRadius: 12, background: C.warnBg, border: `1px solid ${C.warnBdr}` }}>
-        <span style={{ fontSize: 18 }}>⚠️</span>
-        <p style={{ fontSize: 12, color: C.warn, margin: 0, lineHeight: 1.6 }}>
-          By submitting this form you agree to our Terms &amp; Conditions and Privacy Policy.
-          Admission is subject to verification of submitted documents and payment.
-        </p>
-      </div>
-    </div>
-  );
-}
+      {/* Main */}
+      <main className="flex-1 p-6 md:p-8 overflow-y-auto">
+        {view === "dashboard"  && <Dashboard enrollments={enrollments} onProgress={openProgress} onCancel={handleCancel} onNavigate={navigate} />}
+        {view === "my-courses" && <MyCourses enrollments={enrollments} onProgress={openProgress} onCancel={handleCancel} />}
+        {view === "browse"     && <Browse enrollments={enrollments} onBuy={handleBuy} onFree={handleFree} />}
+      </main>
 
-// ─── Main App ─────────────────────────────────────────────────────────────────
-
-const STEP_ICONS = ["👤", "🎓", "📘", "📁", "💳", "✅"];
-
-export default function App() {
-  const [step,      setStep]      = useState(0);
-  const [submitted, setSubmitted] = useState(false);
-
-  const [academic, setAcademic] = useState({
-    qualification: "", percentage: "", yearOfPassing: "", board: "", stream: "", employment: "",
-  });
-  const [course,   setCourse]   = useState({ course: null, timing: "" });
-  const [docs,     setDocs]     = useState({ photo: "", idProof: "" });
-  const [payment,  setPayment]  = useState({
-    transactionId: "", senderName: "", amount: "", paymentDate: "", paymentTime: "", screenshot: "",
-  });
-
-  const stepComponents = [
-   
-    <Step1 data={academic}  set={setAcademic} />,
-    <Step2 data={course}    set={setCourse} />,
-    <Step3 data={docs}      set={setDocs} />,
-    <Step4 payment={payment} setPayment={setPayment} courseData={course} />,
-    <Step5  academic={academic} course={course} payment={payment} />,
-  ];
-
-  const total = STEPS.length;
-
-  function reset() {
-    setStep(0); setSubmitted(false);
-    setPersonal({ firstName: "", lastName: "", email: "", phone: "", dob: "", gender: "", address: "" });
-    setAcademic({ qualification: "", percentage: "", yearOfPassing: "", board: "", stream: "", employment: "" });
-    setCourse({ course: null, timing: "" });
-    setDocs({ photo: "", idProof: "", marksheet: "", signature: "" });
-    setPayment({ transactionId: "", senderName: "", amount: "", paymentDate: "", paymentTime: "", screenshot: "" });
-  }
-
-  // ── Success screen ──────────────────────────────────────────────────────────
-  if (submitted) {
-    return (
-      <div style={{
-        minHeight: "100vh", background: C.bg,
-        display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 16px",
-        fontFamily: "'Segoe UI', sans-serif",
-      }}>
-        <div style={{ textAlign: "center", maxWidth: 420 }}>
-          <div style={{
-            width: 80, height: 80, borderRadius: "50%", margin: "0 auto 24px",
-            background: C.successBg, border: `2px solid ${C.successBdr}`,
-            display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36,
-          }}>✓</div>
-          <h2 style={{ fontSize: 26, fontWeight: 700, color: C.text, margin: "0 0 8px" }}>
-            Application Submitted!
-          </h2>
-          <p style={{ fontSize: 14, color: C.textSub, marginBottom: 6 }}>
-            Your admission application has been received successfully.
-          </p>
-          <p style={{ fontSize: 13, color: C.textHint, marginBottom: 20 }}>
-            Application ID:{" "}
-            <strong style={{ color: C.primary }}>ADM-{Date.now().toString().slice(-6)}</strong>
-          </p>
-          <div style={{ padding: "14px 16px", borderRadius: 12, background: C.successBg,
-            border: `1px solid ${C.successBdr}`, marginBottom: 24, textAlign: "left" }}>
-            <p style={{ fontSize: 13, color: C.success, margin: 0 }}>
-              📧 A confirmation email has been sent to{" "}
-              <strong>{personal.email || "your email"}</strong>.
-              Our team will contact you within 24–48 hours after verifying your payment.
-            </p>
+      {/* Progress modal */}
+      <Modal open={!!progressModal} onClose={() => setProgressModal(null)} title="Update Progress" subtitle={progressModal?.title}>
+        <div className="mb-5">
+          <div className="flex justify-between text-xs text-slate-500 font-semibold mb-2">
+            <label>Progress</label>
+            <strong className="text-violet-600">{progressVal}%</strong>
           </div>
-          <button onClick={reset} style={{
-            padding: "12px 28px", borderRadius: 12, border: "none",
-            background: `linear-gradient(135deg, ${C.primary}, ${C.primary2})`,
-            color: "#fff", fontSize: 14, fontWeight: 600, cursor: "pointer",
-          }}>
-            Apply for Another Course
+          <input
+            type="range" min={0} max={100} value={progressVal}
+            onChange={(e) => setProgressVal(Number(e.target.value))}
+            className="w-full accent-violet-600"
+          />
+          <div className="mt-2"><ProgressBar value={progressVal} /></div>
+        </div>
+        <div className="flex gap-3 justify-end">
+          <button onClick={() => setProgressModal(null)} className="px-4 py-2 text-sm font-semibold bg-white border border-slate-300 text-slate-600 rounded-lg hover:border-violet-400 hover:text-violet-600 transition-colors">
+            Cancel
+          </button>
+          <button onClick={submitProgress} className="px-4 py-2 text-sm font-semibold bg-violet-600 hover:bg-violet-500 text-white rounded-lg transition-colors shadow-sm">
+            Save Progress
           </button>
         </div>
-      </div>
-    );
-  }
+      </Modal>
 
-  // ── Main form ───────────────────────────────────────────────────────────────
-  return (
-    <div style={{
-      minHeight: "100vh", background: C.bg,
-      fontFamily: "'Segoe UI', sans-serif",
-    }}>
-
-      {/* Header */}
-      <div style={{
-        padding: "16px 24px",
-        borderBottom: `1px solid ${C.softBorder}`,
-        background: "#fff",
-      }}>
-        <div style={{ maxWidth: 760, margin: "0 auto", display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{
-            width: 40, height: 40, borderRadius: 10,
-            background: `linear-gradient(135deg, ${C.primary}, ${C.primary2})`,
-            display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20,
-          }}>🎓</div>
-          <div>
-            <h1 style={{ fontSize: 18, fontWeight: 700, color: C.text, margin: 0 }}>
-              Online Admission Portal
-            </h1>
-            <p style={{ fontSize: 12, color: C.textHint, margin: 0 }}>
-              Fill in your details to secure your seat
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div style={{ maxWidth: 760, margin: "0 auto", padding: "32px 20px 48px" }}>
-
-        {/* Step indicator */}
-        <div style={{ marginBottom: 32, position: "relative" }}>
-          {/* Track line */}
-          <div style={{
-            position: "absolute", top: 18, left: 20, right: 20, height: 2,
-            background: C.mutedLight, borderRadius: 2, zIndex: 0,
-          }} />
-          {/* Progress fill */}
-          <div style={{
-            position: "absolute", top: 18, left: 20, height: 2,
-            background: `linear-gradient(90deg, ${C.primary}, ${C.primary2})`,
-            borderRadius: 2, zIndex: 1,
-            width: `calc(${(step / (total - 1)) * 100}% - 40px * ${step / (total - 1)})`,
-            transition: "width .4s ease",
-          }} />
-          <div style={{ display: "flex", justifyContent: "space-between", position: "relative", zIndex: 2 }}>
-            {STEPS.map((s, i) => {
-              const done    = i < step;
-              const current = i === step;
-              return (
-                <div key={s} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-                  <div style={{
-                    width: 36, height: 36, borderRadius: "50%",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 13, fontWeight: 700, transition: "all .25s",
-                    background: done ? C.success : current
-                      ? `linear-gradient(135deg, ${C.primary}, ${C.primary2})`
-                      : "#fff",
-                    border: done || current ? "none" : `2px solid ${C.softBorder}`,
-                    color: done || current ? "#fff" : C.textHint,
-                    boxShadow: current ? `0 0 0 4px ${C.soft}` : "none",
-                  }}>
-                    {done ? "✓" : i + 1}
-                  </div>
-                  <span style={{
-                    fontSize: 10, fontWeight: current ? 600 : 400,
-                    color: current ? C.primary : C.textHint,
-                    whiteSpace: "nowrap",
-                  }}>
-                    {s}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Card */}
-        <div style={{
-          background: "#fff",
-          borderRadius: 20,
-          border: `1px solid ${C.softBorder}`,
-          overflow: "hidden",
-          boxShadow: "0 8px 40px rgba(233,30,140,0.06)",
-        }}>
-
-          {/* Card header */}
-          <div style={{
-            padding: "18px 24px",
-            borderBottom: `1px solid ${C.mutedLight}`,
-            background: "linear-gradient(135deg, #fff0f8, #fce7f3)",
-            display: "flex", alignItems: "center", justifyContent: "space-between",
-          }}>
-            <div>
-              <h2 style={{ fontSize: 17, fontWeight: 700, color: C.text, margin: "0 0 2px" }}>
-                Step {step + 1}: {STEPS[step]}
-              </h2>
-              <p style={{ fontSize: 12, color: C.textHint, margin: 0 }}>
-                {step + 1} of {total} — {Math.round(((step + 1) / total) * 100)}% complete
-              </p>
-            </div>
-            <div style={{
-              width: 44, height: 44, borderRadius: 12, fontSize: 22,
-              background: C.soft, border: `1px solid ${C.softBorder}`,
-              display: "flex", alignItems: "center", justifyContent: "center",
-            }}>
-              {STEP_ICONS[step]}
-            </div>
-          </div>
-
-          {/* Progress bar */}
-          <div style={{ height: 3, background: C.mutedLight }}>
-            <div style={{
-              height: "100%",
-              width: `${((step + 1) / total) * 100}%`,
-              background: `linear-gradient(90deg, ${C.primary}, ${C.primary2})`,
-              transition: "width .4s ease",
-            }} />
-          </div>
-
-          {/* Form body */}
-          <div style={{ padding: "24px" }}>
-            {stepComponents[step]}
-          </div>
-
-          {/* Navigation */}
-          <div style={{
-            padding: "16px 24px",
-            borderTop: `1px solid ${C.mutedLight}`,
-            display: "flex", justifyContent: "space-between", alignItems: "center",
-            background: "#fafafa",
-          }}>
-            <button
-              onClick={() => setStep((s) => Math.max(0, s - 1))}
-              disabled={step === 0}
-              style={{
-                padding: "10px 20px", borderRadius: 10, fontSize: 13, fontWeight: 600,
-                border: `1px solid ${C.softBorder}`, background: "#fff",
-                color: step === 0 ? C.mutedLight : C.textSub,
-                cursor: step === 0 ? "default" : "pointer",
-                opacity: step === 0 ? 0.4 : 1,
-              }}
-            >
-              ← Previous
-            </button>
-
-            {step < total - 1 ? (
-              <button
-                onClick={() => setStep((s) => s + 1)}
-                style={{
-                  padding: "10px 24px", borderRadius: 10, fontSize: 13, fontWeight: 600,
-                  border: "none", cursor: "pointer", color: "#fff",
-                  background: `linear-gradient(135deg, ${C.primary}, ${C.primary2})`,
-                  boxShadow: `0 4px 14px rgba(233,30,140,0.3)`,
-                }}
-              >
-                Next Step →
-              </button>
-            ) : (
-              <button
-                onClick={() => setSubmitted(true)}
-                style={{
-                  padding: "10px 24px", borderRadius: 10, fontSize: 13, fontWeight: 600,
-                  border: "none", cursor: "pointer", color: "#fff",
-                  background: `linear-gradient(135deg, ${C.success}, #10b981)`,
-                  boxShadow: "0 4px 14px rgba(5,150,105,0.3)",
-                  display: "flex", alignItems: "center", gap: 6,
-                }}
-              >
-                🚀 Submit Application
-              </button>
-            )}
-          </div>
-        </div>
-
-        <p style={{ textAlign: "center", fontSize: 11, color: C.textHint, marginTop: 20 }}>
-          🔒 Secure &amp; Encrypted · Need help? Call us at +91 98765 43210
-        </p>
-      </div>
+      <Toast toast={toast} />
     </div>
   );
 }
+

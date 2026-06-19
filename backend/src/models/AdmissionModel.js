@@ -17,6 +17,14 @@ const AdmissionSchema = new mongoose.Schema(
       index: true,
     },
 
+    email:{
+      type: String,
+      required: true,
+      trim: true,
+      index: true,
+      lower:true,
+    },
+
     courseId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Course",
@@ -27,7 +35,7 @@ const AdmissionSchema = new mongoose.Schema(
     // FIX: track admission status so admins can approve/reject
     status: {
       type: String,
-      enum: ["pending", "approved", "rejected"],
+      enum: ["pending", "completed", "on hold"],
       default: "pending",
     },
   },

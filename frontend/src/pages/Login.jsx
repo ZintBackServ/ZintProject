@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext"; // ✅ import AuthContext
 
 export default function Login() {
@@ -15,6 +15,13 @@ export default function Login() {
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value }); // ✅ fixed markdown links
   };
+
+  // const { id } = useParams();
+
+  const [searchParams] = useSearchParams();
+
+  const redirect = searchParams.get("redirect");
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -45,7 +52,9 @@ export default function Login() {
 
       // ✅ redirect based on role
       const payload = JSON.parse(atob(data.token.split(".")[1]));
-      if (payload.role === "admin") {
+     if (redirect) {
+        navigate(redirect);
+      } else if (payload.role === "admin") {
         navigate("/admin/dashboard");
       } else {
         navigate("/");

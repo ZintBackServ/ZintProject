@@ -15,7 +15,7 @@ const eventSchema = new mongoose.Schema(
     },
 
     date: {
-      type: Date, // FIX: use Date instead of String for sorting and querying
+      type: Date, 
       required: true,
     },
 

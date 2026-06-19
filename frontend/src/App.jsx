@@ -24,6 +24,7 @@ import Footer from "./pages/Footer";   //footer
 import DataProvider from "./context/DataProvider";
 import { AdminRoute, PrivateRoute } from "./components/ProtectedRoute";
 import { AdminRatingDashboard } from "./pages/admin/Rating";
+import NotificationPopup from "./components/Notification";
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
     <DataProvider>
       <TopInfo />
       <Navbar />
+      <NotificationPopup />
       <Routes>
         {/* Public routes */}
         <Route path="/" element={<Home />} />

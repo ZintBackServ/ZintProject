@@ -11,6 +11,8 @@ import AddMentor     from "./AddMentor";     // MentorDashboard
 import UserAdminDashboard from "./UserAdminDashboard";
 import PlacedStudentAdminDashboard from "./PlacedStudentAdminDashboard";
 import Rating from "./Rating";
+import EnrolledStudent from "./EnrolledStudent";
+import Notification from "./Notification";
 
 function AdminDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -46,14 +48,16 @@ function AdminDashboard() {
         {/* Main content area */}
         <main className="flex-1 p-4 sm:p-6 md:p-8 overflow-auto min-h-screen">
           <Routes>
-            <Route path="/"   element={<DashboardHome />} />
-            <Route path="/AddCourse" element={<AddCourse />} />
-            <Route path="/ShowAllCourse" element={<ShowAllCourse />} />
-            <Route path="/AddMentor"  element={<AddMentor />}/>
-            <Route path="/UserAdminDashboard" element={<UserAdminDashboard />} />
-            <Route path="/AllEventRegistration" element={<AllEventRegistration />} />
-            <Route path="/PlacedStudentAdminDashboard"  element={<PlacedStudentAdminDashboard />} />
-            <Route path="/Rating"   element={<Rating />} />
+            <Route path="/"   element={<DashboardHome/>} />
+            <Route path="/AddCourse" element={<AddCourse/>} />
+            <Route path="/ShowAllCourse" element={<ShowAllCourse/>} />
+            <Route path="/AddMentor"  element={<AddMentor/>}/>
+            <Route path="/UserAdminDashboard" element={<UserAdminDashboard/>} />
+            <Route path="/AllEventRegistration" element={<AllEventRegistration/>} />
+            <Route path="/PlacedStudentAdminDashboard"  element={<PlacedStudentAdminDashboard/>} />
+            <Route path="/Rating"   element={<Rating/>} />
+            <Route path="/EnrolledStudent"   element={<EnrolledStudent/>} />
+            <Route path="/Notification"   element={<Notification/>} />
           </Routes>
         </main>
 

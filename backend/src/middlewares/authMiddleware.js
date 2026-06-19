@@ -26,6 +26,7 @@ const authentication = async (req, res, next) => {
 
     req.userId = decodedToken.userId;
     req.userRole = user.role;
+    req.user = user;  
 
     next();
   } catch (error) {

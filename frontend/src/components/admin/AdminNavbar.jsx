@@ -23,6 +23,8 @@ function AdminNavbar({ onToggleSidebar }) {
     { to: "/admin/dashboard/PlacedStudentAdminDashboard", label: "Placements"},
     { to: "/admin/dashboard/AllEventRegistration", label: "AllEventRegistration"},
     { to: "/admin/dashboard/Rating", label: "Rating"},
+    { to: "/admin/dashboard/EnrolledStudent", label: "EnrolledStudent"},
+    { to: "/admin/dashboard/Notification", label: "Notification"},
   ];
 
   return (

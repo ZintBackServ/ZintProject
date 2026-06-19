@@ -1,59 +1,229 @@
-const Enrollment = require("../models/enrollmentModel");  //import enrollment from models
-const mongoose = require("mongoose");            //import mongoose
+const Enrollment = require("../models/enrollmentModel");
 
+// ─────────────────────────────────────────────
+// @desc    Create/enroll in a course
+// @route   POST /api/enrollments
+// @access  Private
+// ─────────────────────────────────────────────
+const createEnrollment = async (req, res) => {
+  try {
+    const { courseId } = req.body;
 
-// this api is used to buy course
-const buyCourse = async (req, res) => {         //Async function to handle API request
-    try{
-        const {userId, courseId} = req.body;   //Extract userId and courseId from URL
-
-        //Check already purchased
-        const existing = await Enrollment.findOne({ userId, courseId });
-
-        if (existing) {
-          return res.status(400).json({message: "Course already purchased"});
-        }
-
-        //Create new enrollment
-        const data = await Enrollment.create({ userId, courseId });
-
-       res.status(201).json({ message: "course purchased successfully",data});
-
-    }catch(error){
-        console.log(error);
-        res.status(500).json({msg:"Internal Server Error"});
+    if (!courseId) {
+      return res.status(400).json({ success: false, message: "courseId is required." });
     }
-}
 
+    // Prevent duplicate enrollment
+    const existing = await Enrollment.findOne({ userId: req.user._id, courseId });
+    if (existing) {
+      return res.status(400).json({ success: false, message: "Already enrolled in this course." });
+    }
 
-// This API retrieves all courses that a specific user (student) has purchased or enrolled in.
-// It queries the Enrollment collection and uses populate() to return full course details instead of just course IDs.
-const getUserCourses = async (req, res) => {   //Async function to handle API request
-  const { userId } = req.params;        //Extract userId from URL
-   const data = await Enrollment.find({ userId })  //Find all enrollments of the user
-    .populate("courseId");                   //  Replace courseId with full course details 
-     if(data.length === 0){
-      return res.status(400).json({msg:"he didn't bought any courses"});
-   }              
-   res.status(200).json({msg:"Courses: ",data});    //Send response to client
+    const enrollment = await Enrollment.create({
+      userId: req.user._id,
+      courseId,
+      status: "active",
+      progress: 0,
+    });
+
+    res.status(201).json({ success: true, data: enrollment });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
 };
-// Uses populate("courseId") to fetch course details
-// userId must be a valid MongoDB ObjectId
 
+// ─────────────────────────────────────────────
+// @desc    Get all enrollments (admin) or own (user)
+// @route   GET /api/enrollments
+// @access  Private
+// ─────────────────────────────────────────────
+const getEnrollments = async (req, res) => {
+  try {
+    const filter = req.user.role === "admin" ? {} : { userId: req.user._id };
+    // console.log("inside getEnrollments : ", req)
+    if (req.query.status) filter.status = req.query.status;
+    if (req.query.paymentStatus) filter.paymentStatus = req.query.paymentStatus;
 
-// This API retrieves all students who have purchased/enrolled in a specific course.
-// It uses the Enrollment collection to find users linked to the given course and returns full user details using populate().
-const getCourseStudents = async (req, res) => {    //Async function to handle API request
-  const { courseId } = req.params;  //Extract courseId from URL
-   const data = await Enrollment.find({ courseId })  // Find all enrollments for that course
-   .populate("userId");                              //Replace userId with full user data
-   if(data.length === 0){
-      return res.status(400).json({msg:"no one bought this course"});
-   }
-   return res.status(200).json({msg:"students: ",data});   //Send response to client
+    const enrollments = await Enrollment.find(filter)
+       .populate("userId", "firstName email")
+      .populate("courseId", "courseName courseImage fee")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: enrollments.length,
+      data: enrollments,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
 };
-// populate("userId") is used to fetch student details
-// Ensure courseId is a valid MongoDB ObjectId
-// Returns empty array [] if no students found
 
-module.exports = {buyCourse, getUserCourses, getCourseStudents};
+// ─────────────────────────────────────────────
+// @desc    Get a single enrollment by ID
+// @route   GET /api/enrollments/:id
+// @access  Private
+// ─────────────────────────────────────────────
+const getEnrollmentById = async (req, res) => {
+  try {
+    
+    const enrollment = await Enrollment.findById(req.params.id)
+      .populate("userId", "firstName email")
+      .populate("courseId", "courseName courseImage fee");
+
+    if (!enrollment) {
+      return res.status(404).json({ success: false, message: "Enrollment not found." });
+    }
+
+    const isOwner = enrollment.userId._id.toString() === req.user._id.toString();
+    if (!isOwner && req.user.role !== "admin") {
+      return res.status(403).json({ success: false, message: "Access denied." });
+    }
+
+    res.status(200).json({ success: true, data: enrollment });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ─────────────────────────────────────────────
+// @desc    Update progress (0–100)
+// @route   PATCH /api/enrollments/:id/progress
+// @access  Private (own enrollment only)
+// ─────────────────────────────────────────────
+const updateProgress = async (req, res) => {
+  try {
+    const { progress } = req.body;
+
+    if (typeof progress !== "number" || progress < 0 || progress > 100) {
+      return res.status(400).json({
+        success: false,
+        message: "Progress must be a number between 0 and 100.",
+      });
+    }
+
+    const enrollment = await Enrollment.findById(req.params.id);
+
+    if (!enrollment) {
+      return res.status(404).json({ success: false, message: "Enrollment not found." });
+    }
+
+    if (enrollment.userId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ success: false, message: "Access denied." });
+    }
+
+    if (enrollment.status !== "active") {
+      return res.status(400).json({
+        success: false,
+        message: "Can only update progress on active enrollments.",
+      });
+    }
+
+    enrollment.progress = progress;
+    if (progress === 100) enrollment.status = "completed";
+
+    const updated = await enrollment.save();
+
+    res.status(200).json({
+      success: true,
+      message: updated.status === "completed" ? "Course completed! 🎉" : "Progress updated.",
+      data: updated,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ─────────────────────────────────────────────
+// @desc    Update enrollment status (admin)
+// @route   PATCH /api/enrollments/:id/status
+// @access  Private (admin only)
+// ─────────────────────────────────────────────
+const updateEnrollmentStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+    const allowedStatuses = ["active", "completed", "expired", "cancelled", "pending"];
+
+    if (!allowedStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: `Status must be one of: ${allowedStatuses.join(", ")}.`,
+      });
+    }
+
+    const enrollment = await Enrollment.findById(req.params.id);
+    if (!enrollment) {
+      return res.status(404).json({ success: false, message: "Enrollment not found." });
+    }
+
+    enrollment.status = status;
+    const updated = await enrollment.save();
+
+    res.status(200).json({
+      success: true,
+      message: `Enrollment status updated to "${status}".`,
+      data: updated,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ─────────────────────────────────────────────
+// @desc    Cancel own enrollment
+// @route   PATCH /api/enrollments/:id/cancel
+// @access  Private (own enrollment only)
+// ─────────────────────────────────────────────
+const cancelEnrollment = async (req, res) => {
+  try {
+    const enrollment = await Enrollment.findById(req.params.id);
+
+    if (!enrollment) {
+      return res.status(404).json({ success: false, message: "Enrollment not found." });
+    }
+
+    if (enrollment.userId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ success: false, message: "Access denied." });
+    }
+
+    if (enrollment.status === "cancelled") {
+      return res.status(400).json({ success: false, message: "Already cancelled." });
+    }
+
+    enrollment.status = "cancelled";
+    const updated = await enrollment.save();
+
+    res.status(200).json({ success: true, message: "Enrollment cancelled.", data: updated });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ─────────────────────────────────────────────
+// @desc    Delete enrollment (admin only)
+// @route   DELETE /api/enrollments/:id
+// @access  Private (admin only)
+// ─────────────────────────────────────────────
+const deleteEnrollment = async (req, res) => {
+  try {
+    const enrollment = await Enrollment.findById(req.params.id);
+    if (!enrollment) {
+      return res.status(404).json({ success: false, message: "Enrollment not found." });
+    }
+
+    await enrollment.deleteOne();
+    res.status(200).json({ success: true, message: "Enrollment deleted." });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+module.exports = {
+  createEnrollment,
+  getEnrollments,
+  getEnrollmentById,
+  updateProgress,
+  updateEnrollmentStatus,
+  cancelEnrollment,
+  deleteEnrollment,
+};
