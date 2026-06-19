@@ -14,6 +14,7 @@ const paymentRoutes  = require("./routes/paymentRoute");
 const ratingRoutes = require("./routes/ratingRoute")
 const notificationRoutes = require("./routes/notificationRoute")
 const cors = require("cors");
+const enrollmentModel = require("./models/enrollmentModel");
 
 
 // ── Webhook MUST be mounted before express.json() ────────────
@@ -45,6 +46,25 @@ app.get("/",(req, res)=>{
     res.status(200).send({msg:"server is working fine, Don't worry!"});
 });
 
+
+app.get("/deleteEnrollments",async (req, res)=>{
+      
+    try{
+        let result = await enrollmentModel.deleteMany({});
+    
+
+    res.status(200).json({
+      message: "Enrollments deleted successfully",
+      deletedCount: result.deletedCount,
+    });
+  } catch (error) {
+    console.error("Error deleting enrollments:", error);
+    res.status(500).json({
+      message: "Failed to delete enrollments",
+      error: error.message,
+    });
+  }
+});
 // ── Health check ─────────────────────────────────────────────
 app.get("/api/health", (_, res) => res.json({ status: "ok" }));
 
