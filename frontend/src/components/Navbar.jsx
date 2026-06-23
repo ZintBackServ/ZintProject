@@ -5,7 +5,7 @@ import { DataContext } from "../context/DataContext";
 import { useAuth } from "../context/AuthContext";
 import zintLogo from "../assets/zintLogo.jpeg";
 
-// ── Reusable mobile accordion item ──────────────────────────────────────────
+//  Reusable mobile accordion item 
 function MobileAccordion({ label, children }) {
   const [open, setOpen] = useState(false);
   return (
@@ -27,7 +27,7 @@ function MobileAccordion({ label, children }) {
   );
 }
 
-// ── Desktop dropdown wrapper ─────────────────────────────────────────────────
+//  Desktop dropdown wrapper 
 function DesktopDropdown({ label, to, children, wide = false }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -58,7 +58,7 @@ function DesktopDropdown({ label, to, children, wide = false }) {
   );
 }
 
-// ── Main Navbar ──────────────────────────────────────────────────────────────
+//  Main Navbar 
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeType, setActiveType] = useState(null);
@@ -93,9 +93,8 @@ function Navbar() {
   return (
     <nav className="bg-white shadow-md sticky top-0 z-50">
 
-      {/* ═══════════════════════════════════════════════
-          TOP BAR  (logo + hamburger + desktop menu)
-      ═══════════════════════════════════════════════ */}
+          {/* TOP BAR  (logo + hamburger + desktop menu) */}
+      
       <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
 
@@ -264,19 +263,19 @@ function Navbar() {
         </div>
       </div>
 
-      {/* ═══════════════════════════════════════════════
-          TABLET SECONDARY ROW  (md only — hidden on lg)
+      
+          {/* TABLET SECONDARY ROW  (md only — hidden on lg)
           Shows Internship + Online Training that couldn't
-          fit in the primary row at tablet width
-      ═══════════════════════════════════════════════ */}
+          fit in the primary row at tablet width */}
+      
       <div className="hidden md:flex lg:hidden border-t border-gray-100 px-6 py-1 gap-2 bg-gray-50">
         <Link to="/Internship" className={navLink}>Internship</Link>
         <Link to="/OnlineTraining" className={navLink}>Online Training</Link>
       </div>
 
-      {/* ═══════════════════════════════════════════════
-          MOBILE DRAWER
-      ═══════════════════════════════════════════════ */}
+      
+          {/* MOBILE DRAWER */}
+
       {menuOpen && (
         <div className="md:hidden border-t border-gray-100 bg-white shadow-lg max-h-[80vh] overflow-y-auto">
           <ul className="flex flex-col divide-y divide-gray-100">

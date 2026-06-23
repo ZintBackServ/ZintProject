@@ -251,7 +251,6 @@ function MyCourses({ enrollments, onProgress, onCancel }) {
   );
 }
 
-// ─── Root ─────────────────────────────────────────────────────────────────────
 // Only Dashboard + My Courses — Browse is its own Admission page
 const NAV = [
   { id: "dashboard",  icon: "📊", label: "Dashboard"  },

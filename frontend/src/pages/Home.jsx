@@ -10,7 +10,7 @@ import Reviews from "../components/Reviews";
 import ContactUs from "../components/ContactUs";
 import Mentor from "./Mentor";
 
-// ── Data ─────────────────────────────────────────────────────────────────────
+//  Data 
 const hero = [
   [
     "Admissions Open",
@@ -42,7 +42,7 @@ const whyUs = [
   { title: "Practical Learning",      desc: "Project-based curriculum with live assignments." },
 ];
 
-// ── Home ─────────────────────────────────────────────────────────────────────
+// Home 
 function Home() {
   const [heroIndex, setHeroIndex] = useState(0);
 
@@ -62,15 +62,15 @@ function Home() {
       <CourseSlider />
       <CompanyLogo />
 
-      {/* ════════════════════════════════════════════
-          HERO + SIDEBAR
-      ════════════════════════════════════════════ */}
+    
+          {/* HERO + SIDEBAR */}
+  
       <section className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8 lg:py-20">
         <div className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr] lg:gap-8">
 
-          {/* ── Hero Card ────────────────────────────────────────────────── */}
+          {/* Hero Card  */}
          
-          <div className="flex min-h-[420px] flex-col justify-between rounded-3xl bg-gradient-to-br from-pink-300 via-rose-400 to-pink-300 p-6 text-gray-800 shadow-2xl shadow-pink-300/40 sm:min-h-[460px] sm:rounded-[36px] sm:p-8 lg:min-h-[500px] lg:p-10">
+          <div className="flex min-h-[420px] flex-col justify-between rounded-3xl  p-6 text-gray-800 shadow-2xl shadow-pink-300/40 sm:min-h-[460px] sm:rounded-[36px] sm:p-8 lg:min-h-[500px] lg:p-10">
 
             {/* Top content — grows to fill space */}
             <div className="flex flex-col gap-4">
@@ -148,7 +148,7 @@ function Home() {
             </div>
           </div>
 
-          {/* ── Sidebar Cards ──────────────────────────────────────────── */}
+          {/* Sidebar Cards */}
           <div className="flex flex-col gap-5">
 
             {/* Events Card */}

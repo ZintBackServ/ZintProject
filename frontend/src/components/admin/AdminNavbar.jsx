@@ -7,29 +7,25 @@ function AdminNavbar({ onToggleSidebar }) {
   const { logout } = useAuth();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
-
   const handleLogout = () => {
     logout();
     navigate("/login");
   };
-
   // All nav links in one place — easy to maintain
   const navLinks = [
-    { to: "/",                                          label: "View Site"},
-    { to: "/admin/dashboard/AddCourse",                 label: "Add Course"},
-    { to: "/admin/dashboard/AddMentor",                 label: "Add Mentor"},
-    { to: "/admin/dashboard/UserAdminDashboard",        label: "Users"},
-    { to: "/admin/dashboard/ShowAllCourse",             label: "All Courses" },
-    { to: "/admin/dashboard/PlacedStudentAdminDashboard", label: "Placements"},
-    { to: "/admin/dashboard/AllEventRegistration", label: "AllEventRegistration"},
-    { to: "/admin/dashboard/Rating", label: "Rating"},
-    { to: "/admin/dashboard/EnrolledStudent", label: "EnrolledStudent"},
-    { to: "/admin/dashboard/Notification", label: "Notification"},
+    { to: "/", label: "View Site" },
+    { to: "/admin/dashboard/AddCourse", label: "Add Course" },
+    { to: "/admin/dashboard/AddMentor", label: "Add Mentor" },
+    { to: "/admin/dashboard/UserAdminDashboard", label: "Users" },
+    { to: "/admin/dashboard/ShowAllCourse", label: "All Courses" },
+    { to: "/admin/dashboard/PlacedStudentAdminDashboard", label: "Placements" },
+    { to: "/admin/dashboard/AllEventRegistration", label: "AllEventRegistration" },
+    { to: "/admin/dashboard/Rating", label: "Rating" },
+    { to: "/admin/dashboard/EnrolledStudent", label: "EnrolledStudent" },
+    { to: "/admin/dashboard/Notification", label: "Notification" },
   ];
-
   return (
     <nav className="bg-gray-900 border-b border-gray-700 px-4 sm:px-6 py-3 flex items-center justify-between sticky top-0 z-40">
-
       {/* LEFT — Hamburger + Logo */}
       <div className="flex items-center gap-3">
         {/* Hamburger — mobile only */}
@@ -42,14 +38,12 @@ function AdminNavbar({ onToggleSidebar }) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
-
         {/* Logo */}
         <Link to="/admin/dashboard" className="flex items-center gap-2">
           <div className="bg-orange-500 text-white font-bold px-2.5 py-1 rounded-lg text-sm">ZI</div>
           <span className="text-white font-semibold text-sm hidden sm:block">Admin Panel</span>
         </Link>
       </div>
-
       {/* CENTER — Quick links (desktop only) */}
       <div className="hidden md:flex items-center gap-5 text-sm text-gray-300">
         {navLinks.map((link) => (

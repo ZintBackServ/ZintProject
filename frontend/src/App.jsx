@@ -50,8 +50,6 @@ function App() {
         <Route path="/OnlineAdmission" element={<Admission />} />
         <Route path="/PlacementRegistration" element={<PlacementRegistration />} />
        
-        
-
         {/* Logged in users only */}
       <Route path="/user/dashboard" element={
         <PrivateRoute>

@@ -10,7 +10,8 @@ import { DataContext } from "../context/DataContext";
    Off-White       #F8FAFC  — clean backgrounds
    Dark            #111827  — typography / dark sections
 ═══════════════════════════════════════════════════════ */
-
+const PRIMARY   = "#C0176E";
+const SECONDARY = "#E91E8C";
 export default function CourseSlider() {
   const { data }    = useContext(DataContext);
   const navigate    = useNavigate();
@@ -34,17 +35,8 @@ export default function CourseSlider() {
       {/* ── Header ── */}
       <div className="flex items-end justify-between mb-10">
         <div>
-          {/* Purple/Magenta label */}
-          {/* <p className="text-xs font-bold uppercase tracking-widest mb-1.5"
-            style={{ color: "#B026B5" }}>
-            ⚡ Trending Now
-          </p> */}
-          {/* Dark typography */}
-          {/* <h2 className="text-5xl md:text-6xl text-fuchsia-700 font-extrabold leading-tight">
-            ⚡Trending Courses
-          </h2> */}
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-gray-900 leading-tight">
-              ⚡Trending <span className="text-fuchsia-600">Courses</span>
+          <h1 className="text-4xl sm:text-5xl md:text-5xl font-bold text-gray-900 leading-tight">
+              ⚡Trending <span style={{color: PRIMARY}}>Courses</span>
             </h1>
         </div>
 
@@ -154,7 +146,7 @@ function CourseCard({ course, onKnowMore }) {
         />
 
         {/* Purple trending badge */}
-        <h1 className="absolute bg-fuchsia-700 top-3 left-3 text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-md">
+        <h1 className="absolute style={{color:PRIMARY}} top-3 left-3 text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-md">
           ⚡ Trending
         </h1>
 
@@ -226,7 +218,7 @@ function KnowMoreBtn({ onClick }) {
       onClick={onClick}
       className="text-white text-xs font-bold px-5 py-2.5 rounded-xl transition-all duration-200"
       style={{
-        background:  hov ? "#8f1e92" : "#B026B5",
+        background:  hov ? PRIMARY : SECONDARY,
         boxShadow:   hov
           ? "0 6px 20px rgba(176,38,181,0.35)"
           : "0 4px 14px rgba(176,38,181,0.22)",
