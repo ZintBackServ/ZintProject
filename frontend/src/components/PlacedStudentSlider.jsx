@@ -4,6 +4,12 @@
 
 import { useEffect, useRef, useState } from "react";
 
+  const DarkPurple = "#8E1387";
+  const PrimaryPurple = "#B11FA8";
+  const LightPurple = "#C94CC2";
+  const BLUE = "#53BFEA";
+  const GREEN = "#45B51D";
+
 export default function PlacedStudentsSlider() {
   const [students, setStudents] = useState([]);
   const [loading,  setLoading]  = useState(true);
@@ -39,9 +45,7 @@ export default function PlacedStudentsSlider() {
         <h2 className="text-2xl md:text-3xl font-extrabold text-white">
           Students Who Got{" "}
           <span style={{
-            background: "linear-gradient(90deg, #B026B5, #38BDF8)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
+            color: `${LightPurple}`,
           }}>
             Placed
           </span>

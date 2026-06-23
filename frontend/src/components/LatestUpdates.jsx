@@ -4,7 +4,11 @@ export default function LatestUpdatesSection() {
     "National Seminar on Social Media and Human Life",
     "National Seminar on Indian Knowledge System in Geology and Management of Geo-Heritage Sites of Madhya Pradesh",
   ];
-
+  
+  const PRIMARY = "#8E1387";
+  const SECONDARY = "#B11FA8";
+  const BLUE = "#53BFEA";
+  const GREEN = "#45B51D";
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-pink-50 via-white to-purple-50 py-16 px-6">
       {/* Background Blobs */}
@@ -50,15 +54,15 @@ export default function LatestUpdatesSection() {
         <div className="w-full md:flex-1 order-2 md:order-1">
 
           {/* Eyebrow */}
-          <span className="inline-flex items-center gap-2 bg-pink-100 border border-pink-200 text-pink-700 text-xs font-bold uppercase tracking-widest rounded-full px-4 py-1.5 mb-5">
-            <span className="w-2 h-2 rounded-full bg-pink-500 animate-pulse"></span>
+          <span className="inline-flex items-center gap-2 bg-purple-100 border border-pink-200  text-xs font-bold uppercase tracking-widest rounded-full px-4 py-1.5 mb-5" style={{backgroundColor:`${BLUE}` }} >
+            <span className="w-2 h-2 rounded-full  animate-pulse" style={{backgroundColor:`${SECONDARY}` }}></span>
             Institute News
           </span>
 
           {/* Heading */}
           <h1 className="text-4xl sm:text-5xl md:text-5xl font-bold text-gray-900 leading-tight mb-4">
             Latest{" "}
-            <span className=" text-pink-600">
+            <span style={{color:`${PRIMARY}`}}>
               Updates
             </span>
           </h1>
@@ -87,7 +91,7 @@ export default function LatestUpdatesSection() {
             </ul>
 
             {/* Button */}
-            <button className="mt-7 w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 rounded-2xl bg-pink-600 text-white font-semibold text-base shadow-lg shadow-pink-200 hover:shadow-pink-300 hover:scale-105 active:scale-95 transition-all duration-300">
+            <button className="mt-7 w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 rounded-2xl text-white font-semibold text-base shadow-lg shadow-pink-200 hover:shadow-pink-300 hover:scale-105 active:scale-95 transition-all duration-300" style={{backgroundColor:`${PRIMARY}`}}>
               View All Updates
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />

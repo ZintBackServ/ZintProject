@@ -23,16 +23,16 @@ function About() {
         </p>
 
         {/* ── VISION & MISSION — stacked on mobile, side by side on desktop ── */}
-        <div className="flex flex-col md:flex-row gap-6 ">
+        <div className="flex flex-col md:flex-row gap-18 mx-18 ">
           <div className="bg-gray-100 p-5 shadow-xl mb-2 rounded-xl flex-1">
-            <h1 className="text-2xl sm:text-3xl font-bold mb-4">Our Vision</h1>
-            <p className="text-base sm:text-lg font-semibold text-gray-700">
+            <h1 className="text-2xl sm:text-3xl text-pink-700 font-bold mb-4">Our Vision</h1>
+            <p className="text-base sm:text-lg font-semibold text-gray-700 text-left">
               The Zint Institute envisions becoming a premier centre of excellence in education, dedicated to nurturing sagacious, skilled and confident individuals. Our vision is to create a dynamic learning environment that inspires innovation, leadership, and lifelong learning, enabling students to achieve academic success and make meaningful contributions to a global society.
             </p>
           </div>
           <div className="bg-gray-100 p-5 shadow-xl mb-2 rounded-xl flex-1">
-            <h1 className="text-2xl sm:text-3xl font-bold mb-4">Our Mission</h1>
-            <p className="text-base sm:text-lg font-semibold text-gray-700">
+            <h1 className="text-2xl sm:text-3xl text-pink-700 font-bold mb-4">Our Mission</h1>
+            <p className="text-base sm:text-lg font-semibold text-gray-700 text-left">
               Zint Institute is committed to cultivating knowledgeable and versatile learners by providing exemplary education that combines intellectual precision with practical proficiency. Our mission is to empower learners to transcend conventional boundaries, develop articulate expression, and embody professionalism, preparing them to excel in competitive arenas and contribute with integrity and purpose. Zint Institute’s mission is to guide every student toward successful placement opportunities; therefore, ZINT launched the “Rozgar Mission,” which achieved remarkable success on 10 January 2026.
             </p>
           </div>

@@ -2,16 +2,12 @@ import { useContext, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { DataContext } from "../context/DataContext";
 
-/* ═══════════════════════════════════════════════════════
-   ZINT COLOR SYSTEM
-   Purple/Magenta  #B026B5  — primary brand identity
-   Sky Blue        #38BDF8  — AI / tech / hover effects
-   Green           #22C55E  — success / trust / achievement
-   Off-White       #F8FAFC  — clean backgrounds
-   Dark            #111827  — typography / dark sections
-═══════════════════════════════════════════════════════ */
-const PRIMARY   = "#C0176E";
-const SECONDARY = "#E91E8C";
+
+  const DarkPurple = "#8E1387";
+  const PrimaryPurple = "#B11FA8";
+  const BLUE = "#53BFEA";
+  const GREEN = "#45B51D";
+
 export default function CourseSlider() {
   const { data }    = useContext(DataContext);
   const navigate    = useNavigate();
@@ -36,7 +32,7 @@ export default function CourseSlider() {
       <div className="flex items-end justify-between mb-10">
         <div>
           <h1 className="text-4xl sm:text-5xl md:text-5xl font-bold text-gray-900 leading-tight">
-              ⚡Trending <span style={{color: PRIMARY}}>Courses</span>
+              ⚡Trending <span style={{color: DarkPurple}}>Courses</span>
             </h1>
         </div>
 
@@ -111,7 +107,7 @@ export default function CourseSlider() {
    — White bg + light gray border
    — Sky-blue top accent bar
    — Soft shadow, hover lift + sky-blue glow
-   — Purple primary CTA
+   — Purple DarkPurple CTA
    — Green / Purple / Sky pill badges
 ═══════════════════════════════════════════════════════ */
 function CourseCard({ course, onKnowMore }) {
@@ -146,7 +142,7 @@ function CourseCard({ course, onKnowMore }) {
         />
 
         {/* Purple trending badge */}
-        <h1 className="absolute style={{color:PRIMARY}} top-3 left-3 text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-md">
+        <h1 className="absolute style={{color:DarkPurple}} top-3 left-3 text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-md">
           ⚡ Trending
         </h1>
 
@@ -202,7 +198,7 @@ function CourseCard({ course, onKnowMore }) {
             </div>
           )}
 
-          {/* Primary CTA — Purple */}
+          {/* DarkPurple CTA — Purple */}
           <KnowMoreBtn onClick={onKnowMore} />
         </div>
       </div>
@@ -218,7 +214,7 @@ function KnowMoreBtn({ onClick }) {
       onClick={onClick}
       className="text-white text-xs font-bold px-5 py-2.5 rounded-xl transition-all duration-200"
       style={{
-        background:  hov ? PRIMARY : SECONDARY,
+        background:  hov ? DarkPurple : PrimaryPurple,
         boxShadow:   hov
           ? "0 6px 20px rgba(176,38,181,0.35)"
           : "0 4px 14px rgba(176,38,181,0.22)",

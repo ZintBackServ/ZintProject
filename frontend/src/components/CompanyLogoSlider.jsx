@@ -1,13 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 
-/* ═══════════════════════════════════════════
-   ZINT COLOR SYSTEM
-   #B026B5  Purple  — primary brand
-   #38BDF8  Sky     — highlights / hover
-   #22C55E  Green   — trust / success
-   #111827  Dark    — sections
-   #F8FAFC  Off-white — backgrounds
-═══════════════════════════════════════════ */
+  const PRIMARY = "#8E1387";
+  const SECONDARY = "#B11FA8";
+  const LightPurple = "#C94CC2";
+  const BLUE = "#53BFEA";
+  const GREEN = "#45B51D";
 
 /* ── Company list with logo URLs ── */
 const COMPANIES = [
@@ -46,7 +43,7 @@ export default function CompanyLogoSlider() {
           <span style={{
             background: "linear-gradient(90deg, #B026B5, #38BDF8)",
             WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
+            WebkitTextFillColor: `${LightPurple}`,
           }}>
             Trust Our Students
           </span>

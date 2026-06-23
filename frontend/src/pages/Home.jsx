@@ -10,6 +10,11 @@ import Reviews from "../components/Reviews";
 import ContactUs from "../components/ContactUs";
 import Mentor from "./Mentor";
 
+  const DarkPurple = "#8E1387";
+  const PrimaryPurple = "#B11FA8";
+  const BLUE = "#53BFEA";
+  const GREEN = "#45B51D";
+
 //  Data 
 const hero = [
   [
@@ -70,12 +75,12 @@ function Home() {
 
           {/* Hero Card  */}
          
-          <div className="flex min-h-[420px] flex-col justify-between rounded-3xl  p-6 text-gray-800 shadow-2xl shadow-pink-300/40 sm:min-h-[460px] sm:rounded-[36px] sm:p-8 lg:min-h-[500px] lg:p-10">
+          <div className="flex min-h-[420px] flex-col justify-between rounded-3xl bg-pink-600 p-6 text-white shadow-2xl shadow-pink-300/40 sm:min-h-[460px] sm:rounded-[36px] sm:p-8 lg:min-h-[500px] lg:p-10" style={{backgroundColor:`${DarkPurple}`}}>
 
             {/* Top content — grows to fill space */}
             <div className="flex flex-col gap-4">
               {/* Badge */}
-              <span className="inline-flex w-fit rounded-full bg-rose-400 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-black backdrop-blur-sm sm:text-sm">
+              <span className="inline-flex w-fit rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-black backdrop-blur-sm sm:text-sm" style={{backgroundColor:`${BLUE}`}}>
                 {hero[heroIndex][0]}
               </span>
 
@@ -85,7 +90,7 @@ function Home() {
               </h1>
 
               {/* Body — clamp lines so it doesn't push buttons off on small screens */}
-              <p className="line-clamp-4 text-sm leading-7 text-gray-700 sm:line-clamp-none sm:text-base lg:text-lg">
+              <p className="line-clamp-4 text-sm leading-7 text-white sm:line-clamp-none sm:text-base lg:text-lg">
                 {hero[heroIndex][2]}
               </p>
             </div>

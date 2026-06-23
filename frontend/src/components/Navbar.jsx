@@ -188,7 +188,7 @@ function Navbar() {
             </DesktopDropdown>
 
             {/* Admission */}
-            <DesktopDropdown label="Admission" to="/Admission">
+            <DesktopDropdown label="Admission" >
               <div className="flex flex-col p-2">
                 {[
                   { to: "/OnlineAdmission", label: "Online Admission" },
@@ -228,14 +228,13 @@ function Navbar() {
                 </Link>
               )}
               {user?.role === "admin" && (
-                <Link to="/admin/dashboard" className="px-3 py-2 text-sm font-semibold bg-purple-500 text-white rounded-lg hover:bg-purple-800 transition-colors">
+                <Link to="/admin/dashboard" className="text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-500 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 font-medium rounded-base text-sm px-3 py-2 rounded-md text-center leading-5">
                   Admin
                 </Link>
               )}
               {user ? (
-                <button onClick={handleLogout} className="px-3 py-2 text-sm font-semibold bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
-                  Logout
-                </button>
+                 <button type="button" onClick={handleLogout} class="text-white bg-gradient-to-r from-red-400 via-red-500 to-red-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-base text-sm px-3 py-2 text-center leading-5 rounded-md">Logout</button>
+                
               ) : (
                 <Link to="/Login" className="px-3 py-2 text-sm font-semibold bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
                   Login

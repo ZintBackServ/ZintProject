@@ -78,7 +78,7 @@ export default function ZInstituteInternship() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050510] text-white font-sans overflow-x-hidden">
+    <div className="min-h-screen bg-[#C94CC2] text-white font-sans overflow-x-hidden">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
         * { font-family: 'DM Sans', sans-serif; }

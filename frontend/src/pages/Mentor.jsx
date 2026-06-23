@@ -1,7 +1,11 @@
 
 import React, { useEffect, useRef, useState } from "react";
-import backgroundImg from "../assets/BackgroundImg.png"
 
+  const DarkPurple = "#8E1387";
+  const PrimaryPurple = "#B11FA8";
+  const LightPurple = "#C94CC2";
+  const BLUE = "#53BFEA";
+  const GREEN = "#45B51D";
 
 const Mentor = () => {
   const [mentors, setMentors] = useState([]);
@@ -65,12 +69,11 @@ const Mentor = () => {
   return (
     
     <div 
-      style={{ backgroundImage: `url(${backgroundImg})` }}
-      className="bg-cover bg-center h-screen  items-center justify-center pt-15"
+      className="bg-cover bg-center bg-black items-center justify-center pt-8"
     >
       <div className="flex flex-col items-center justify-center px-5">
-         <h1 className="text-2xl md:text-3xl text-white  font-bold mb-2 p-1">Meet Our 
-          Mentors</h1>
+         <h1 className="text-2xl md:text-3xl text-white  font-bold mb-2 p-1">Meet Our  
+          <span style={{color:`${LightPurple}`}}> Mentors</span></h1>
          <p className="text-white">Learn from industry veterans and academic excellence who are committed to your success.</p>
       </div>
 
