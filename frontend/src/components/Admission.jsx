@@ -17,25 +17,25 @@ const courseImage = (c) =>
 
 // ─── Badge maps ───────────────────────────────────────────────────────────────
 const STATUS_BADGE = {
-  active:    "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200",
+  active: "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200",
   completed: "bg-sky-100 text-sky-700 ring-1 ring-sky-200",
-  pending:   "bg-amber-100 text-amber-700 ring-1 ring-amber-200",
+  pending: "bg-amber-100 text-amber-700 ring-1 ring-amber-200",
   cancelled: "bg-red-100 text-red-700 ring-1 ring-red-200",
-  expired:   "bg-slate-100 text-slate-500 ring-1 ring-slate-200",
+  expired: "bg-slate-100 text-slate-500 ring-1 ring-slate-200",
 };
 
 const PAYMENT_BADGE = {
-  paid:     { cls: "bg-violet-100 text-violet-700 ring-1 ring-violet-200",   label: "💳 Paid"    },
-  free:     { cls: "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200", label: "🎁 Free"   },
-  pending:  { cls: "bg-amber-100 text-amber-700 ring-1 ring-amber-200",       label: "⏳ Pending" },
-  failed:   { cls: "bg-red-100 text-red-700 ring-1 ring-red-200",             label: "✗ Failed"   },
-  refunded: { cls: "bg-slate-100 text-slate-500 ring-1 ring-slate-200",       label: "↩ Refunded" },
+  paid: { cls: "bg-violet-100 text-violet-700 ring-1 ring-violet-200", label: "💳 Paid" },
+  free: { cls: "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200", label: "🎁 Free" },
+  pending: { cls: "bg-amber-100 text-amber-700 ring-1 ring-amber-200", label: "⏳ Pending" },
+  failed: { cls: "bg-red-100 text-red-700 ring-1 ring-red-200", label: "✗ Failed" },
+  refunded: { cls: "bg-slate-100 text-slate-500 ring-1 ring-slate-200", label: "↩ Refunded" },
 };
 
 // ─── Primitives ───────────────────────────────────────────────────────────────
 function Badge({ status, type = "enrollment" }) {
   if (!status) return null;
-  const map   = type === "payment" ? PAYMENT_BADGE : STATUS_BADGE;
+  const map = type === "payment" ? PAYMENT_BADGE : STATUS_BADGE;
   const entry = type === "payment" ? map[status] : { cls: map[status], label: status };
   if (!entry) return null;
   return (
@@ -60,8 +60,8 @@ function Toast({ toast }) {
   if (!toast) return null;
   const colorMap = {
     success: "border-emerald-400 text-emerald-700 bg-emerald-50",
-    error:   "border-red-400 text-red-700 bg-red-50",
-    info:    "border-violet-400 text-violet-700 bg-violet-50",
+    error: "border-red-400 text-red-700 bg-red-50",
+    info: "border-violet-400 text-violet-700 bg-violet-50",
   };
   return (
     <div className={`fixed bottom-7 right-7 z-50 max-w-xs border rounded-xl px-5 py-3.5 text-sm font-medium shadow-xl transition-all duration-300 ${colorMap[toast.type] || colorMap.info}`}>
@@ -86,8 +86,8 @@ function Modal({ open, onClose, title, subtitle, children }) {
 function StatCard({ label, value, color }) {
   const colorMap = {
     purple: "text-violet-600",
-    cyan:   "text-sky-600",
-    green:  "text-emerald-600",
+    cyan: "text-sky-600",
+    green: "text-emerald-600",
     orange: "text-amber-600",
   };
   return (
@@ -100,9 +100,9 @@ function StatCard({ label, value, color }) {
 
 // ─── Course card (enrolled) ───────────────────────────────────────────────────
 function CourseCard({ enrollment, onProgress, onCancel, onPayNow }) {
-  const title    = courseName(enrollment.courseId);
+  const title = courseName(enrollment.courseId);
   const progress = enrollment.progress || 0;
-  const thumb    = courseImage(enrollment.courseId);
+  const thumb = courseImage(enrollment.courseId);
   const isPending = enrollment.paymentStatus === "pending" && enrollment.status === "pending";
 
   return (
@@ -119,7 +119,7 @@ function CourseCard({ enrollment, onProgress, onCancel, onPayNow }) {
             <span className="text-[11px] text-slate-400">{inr(enrollment.amount)}</span>
           )}
         </div>
-        
+
         {isPending ? (
           // Show pending enrollment with Pay Now button
           <div className="mb-3">
@@ -186,17 +186,18 @@ function ShopCard({ course, enrolled, isPending, enrollmentData, onBuy, onFree, 
       <div className="p-4">
         <div className="text-[15px] font-semibold text-slate-800 mb-1">{title}</div>
         <div className="text-xs text-slate-400 mb-4 leading-relaxed line-clamp-2">
-          {course.category}
+          {console.log(course)}
+          {course?.category?.categoryName}
           {course.subCategory ? ` · ${course.subCategory}` : ""}
-          {course.duration    ? ` · ${course.duration} months` : ""}
+          {course.duration ? ` · ${course.duration} months` : ""}
         </div>
         <div className="flex items-center justify-between">
           <div className={`text-xl font-bold ${price === 0 ? "text-emerald-600" : "text-violet-600"}`}>
             {price === 0 ? "Free" : inr(price)}
           </div>
           {isPending ? (
-            <button 
-              onClick={() => onPayNow(enrollmentData.enrollmentId, enrollmentData.amount, enrollmentData.courseTitle)} 
+            <button
+              onClick={() => onPayNow(enrollmentData.enrollmentId, enrollmentData.amount, enrollmentData.courseTitle)}
               className="px-3 py-1.5 text-xs font-semibold bg-amber-500 hover:bg-amber-400 text-white rounded-lg transition-colors"
             >
               Pay Now ⏳
@@ -224,12 +225,12 @@ function ShopCard({ course, enrolled, isPending, enrollmentData, onBuy, onFree, 
 }
 
 // ─── Views ────────────────────────────────────────────────────────────────────
-function Dashboard({ enrollments, onProgress, onCancel, onNavigate,onPayNow }) {
-  const active     = enrollments.filter((e) => e.status === "active").length;
-  const completed  = enrollments.filter((e) => e.status === "completed").length;
-  const spent      = enrollments.filter((e) => e.paymentStatus === "paid").reduce((s, e) => s + (e.amount || 0), 0);
+function Dashboard({ enrollments, onProgress, onCancel, onNavigate, onPayNow }) {
+  const active = enrollments.filter((e) => e.status === "active").length;
+  const completed = enrollments.filter((e) => e.status === "completed").length;
+  const spent = enrollments.filter((e) => e.paymentStatus === "paid").reduce((s, e) => s + (e.amount || 0), 0);
   const inProgress = enrollments.filter((e) => e.status === "active" && e.progress < 100);
-  console.log('dashboard : ', { enrollments, onProgress, onCancel, onNavigate,onPayNow });
+  console.log('dashboard : ', { enrollments, onProgress, onCancel, onNavigate, onPayNow });
 
 
   return (
@@ -248,14 +249,14 @@ function Dashboard({ enrollments, onProgress, onCancel, onNavigate,onPayNow }) {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <StatCard label="Enrolled"    value={enrollments.length} color="purple" />
-        <StatCard label="Active"      value={active}             color="cyan"   />
-        <StatCard label="Completed"   value={completed}          color="green"  />
-        <StatCard label="Spent (INR)" value={inr(spent)}         color="orange" />
+        <StatCard label="Enrolled" value={enrollments.length} color="purple" />
+        <StatCard label="Active" value={active} color="cyan" />
+        <StatCard label="Completed" value={completed} color="green" />
+        <StatCard label="Spent (INR)" value={inr(spent)} color="orange" />
       </div>
 
       <h2 className="text-base font-semibold text-slate-700 mb-4">Continue Learning</h2>
-    
+
       {inProgress.length === 0 ? (
         <div className="text-center py-16 text-slate-400">
           <div className="text-5xl mb-3">📚</div>
@@ -275,7 +276,7 @@ function Dashboard({ enrollments, onProgress, onCancel, onNavigate,onPayNow }) {
 
 function MyCourses({ enrollments, onProgress, onCancel, onPayNow }) {
   const [filter, setFilter] = useState("all");
-  const filters  = ["all", "active", "completed", "pending", "cancelled", "paid"];
+  const filters = ["all", "active", "completed", "pending", "cancelled", "paid"];
   const filtered = filter === "all" ? enrollments : enrollments.filter((e) => e.status === filter || e.paymentStatus === filter);
 
   return (
@@ -289,11 +290,10 @@ function MyCourses({ enrollments, onProgress, onCancel, onPayNow }) {
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`px-4 py-1.5 rounded-full text-xs font-semibold border transition-all ${
-              filter === f
+            className={`px-4 py-1.5 rounded-full text-xs font-semibold border transition-all ${filter === f
                 ? "bg-violet-600 border-violet-600 text-white shadow-sm"
                 : "bg-white border-slate-300 text-slate-500 hover:border-violet-400 hover:text-violet-600"
-            }`}
+              }`}
           >
             {f.charAt(0).toUpperCase() + f.slice(1)}
           </button>
@@ -308,10 +308,10 @@ function MyCourses({ enrollments, onProgress, onCancel, onPayNow }) {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {filtered.map((e) => (
-            <CourseCard 
-              key={e._id} 
-              enrollment={e} 
-              onProgress={onProgress} 
+            <CourseCard
+              key={e._id}
+              enrollment={e}
+              onProgress={onProgress}
               onCancel={onCancel}
               onPayNow={onPayNow}
             />
@@ -325,12 +325,12 @@ function MyCourses({ enrollments, onProgress, onCancel, onPayNow }) {
 function Browse({ enrollments, onBuy, onFree, onPayNow }) {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     (async () => {
       try {
-        const res  = await fetch(`${API}/course/getAllCourse`);
+        const res = await fetch(`${API}/course/getAllCourse`);
         const data = await res.json();
         setCourses(data.courses || data.data || []);
         console.log("Fetched courses:", data);
@@ -388,15 +388,15 @@ function Browse({ enrollments, onBuy, onFree, onPayNow }) {
             const enrollment = enrollmentMap.get(c._id);
             const isEnrolled = enrollment && ["active", "completed"].includes(enrollment.status);
             const isPending = enrollment && enrollment.paymentStatus === "pending" && enrollment.status === "pending";
-            
+
             return (
-              <ShopCard 
-                key={c._id} 
-                course={c} 
+              <ShopCard
+                key={c._id}
+                course={c}
                 enrolled={isEnrolled}
                 isPending={isPending}
                 enrollmentData={enrollment}
-                onBuy={onBuy} 
+                onBuy={onBuy}
                 onFree={onFree}
                 onPayNow={onPayNow}
               />
@@ -410,19 +410,19 @@ function Browse({ enrollments, onBuy, onFree, onPayNow }) {
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
 const NAV = [
-  { id: "dashboard",  icon: "📊", label: "Dashboard"       },
-  { id: "my-courses", icon: "🎓", label: "My Courses"      },
-  { id: "browse",     icon: "🛒", label: "Browse & Enroll" },
+  { id: "dashboard", icon: "📊", label: "Dashboard" },
+  { id: "my-courses", icon: "🎓", label: "My Courses" },
+  { id: "browse", icon: "🛒", label: "Browse & Enroll" },
 ];
 
 export default function UserDashboard() {
   const { user } = useAuth();
 
-  const [view, setView]                   = useState("dashboard");
-  const [enrollments, setEnrollments]     = useState([]);
-  const [toast, setToast]                 = useState(null);
+  const [view, setView] = useState("dashboard");
+  const [enrollments, setEnrollments] = useState([]);
+  const [toast, setToast] = useState(null);
   const [progressModal, setProgressModal] = useState(null);
-  const [progressVal, setProgressVal]     = useState(50);
+  const [progressVal, setProgressVal] = useState(50);
   const toastTimer = useRef(null);
 
   const showToast = useCallback((msg, type = "info") => {
@@ -433,7 +433,7 @@ export default function UserDashboard() {
 
   const loadEnrollments = useCallback(async () => {
     try {
-      const res  = await fetch(`${API}/api/enrollments`, {
+      const res = await fetch(`${API}/api/enrollments`, {
         headers: { Authorization: `Bearer ${getToken()}` },
       });
       const data = await res.json();
@@ -457,7 +457,7 @@ export default function UserDashboard() {
   const handleCancel = async (id) => {
     if (!window.confirm("Cancel this enrollment?")) return;
     try {
-      const res  = await fetch(`${API}/api/enrollments/${id}/cancel`, {
+      const res = await fetch(`${API}/api/enrollments/${id}/cancel`, {
         method: "PATCH",
         headers: { Authorization: `Bearer ${getToken()}` },
       });
@@ -472,7 +472,7 @@ export default function UserDashboard() {
 
   const submitProgress = async () => {
     try {
-      const res  = await fetch(`${API}/api/enrollments/${progressModal.id}/progress`, {
+      const res = await fetch(`${API}/api/enrollments/${progressModal.id}/progress`, {
         method: "PATCH",
         headers: { Authorization: `Bearer ${getToken()}`, "Content-Type": "application/json" },
         body: JSON.stringify({ progress: progressVal }),
@@ -490,7 +490,7 @@ export default function UserDashboard() {
 
   const handleFree = async (courseId) => {
     try {
-      const res  = await fetch(`${API}/api/payments/enroll-free`, {
+      const res = await fetch(`${API}/api/payments/enroll-free`, {
         method: "POST",
         headers: { Authorization: `Bearer ${getToken()}`, "Content-Type": "application/json" },
         body: JSON.stringify({ courseId }),
@@ -512,41 +512,41 @@ export default function UserDashboard() {
       }
 
       const courseId = enrollment.courseId?._id || enrollment.courseId;
-      
+
       // Create order for the pending payment
       const orderRes = await fetch(`${API}/api/payments/create-order`, {
         method: "POST",
-        headers: { 
-          Authorization: `Bearer ${getToken()}`, 
-          "Content-Type": "application/json" 
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+          "Content-Type": "application/json"
         },
-        body: JSON.stringify({ 
-          courseId, 
+        body: JSON.stringify({
+          courseId,
           amount,
           enrollmentId // Pass enrollmentId to link the payment
         }),
       });
       const orderData = await orderRes.json();
-      if (!orderData.success) { 
-        showToast(orderData.message, "error"); 
-        return; 
+      if (!orderData.success) {
+        showToast(orderData.message, "error");
+        return;
       }
 
       const { order, key } = orderData;
       const options = {
-        key, 
-        amount: order.amount, 
+        key,
+        amount: order.amount,
         currency: order.currency,
-        name: "CourseEnroll", 
-        description: courseTitle, 
+        name: "CourseEnroll",
+        description: courseTitle,
         order_id: order.id,
         handler: async (response) => {
           showToast("Verifying payment…", "info");
           const verifyRes = await fetch(`${API}/api/payments/verify`, {
             method: "POST",
-            headers: { 
-              Authorization: `Bearer ${getToken()}`, 
-              "Content-Type": "application/json" 
+            headers: {
+              Authorization: `Bearer ${getToken()}`,
+              "Content-Type": "application/json"
             },
             body: JSON.stringify({
               razorpay_order_id: response.razorpay_order_id,
@@ -559,9 +559,9 @@ export default function UserDashboard() {
           if (verifyData.success) {
             showToast("Payment successful! 🎉", "success");
             // Update the enrollment status locally
-            setEnrollments((prev) => 
-              prev.map((e) => 
-                e._id === enrollmentId 
+            setEnrollments((prev) =>
+              prev.map((e) =>
+                e._id === enrollmentId
                   ? { ...e, paymentStatus: "paid", status: "active", paymentId: response.razorpay_payment_id }
                   : e
               )
@@ -575,19 +575,19 @@ export default function UserDashboard() {
         modal: { ondismiss: () => showToast("Payment cancelled", "info") },
       };
       const rzp = new window.Razorpay(options);
-      rzp.on("payment.failed", (r) => 
+      rzp.on("payment.failed", (r) =>
         showToast("Payment failed: " + (r.error?.description || "Unknown error"), "error")
       );
       rzp.open();
-    } catch { 
-      showToast("Could not initiate payment", "error"); 
+    } catch {
+      showToast("Could not initiate payment", "error");
     }
   };
 
   const handleBuy = async (courseId, amount, courseTitle) => {
     showToast("Creating order…", "info");
     try {
-      const orderRes  = await fetch(`${API}/api/payments/create-order`, {
+      const orderRes = await fetch(`${API}/api/payments/create-order`, {
         method: "POST",
         headers: { Authorization: `Bearer ${getToken()}`, "Content-Type": "application/json" },
         body: JSON.stringify({ courseId, amount }),
@@ -601,13 +601,13 @@ export default function UserDashboard() {
         name: "CourseEnroll", description: courseTitle, order_id: order.id,
         handler: async (response) => {
           showToast("Verifying payment…", "info");
-          const verifyRes  = await fetch(`${API}/api/payments/verify`, {
+          const verifyRes = await fetch(`${API}/api/payments/verify`, {
             method: "POST",
             headers: { Authorization: `Bearer ${getToken()}`, "Content-Type": "application/json" },
             body: JSON.stringify({
-              razorpay_order_id:   response.razorpay_order_id,
+              razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature:  response.razorpay_signature,
+              razorpay_signature: response.razorpay_signature,
             }),
           });
           const verifyData = await verifyRes.json();
@@ -639,11 +639,10 @@ export default function UserDashboard() {
           <button
             key={n.id}
             onClick={() => navigate(n.id)}
-            className={`flex items-center gap-2.5 w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-left ${
-              view === n.id
+            className={`flex items-center gap-2.5 w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-left ${view === n.id
                 ? "bg-violet-50 text-violet-700 font-semibold"
                 : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
-            }`}
+              }`}
           >
             <span className="w-5 text-center text-base">{n.icon}</span>
             {n.label}
@@ -653,9 +652,9 @@ export default function UserDashboard() {
 
       {/* Main */}
       <main className="flex-1 p-6 md:p-8 overflow-y-auto">
-        {view === "dashboard"  && <Dashboard enrollments={enrollments} onProgress={openProgress} onCancel={handleCancel} onNavigate={navigate} onPayNow={handlePayNow} />}
+        {view === "dashboard" && <Dashboard enrollments={enrollments} onProgress={openProgress} onCancel={handleCancel} onNavigate={navigate} onPayNow={handlePayNow} />}
         {view === "my-courses" && <MyCourses enrollments={enrollments} onProgress={openProgress} onCancel={handleCancel} onPayNow={handlePayNow} />}
-        {view === "browse"     && <Browse enrollments={enrollments} onBuy={handleBuy} onFree={handleFree} onPayNow={handlePayNow} />}
+        {view === "browse" && <Browse enrollments={enrollments} onBuy={handleBuy} onFree={handleFree} onPayNow={handlePayNow} />}
       </main>
 
       {/* Progress modal */}

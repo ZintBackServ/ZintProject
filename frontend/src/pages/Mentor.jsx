@@ -21,7 +21,7 @@ const Mentor = () => {
         console.log("I am mentor",data.mentors);
         setMentors(data.mentors);
       } catch (err) {
-        console.log("error in meentor",err,`${import.meta.env.VITE_API_URL}/mentor/allMentor`)
+        console.log("error in mentor",err,`${import.meta.env.VITE_API_URL}/mentor/allMentor`)
         console.log(err);
       }
     };

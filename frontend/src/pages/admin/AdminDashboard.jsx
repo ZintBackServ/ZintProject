@@ -13,6 +13,10 @@ import PlacedStudentAdminDashboard from "./PlacedStudentAdminDashboard";
 import Rating from "./Rating";
 import EnrolledStudent from "./EnrolledStudent";
 import Notification from "./Notification";
+// wherever your admin routes live
+import AddCategory from "./AddCategory";
+
+
 
 function AdminDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -58,6 +62,8 @@ function AdminDashboard() {
             <Route path="/Rating"   element={<Rating/>} />
             <Route path="/EnrolledStudent"   element={<EnrolledStudent/>} />
             <Route path="/Notification"   element={<Notification/>} />
+            // add alongside your existing routes:
+            <Route path="/AddCategory" element={<AddCategory />} />
           </Routes>
         </main>
 

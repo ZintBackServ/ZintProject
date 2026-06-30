@@ -15,11 +15,15 @@ import Img12 from "../assets/HomePoster12.png"
 import Img13 from "../assets/HomePoster13.png"
 import Img14 from "../assets/HomePoster14.png"
 import Img15 from "../assets/HomePoster15.png"
+import Img21 from "../assets/HomePoster21.png"
+import Img22 from "../assets/HomePoster22.png"
 
 // import Img7 from "../assets/"
 const images = [
   Img1,
+  Img21,
   Img2,
+  Img22,
   Img3,
   Img4,
   Img5,

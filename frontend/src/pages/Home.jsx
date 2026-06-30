@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import ImageSlider from "../components/HomeImageSlider";
 import LatestUpdates from "../components/LatestUpdates";
@@ -50,7 +51,7 @@ const whyUs = [
 // Home 
 function Home() {
   const [heroIndex, setHeroIndex] = useState(0);
-
+  const navigate = useNavigate();
   useEffect(() => {
     const timer = setInterval(() => setHeroIndex((i) => (i + 1) % hero.length), 5000);
     return () => clearInterval(timer);
@@ -65,7 +66,7 @@ function Home() {
       <ImageSlider />
       <LatestUpdates />
       <CourseSlider />
-      <CompanyLogo />
+      <PlacedStudentsSlider />
 
     
           {/* HERO + SIDEBAR */}
@@ -100,18 +101,18 @@ function Home() {
 
               {/* CTA Buttons */}
               <div className="flex flex-wrap gap-3">
-                <a
-                  href="#course"
+                <button
+                  onClick={() => navigate(`/Courses`)}
                   className="rounded-full bg-white px-5 py-2.5 text-sm font-bold text-pink-700 shadow-md transition hover:bg-pink-50 hover:shadow-pink-200 sm:px-6 sm:py-3"
                 >
                   Explore Courses
-                </a>
-                <a
-                  href="#events"
+                </button>
+                <button
+                  onClick={() => navigate(`/Events`)}
                   className="rounded-full border-2 border-white/30 px-5 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/15 sm:px-6 sm:py-3"
                 >
                   Upcoming Events
-                </a>
+                </button>
               </div>
 
               {/* Dots + Arrows */}
@@ -200,7 +201,7 @@ function Home() {
         </div>
       </section>
 
-      <PlacedStudentsSlider />
+      <CompanyLogo />
       <Reviews />
       <Mentor />
       <Location />

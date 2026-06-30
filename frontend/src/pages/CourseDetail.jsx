@@ -326,7 +326,11 @@ export default function CourseDetail() {
       return;
     }
     // Pass courseId as query param so the payment page can pre-fill it
-    navigate(`/OnlineAdmission?courseId=${id}`);
+    navigate(`/courses/${id}/fee`);
+
+    // navigate(`/OnlineAdmission?courseId=${id}`);
+
+    courses
   };
 
   // ── DOWNLOAD CURRICULUM handler ──

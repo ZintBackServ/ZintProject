@@ -23,6 +23,7 @@ function AdminNavbar({ onToggleSidebar }) {
     { to: "/admin/dashboard/Rating", label: "Rating" },
     { to: "/admin/dashboard/EnrolledStudent", label: "EnrolledStudent" },
     { to: "/admin/dashboard/Notification", label: "Notification" },
+    { to: "/admin/dashboard/AddCategory", label: "Category" },
   ];
   return (
     <nav className="bg-gray-900 border-b border-gray-700 px-4 sm:px-6 py-3 flex items-center justify-between sticky top-0 z-40">

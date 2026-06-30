@@ -12,7 +12,8 @@ const links = [
   { path: "/admin/dashboard/AllEventRegistration",         label: "AllEventRegistration"   },
   { path: "/admin/dashboard/Rating",                       label: "Rating"   },
   { path: "/admin/dashboard/EnrolledStudent",              label: "EnrolledStudent"   },
-  { path: "/admin/dashboard/Notification",              label: "Notification"   },
+  { path: "/admin/dashboard/Notification",                 label: "Notification"   },
+  { path: "/admin/dashboard/AddCategory",                 label: "AddCategory"   },
 ];
 
 function AdminSidebar({ onClose }) {

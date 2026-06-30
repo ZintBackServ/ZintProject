@@ -187,7 +187,7 @@ function CourseCard({ course, onKnowMore }) {
           style={{ borderColor: "#f1f5f9" }}>
 
           {/* Fee — dark with green "50% off" */}
-          {course.fee && (
+          {/* {course.fee && (
             <div className="flex flex-col leading-tight">
               <span className="font-extrabold text-sm" style={{ color: "#111827" }}>
                 ₹{course.fee.toLocaleString("en-IN")}
@@ -196,7 +196,7 @@ function CourseCard({ course, onKnowMore }) {
                 35% OFF
               </span>
             </div>
-          )}
+          )} */}
 
           {/* DarkPurple CTA — Purple */}
           <KnowMoreBtn onClick={onKnowMore} />
@@ -212,7 +212,7 @@ function KnowMoreBtn({ onClick }) {
   return (
     <button
       onClick={onClick}
-      className="text-white text-xs font-bold px-5 py-2.5 rounded-xl transition-all duration-200"
+      className="text-white text-xs w-full font-bold px-5 py-2.5 rounded-xl transition-all duration-200"
       style={{
         background:  hov ? DarkPurple : PrimaryPurple,
         boxShadow:   hov

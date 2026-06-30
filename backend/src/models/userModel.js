@@ -7,61 +7,68 @@ const userSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-
     lastName: {
       type: String,
       trim: true,
     },
-
     email: {
       type: String,
       required: true,
       trim: true,
       unique: true,
-      lowercase: true, // FIX: normalize email to lowercase consistently
+      lowercase: true,
       index: true,
     },
-
     contactNo: {
       type: String,
       unique: true,
-      required: true,
+      sparse: true,      // allows null/undefined for Google-only users
       index: true,
     },
-
-    address: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-
-    city: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-
-    state: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-
     password: {
       type: String,
-      required: true,
-      select: false, // never returned in queries
+      required: false,   // not required for Google OAuth users
+      select: false,
     },
-
     role: {
       type: String,
       enum: ["user", "admin"],
       default: "user",
     },
-
     refreshToken: {
       type: String,
-      select: false, // FIX: sensitive — hide from queries just like password
+      select: false,
+    },
+
+    //  Google OAuth
+    googleId: {
+      type: String,
+      unique: true,
+      sparse: true,      // allows multiple docs with null googleId
+      index: true,
+    },
+    avatar: {
+      type: String,      // profile picture URL from Google
+      default: null,
+    },
+    authProvider: {
+      type: String,
+      enum: ["local", "google"],
+      default: "local",
+    },
+
+    //  Email OTP Verification 
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    otp: {
+      type: String,
+      select: false,     // never returned in normal queries
+    },
+    otpExpiry: {
+      type: Date,
+      select: false,
     },
   },
   { timestamps: true }

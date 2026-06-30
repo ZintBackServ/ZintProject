@@ -26,6 +26,12 @@ import { AdminRoute, PrivateRoute } from "./components/ProtectedRoute";
 import { AdminRatingDashboard } from "./pages/admin/Rating";
 import NotificationPopup from "./components/Notification";
 
+import FeePay from "./pages/user/FeePay";
+import GoogleAuthSuccess from "./pages/GoogleAuthSuccess";
+
+
+<Route path="/auth/google/success" element={<GoogleAuthSuccess />} />
+
 function App() {
   return (
     // No BrowserRouter here — it lives in main.jsx now
@@ -43,6 +49,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/courses/:id" element={<CourseDetail />} />
+        <Route path="/courses/:id/fee" element={<FeePay />} />
         <Route path="/Events" element={<Events />} />
         <Route path="/Blog" element={<Blog />} />
         <Route path="/Internship" element={<Internship />} />

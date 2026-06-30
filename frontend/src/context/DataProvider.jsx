@@ -2,15 +2,15 @@ import { useState, useEffect } from "react";
 import { DataContext } from "./DataContext";
 
 const DataProvider = ({ children }) => {
-  const [data, setData] = useState([]);
+  const [data, setData] = useState({ courses: [] });
   const [loading, setLoading] = useState(true);
 
   const fetchData = async () => {
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/course/getAllCourse`);
       const result = await res.json();
-      console.log(result);
-      setData(result);
+      // API returns { msg, courses: [...] }
+      setData({ courses: result.courses || [] });
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -18,9 +18,7 @@ const DataProvider = ({ children }) => {
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
   return (
     <DataContext.Provider value={{ data, loading }}>
@@ -30,3 +28,37 @@ const DataProvider = ({ children }) => {
 };
 
 export default DataProvider;
+
+
+// import { useState, useEffect } from "react";
+// import { DataContext } from "./DataContext";
+
+// const DataProvider = ({ children }) => {
+//   const [data, setData] = useState([]);
+//   const [loading, setLoading] = useState(true);
+
+//   const fetchData = async () => {
+//     try {
+//       const res = await fetch(`${import.meta.env.VITE_API_URL}/course/getAllCourse`);
+//       const result = await res.json();
+//       console.log(result);
+//       setData(result);
+//     } catch (error) {
+//       console.error("Error fetching data:", error);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   useEffect(() => {
+//     fetchData();
+//   }, []);
+
+//   return (
+//     <DataContext.Provider value={{ data, loading }}>
+//       {children}
+//     </DataContext.Provider>
+//   );
+// };
+
+// export default DataProvider;

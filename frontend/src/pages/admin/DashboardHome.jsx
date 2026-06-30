@@ -6,22 +6,24 @@ import { useAuth } from "../../context/AuthContext";
 function DashboardHome() {
   const { data } = useContext(DataContext);
   const { user } = useAuth();
-  const [greeting, setGreeting] = useState("Good morning");
+  const [greeting, setGreeting]       = useState("Good morning");
   const [currentTime, setCurrentTime] = useState(new Date());
 
-  const courses  = data?.courses  || [];
-  const mentors  = data?.mentors  || [];
-  const students = data?.students || [];
+  // ── pull from updated DataContext shape ──
+  const courses    = data?.courses    || [];
+  const categories = data?.categories || [];
+
+  // these aren't in DataProvider yet — kept as empty until you add them
+  const mentors  = data?.mentors        || [];
+  const students = data?.students       || [];
   const placed   = data?.placedStudents || [];
 
-  // Dynamic greeting based on time
   useEffect(() => {
     const hour = new Date().getHours();
     if (hour < 12)      setGreeting("Good morning");
     else if (hour < 17) setGreeting("Good afternoon");
     else                setGreeting("Good evening");
 
-    // update clock every minute
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
@@ -29,7 +31,7 @@ function DashboardHome() {
   const stats = [
     {
       title: "Total Courses",
-      value: courses.length || 0,
+      value: courses.length,
       icon: "📚",
       color: "bg-indigo-50 border-indigo-100 text-indigo-600",
       bar: "bg-indigo-500",
@@ -37,8 +39,17 @@ function DashboardHome() {
       linkLabel: "Add Course",
     },
     {
+      title: "Total Categories",
+      value: categories.length,           // ← now uses real data
+      icon: "🗂️",
+      color: "bg-purple-50 border-purple-100 text-purple-600",
+      bar: "bg-purple-500",
+      link: "/admin/dashboard/AddCategory",
+      linkLabel: "Add Category",
+    },
+    {
       title: "Total Mentors",
-      value: mentors.length || 0,
+      value: mentors.length,
       icon: "👨‍🏫",
       color: "bg-emerald-50 border-emerald-100 text-emerald-600",
       bar: "bg-emerald-500",
@@ -46,17 +57,8 @@ function DashboardHome() {
       linkLabel: "Add Mentor",
     },
     {
-      title: "Total Students",
-      value: students.length || 120,
-      icon: "👥",
-      color: "bg-blue-50 border-blue-100 text-blue-600",
-      bar: "bg-blue-500",
-      link: "/admin/dashboard/Students",
-      linkLabel: "View Students",
-    },
-    {
       title: "Placed Students",
-      value: placed.length || 0,
+      value: placed.length,
       icon: "🏆",
       color: "bg-amber-50 border-amber-100 text-amber-600",
       bar: "bg-amber-500",
@@ -66,10 +68,11 @@ function DashboardHome() {
   ];
 
   const quickActions = [
-    { label: "Add Course",     icon: "➕", path: "/admin/dashboard/AddCourse",   color: "bg-indigo-600 hover:bg-indigo-700" },
-    { label: "Add Mentor",     icon: "👨‍🏫", path: "/admin/dashboard/AddMentor",   color: "bg-emerald-600 hover:bg-emerald-700" },
-    { label: "Add Placement",  icon: "🏆", path: "/admin/dashboard/AddPlacement", color: "bg-amber-600 hover:bg-amber-700" },
-    { label: "View Site",      icon: "🌐", path: "/",  color: "bg-gray-700 hover:bg-gray-800" },
+    { label: "Add Course",    icon: "➕",  path: "/admin/dashboard/AddCourse",    color: "bg-indigo-600 hover:bg-indigo-700" },
+    { label: "Add Category",  icon: "🗂️",  path: "/admin/dashboard/AddCategory",  color: "bg-purple-600 hover:bg-purple-700" },
+    { label: "Add Mentor",    icon: "👨‍🏫", path: "/admin/dashboard/AddMentor",    color: "bg-emerald-600 hover:bg-emerald-700" },
+    { label: "Add Placement", icon: "🏆",  path: "/admin/dashboard/AddPlacement", color: "bg-amber-600 hover:bg-amber-700" },
+    { label: "View Site",     icon: "🌐",  path: "/",                             color: "bg-gray-700 hover:bg-gray-800" },
   ];
 
   return (
@@ -80,17 +83,13 @@ function DashboardHome() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <p className="text-sm text-gray-500">{greeting} 👋</p>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-              Admin Dashboard
-            </h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Admin Dashboard</h1>
             <p className="text-sm text-gray-400 mt-0.5">
               {currentTime.toLocaleDateString("en-IN", {
-                weekday: "long", year: "numeric", month: "long", day: "numeric"
+                weekday: "long", year: "numeric", month: "long", day: "numeric",
               })}
             </p>
           </div>
-
-          {/* Quick add button */}
           <Link
             to="/admin/dashboard/AddCourse"
             className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition shadow-sm self-start sm:self-auto"
@@ -114,7 +113,6 @@ function DashboardHome() {
                 <span className="text-3xl font-bold">{stat.value}</span>
               </div>
               <p className="text-sm font-semibold mb-3">{stat.title}</p>
-              {/* Progress bar — visual indicator */}
               <div className="w-full bg-white bg-opacity-60 rounded-full h-1.5 mb-3">
                 <div
                   className={`${stat.bar} h-1.5 rounded-full`}
@@ -131,10 +129,10 @@ function DashboardHome() {
           ))}
         </div>
 
-        {/* ── MAIN GRID — Recent Courses + Quick Actions ── */}
+        {/* ── MAIN GRID ── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
 
-          {/* Recent Courses — takes 2/3 width on desktop */}
+          {/* Recent Courses — 2/3 width */}
           <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
               <h2 className="font-bold text-gray-900 text-base">Recent Courses</h2>
@@ -159,46 +157,58 @@ function DashboardHome() {
               </div>
             ) : (
               <div className="divide-y divide-gray-50">
-                {courses.slice(0, 6).map((course) => (
-                  <div
-                    key={course._id}
-                    className="flex items-center gap-4 px-6 py-4 hover:bg-gray-50 transition"
-                  >
-                    {/* Course image */}
-                    <div className="w-12 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100">
-                      <img
-                        src={course.courseImage}
-                        alt={course.courseName}
-                        className="w-full h-full object-cover"
-                        onError={(e) => { e.target.style.display = "none"; }}
-                      />
-                    </div>
+                {courses.slice(0, 6).map((course) => {
+                  // category may be populated object or raw ObjectId string
+                  const categoryName =
+                    typeof course.category === "object"
+                      ? course.category?.categoryName
+                      : categories.find((c) => String(c._id) === String(course.category))?.categoryName;
 
-                    {/* Course info */}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-gray-900 truncate">
-                        {course.courseName}
-                      </p>
-                      <p className="text-xs text-gray-400">
-                        {course.duration} · ₹{course.fee?.toLocaleString("en-IN")}
-                      </p>
-                    </div>
+                  return (
+                    <div
+                      key={course._id}
+                      className="flex items-center gap-4 px-6 py-4 hover:bg-gray-50 transition"
+                    >
+                      {/* Course image */}
+                      <div className="w-12 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100">
+                        {course.courseImage && (
+                          <img
+                            src={course.courseImage}
+                            alt={course.courseName}
+                            className="w-full h-full object-cover"
+                            onError={(e) => { e.target.style.display = "none"; }}
+                          />
+                        )}
+                      </div>
 
-                    {/* Type badge */}
-                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0
-                      ${course.type === "Tech"
-                        ? "bg-indigo-100 text-indigo-700"
-                        : "bg-amber-100 text-amber-700"
-                      }`}>
-                      {course.type || "—"}
-                    </span>
-                  </div>
-                ))}
+                      {/* Course info */}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-900 truncate">
+                          {course.courseName}
+                        </p>
+                        <p className="text-xs text-gray-400">
+                          {course.duration} · ₹{course.fee?.toLocaleString("en-IN")}
+                          {categoryName && (
+                            <span className="ml-2 text-purple-500">· {categoryName}</span>
+                          )}
+                        </p>
+                      </div>
+
+                      {/* Mode badge */}
+                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0
+                        ${course.mode === "Online"  ? "bg-indigo-100 text-indigo-700"  :
+                          course.mode === "Offline" ? "bg-amber-100  text-amber-700"   :
+                                                      "bg-emerald-100 text-emerald-700"}`}>
+                        {course.mode || "—"}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
 
-          {/* RIGHT COLUMN — Quick Actions + Summary */}
+          {/* RIGHT COLUMN */}
           <div className="flex flex-col gap-4">
 
             {/* Quick Actions */}
@@ -228,16 +238,16 @@ function DashboardHome() {
                   <span className="font-bold">{courses.length}</span>
                 </div>
                 <div className="flex justify-between text-sm">
+                  <span className="text-indigo-200">Categories</span>
+                  <span className="font-bold">{categories.length}</span>
+                </div>
+                <div className="flex justify-between text-sm">
                   <span className="text-indigo-200">Mentors</span>
                   <span className="font-bold">{mentors.length}</span>
                 </div>
-                <div className="flex justify-between text-sm">
+                <div className="border-t border-indigo-500 pt-2 flex justify-between text-sm">
                   <span className="text-indigo-200">Placements</span>
                   <span className="font-bold">{placed.length}</span>
-                </div>
-                <div className="border-t border-indigo-500 pt-2 flex justify-between text-sm">
-                  <span className="text-indigo-200">Total Students</span>
-                  <span className="font-bold">{students.length || 120}</span>
                 </div>
               </div>
             </div>
@@ -245,35 +255,37 @@ function DashboardHome() {
           </div>
         </div>
 
-        {/* ── RECENT MENTORS ── */}
-        {mentors.length > 0 && (
+        {/* ── CATEGORIES OVERVIEW ── */}
+        {categories.length > 0 && (
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-              <h2 className="font-bold text-gray-900 text-base">Recent Mentors</h2>
+              <h2 className="font-bold text-gray-900 text-base">Categories</h2>
               <Link
-                to="/admin/dashboard/AddMentor"
-                className="text-xs text-emerald-600 hover:text-emerald-800 font-semibold"
+                to="/admin/dashboard/AddCategory"
+                className="text-xs text-purple-600 hover:text-purple-800 font-semibold"
               >
-                + Add Mentor
+                + Add Category
               </Link>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-gray-100">
-              {mentors.slice(0, 4).map((mentor) => (
-                <div key={mentor._id} className="flex items-center gap-3 p-4 hover:bg-gray-50 transition">
-                  <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
-                    <img
-                      src={mentor.profileImage}
-                      alt={mentor.name}
-                      className="w-full h-full object-cover"
-                      onError={(e) => { e.target.style.display = "none"; }}
-                    />
+              {categories.slice(0, 4).map((cat) => {
+                const count = courses.filter((c) => {
+                  const catId = typeof c.category === "object" ? c.category?._id : c.category;
+                  return String(catId) === String(cat._id);
+                }).length;
+
+                return (
+                  <div key={cat._id} className="flex items-center gap-3 p-4 hover:bg-gray-50 transition">
+                    <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold text-sm flex-shrink-0">
+                      {cat.categoryName?.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-gray-900 truncate">{cat.categoryName}</p>
+                      <p className="text-xs text-gray-400">{count} course{count !== 1 ? "s" : ""}</p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-gray-900 truncate">{mentor.name}</p>
-                    <p className="text-xs text-gray-400 truncate">{mentor.designation || "Mentor"}</p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
