@@ -120,7 +120,7 @@ function AddStudentModal({ onClose, onAdded, showToast }) {
 
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-2xl mt-80 mb-50  shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between px-7 py-5 border-b border-gray-100">
           <h2 className="text-xl font-bold text-gray-900">Add Placed Student</h2>
           <button onClick={onClose} className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition">✕</button>
@@ -131,7 +131,7 @@ function AddStudentModal({ onClose, onAdded, showToast }) {
           {/* Each box is fully isolated — changing one preview won't affect the other */}
           <ImageUploadBox
             label="Profile Photo"
-            required
+            required 
             onFileSelect={setProfileFile}
             hint="Click to upload student photo"
           />

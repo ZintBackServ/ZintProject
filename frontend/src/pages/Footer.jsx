@@ -5,34 +5,63 @@ import { FaFacebook, FaPhoneAlt, FaInstagramSquare, FaWhatsapp, FaYoutube, FaLin
 import { CiMail, CiLocationOn } from "react-icons/ci";
 import { RiTelegram2Fill } from "react-icons/ri";
 
+// ── Brand Palette ─────────────────────────────────
+const DarkPurple    = "#8E1387";
+const PrimaryPurple = "#B11FA8";
+const BLUE          = "#53BFEA";
+const GREEN         = "#45B51D";
+
+// Light tints (used for backgrounds / chips)
+const PPL = "#FCE8FB";   // PrimaryPurple light
+const DPL = "#F7EAF7";   // DarkPurple light
+const BLL = "#E8F7FD";   // Blue light
+const GRL = "#EBF8E4";   // Green light
+
+// ── Static data ───────────────────────────────────
 const COMPANY_LINKS = [
   { label: "About Us",        to: "/about"   },
   { label: "Contact Us",      to: "/contact" },
   { label: "FAQ",             to: "/faq"     },
   { label: "Blog",            to: "/blog"    },
+  { label: "Privacy Policy",  to: "/PrivacyPolicy" },
+  { label: "Refund Policy",  to: "/RefundPolicy" },
+  { label: "Terms & Conditions",  to: "/TermsConditions" },
   { label: "Career Services", to: "/careers" },
 ];
 
 const SOCIAL_LINKS = [
-  { label: "LinkedIn",  href: "https://www.linkedin.com/in/zint-institute-05a4a12a8/", color: "#0A66C2", icon: <FaLinkedin        className="h-4 w-4" /> },
-  { label: "YouTube",   href: "https://youtube.com/@zintinstitute",                    color: "#FF0000", icon: <FaYoutube         className="h-4 w-4" /> },
-  { label: "Facebook",  href: "https://www.facebook.com/share/1Cwfquebni/",           color: "#1877F2", icon: <FaFacebook        className="h-4 w-4" /> },
-  { label: "Instagram", href: "https://www.instagram.com/zintinstitute/",             color: "#E1306C", icon: <FaInstagramSquare  className="h-4 w-4" /> },
-  { label: "Telegram",  href: "https://t.me/zintinstitute",                           color: "#26A5E4", icon: <RiTelegram2Fill   className="h-4 w-4" /> },
-  { label: "WhatsApp",  href: "https://chat.whatsapp.com/BbUHk9fOxCa7Z5aEeNiYna",    color: "#25D366", icon: <FaWhatsapp        className="h-4 w-4" /> },
+  { label: "LinkedIn",  href: "https://www.linkedin.com/in/zint-institute-05a4a12a8/", bg: "#0A66C2", icon: <FaLinkedin       size={14} /> },
+  { label: "YouTube",   href: "https://youtube.com/@zintinstitute",                    bg: "#FF0000", icon: <FaYoutube        size={14} /> },
+  { label: "Facebook",  href: "https://www.facebook.com/share/1Cwfquebni/",           bg: "#1877F2", icon: <FaFacebook       size={14} /> },
+  { label: "Instagram", href: "https://www.instagram.com/zintinstitute/",             bg: "#E1306C", icon: <FaInstagramSquare size={14} /> },
+  { label: "Telegram",  href: "https://t.me/zintinstitute",                           bg: "#26A5E4", icon: <RiTelegram2Fill  size={14} /> },
+  { label: "WhatsApp",  href: "https://chat.whatsapp.com/BbUHk9fOxCa7Z5aEeNiYna",    bg: "#25D366", icon: <FaWhatsapp       size={14} /> },
 ];
 
+// ── Column title ──────────────────────────────────
+const ColTitle = ({ children }) => (
+  <p style={{
+    fontSize: 10, fontWeight: 700, textTransform: "uppercase",
+    letterSpacing: "0.12em", color: DarkPurple,
+    borderBottom: `2px solid ${PrimaryPurple}44`,
+    paddingBottom: 8, marginBottom: 16, display: "inline-block",
+  }}>
+    {children}
+  </p>
+);
+
+// ── Footer ────────────────────────────────────────
 const Footer = () => {
   const navigate = useNavigate();
   const { data, loading } = useContext(DataContext);
   const courses = data?.courses || [];
 
-  // All unique category names from courses
+  // All unique categories from course data
   const allCategories = [
     ...new Map(
       courses
         .filter((c) => c.category?.categoryName)
-        .map((c) => [c.category._id, { name: c.category.categoryName, type: c.type }])
+        .map((c) => [c.category._id, { id: c.category._id, name: c.category.categoryName, type: c.type }])
     ).values(),
   ];
 
@@ -42,76 +71,127 @@ const Footer = () => {
   };
 
   return (
-    <footer className="w-full bg-[#080712] text-gray-400">
+    <footer style={{
+      width: "100%",
+      background: "#fff",
+      color: "#4b4060",
+      fontFamily: "'Poppins', sans-serif",
+      borderTop: `3px solid ${PrimaryPurple}22`,
+    }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        .foot-link { color: #7a5077; font-size: 13px; text-decoration: none; transition: color 0.18s ease; display: inline-flex; align-items: center; gap: 5px; }
+        .foot-link:hover { color: ${PrimaryPurple}; }
+        .foot-cat-btn {
+          text-align: left; font-size: 13px; color: #7a5077;
+          background: #faf5fa; border: 1px solid ${PrimaryPurple}22;
+          border-radius: 8px; padding: 7px 12px;
+          cursor: pointer; transition: all 0.18s ease; width: 100%;
+          font-family: 'Poppins', sans-serif;
+        }
+        .foot-cat-btn:hover { background: ${PPL}; border-color: ${PrimaryPurple}55; color: ${DarkPurple}; }
+        .social-btn { display: flex; align-items: center; gap: 10px; text-decoration: none; transition: all 0.18s ease; }
+        .social-btn:hover .social-label { color: ${DarkPurple}; }
+        .social-btn:hover .social-icon { transform: scale(1.12); }
+        .social-icon { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; flex-shrink: 0; transition: transform 0.18s ease; }
+        .social-label { font-size: 13px; color: #7a5077; transition: color 0.18s ease; }
+        .skel { background: ${PPL}; border-radius: 8px; animation: skelPulse 1.4s ease-in-out infinite; }
+        @keyframes skelPulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
+      `}</style>
 
-      {/* ── TAGLINE ── */}
-      <div className="border-b border-white/[0.07] px-5 sm:px-10 lg:px-16 pt-10 pb-8">
-        <p className="text-[10px] tracking-[0.2em] uppercase text-amber-500/70 mb-2 font-medium">
+      {/* ── TAGLINE BAND ── */}
+      <div style={{
+        borderBottom: `1px solid ${PrimaryPurple}18`,
+        padding: "40px 40px 32px",
+        background: `linear-gradient(135deg, ${DPL} 0%, #fff 60%, ${BLL} 100%)`,
+      }}>
+        <p style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.15em", color: PrimaryPurple, marginBottom: 8 }}>
           Zint Institute
         </p>
-        <h2 className="text-2xl sm:text-3xl font-semibold text-white leading-snug max-w-2xl"
-            style={{ fontFamily: "'Georgia', serif" }}>
+        <h2 style={{
+          fontSize: "clamp(18px, 2.5vw, 26px)", fontWeight: 600,
+          color: "#1a0019", lineHeight: 1.4, maxWidth: 600, marginBottom: 8,
+        }}>
           Where curiosity meets craft —{" "}
-          <span className="text-amber-400 italic">build skills that outlast every trend.</span>
+          <span style={{ color: PrimaryPurple, fontStyle: "italic" }}>build skills that outlast every trend.</span>
         </h2>
-        <p className="mt-2 text-sm text-gray-500 max-w-md">
+        <p style={{ fontSize: 13, color: "#9b7d99", fontWeight: 300 }}>
           Invest in knowledge today. The returns compound forever.
         </p>
       </div>
 
-      {/* ── TOP GRID : Brand | Company | Social ── */}
-      <div className="border-b border-white/[0.07] px-5 sm:px-10 lg:px-16 py-8
-                      grid grid-cols-2 sm:grid-cols-3 gap-8">
+      {/* ── MAIN GRID ── */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+        gap: "36px 28px",
+        padding: "40px",
+        borderBottom: `1px solid ${PrimaryPurple}18`,
+      }}>
 
         {/* Brand + Contact */}
-        <div className="col-span-2 sm:col-span-1">
-          <div className="flex items-center gap-2 mb-5">
-            <span className="text-amber-400 text-xl">◈</span>
-            <span className="text-white text-xl font-semibold tracking-wide"
-                  style={{ fontFamily: "'Georgia', serif" }}>
-              Zint<span className="text-amber-400">Skills</span>
+        <div style={{ gridColumn: "span 1" }}>
+          {/* Logo */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20 }}>
+            {/* <div style={{
+              width: 32, height: 32, borderRadius: 8,
+              background: `linear-gradient(135deg, ${DarkPurple}, ${PrimaryPurple})`,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              color: "#fff", fontSize: 14, fontWeight: 700,
+            }}>Z</div> */}
+            <span style={{ fontSize: 18, fontWeight: 700, color: "#1a0019", letterSpacing: "-0.01em" }}>
+              Zint<span style={{ color: BLUE }}>Institute</span>
             </span>
           </div>
-          <ul className="space-y-3 text-sm">
-            <li>
-              <a href="tel:+919876543210"
-                 className="flex items-center gap-2.5 hover:text-amber-300 transition-colors">
-                <FaPhoneAlt className="h-3.5 w-3.5 shrink-0 text-amber-500/60" />
-                +91 98765 43210
-              </a>
-            </li>
-            <li className="flex items-center gap-2.5">
-              <CiLocationOn className="h-4 w-4 shrink-0 text-amber-500/60" />
+
+          {/* Contact */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <a href="tel:+918965975222" className="foot-link">
+              <FaPhoneAlt size={13} style={{ color: PrimaryPurple }} />
+              +91 8965975222
+            </a>
+            <a href="tel:+918817872737" className="foot-link">
+              <FaPhoneAlt size={13} style={{ color: PrimaryPurple }} />
+              +91 8817872737
+            </a>
+            <a href="tel:+919754078816" className="foot-link">
+              <FaPhoneAlt size={13} style={{ color: PrimaryPurple }} />
+              +91  9754078816
+            </a>
+            <span className="foot-link" style={{ cursor: "default" }}>
+              <CiLocationOn size={15} style={{ color: PrimaryPurple }} />
               Main Campus, Gwalior
-            </li>
-            <li>
-              <a href="mailto:info@zinstitute.in"
-                 className="flex items-center gap-2.5 hover:text-amber-300 transition-colors">
-                <CiMail className="h-4 w-4 shrink-0 text-amber-500/60" />
-                info@zinstitute.in
-              </a>
-            </li>
-          </ul>
-          <div className="mt-5 inline-flex items-center gap-2 bg-white/[0.04] border border-white/10
-                          rounded-lg px-3 py-2 text-xs text-gray-500">
-            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-violet-500 to-amber-400
-                            flex items-center justify-center text-white font-bold text-[8px]">
-              ISO
-            </div>
+            </span>
+            <a href="mailto:info@zinstitute.in" className="foot-link">
+              <CiMail size={15} style={{ color: PrimaryPurple }} />
+              info@zinstitute.in
+            </a>
+          </div>
+
+          {/* ISO badge */}
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: 8, marginTop: 18,
+            background: `${PrimaryPurple}0a`, border: `1px solid ${PrimaryPurple}22`,
+            borderRadius: 10, padding: "8px 12px", fontSize: 11, color: "#9b7d99",
+          }}>
+            <div style={{
+              width: 26, height: 26, borderRadius: "50%",
+              background: `linear-gradient(135deg, ${PrimaryPurple}, ${BLUE})`,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              color: "#fff", fontWeight: 700, fontSize: 8,
+            }}>ISO</div>
             ISO 9001:2015 Certified
           </div>
         </div>
 
-        {/* Company */}
+        {/* Company Links */}
         <div>
-          <FootColTitle>Company</FootColTitle>
-          <ul className="space-y-2.5">
+          <ColTitle>Company</ColTitle>
+          <ul style={{ listStyle: "none", padding: 0, display: "flex", flexDirection: "column", gap: 10 }}>
             {COMPANY_LINKS.map(({ label, to }) => (
               <li key={to}>
-                <Link to={to}
-                      onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-                      className="text-sm hover:text-amber-400 transition-colors inline-flex items-center gap-1.5 group">
-                  <span className="text-gray-600 group-hover:text-amber-500">›</span>
+                <Link to={to} onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} className="foot-link">
+                  <span style={{ color: `${PrimaryPurple}88`, fontWeight: 600 }}>›</span>
                   {label}
                 </Link>
               </li>
@@ -119,51 +199,61 @@ const Footer = () => {
           </ul>
         </div>
 
-        {/* Social */}
+        {/* Follow Us */}
         <div>
-          <FootColTitle>Follow Us</FootColTitle>
-          <ul className="space-y-2.5">
-            {SOCIAL_LINKS.map(({ label, href, icon, color }) => (
+          <ColTitle>Follow Us</ColTitle>
+          <ul style={{ listStyle: "none", padding: 0, display: "flex", flexDirection: "column", gap: 10 }}>
+            {SOCIAL_LINKS.map(({ label, href, icon, bg }) => (
               <li key={label}>
-                <a href={href} target="_blank" rel="noopener noreferrer"
-                   className="flex items-center gap-2.5 group">
-                  <span className="w-6 h-6 rounded-md flex items-center justify-center text-white shrink-0
-                                   transition-transform group-hover:scale-110"
-                        style={{ backgroundColor: color }}>
-                    {icon}
-                  </span>
-                  <span className="text-sm group-hover:text-white transition-colors">{label}</span>
+                <a href={href} target="_blank" rel="noopener noreferrer" className="social-btn">
+                  <span className="social-icon" style={{ background: bg }}>{icon}</span>
+                  <span className="social-label">{label}</span>
                 </a>
               </li>
             ))}
           </ul>
         </div>
+
+        {/* Quick Info */}
+        <div>
+          <ColTitle>Quick Info</ColTitle>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {[
+              { label: "Batch Size", value: "≤ 20 students", color: PrimaryPurple, bg: PPL },
+              { label: "Mode",       value: "Online & Offline", color: BLUE,          bg: BLL },
+              { label: "Support",    value: "6-month post-placement", color: GREEN, bg: GRL },
+              { label: "Cert.",      value: "SSC NASSCOM", color: DarkPurple,         bg: DPL },
+            ].map(({ label, value, color, bg }) => (
+              <div key={label} style={{
+                background: bg, border: `1px solid ${color}22`,
+                borderRadius: 8, padding: "8px 12px",
+                borderLeft: `3px solid ${color}`,
+              }}>
+                <p style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "#9b7d99", marginBottom: 2 }}>{label}</p>
+                <p style={{ fontSize: 12.5, fontWeight: 500, color: "#1a0019" }}>{value}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
-      {/* ── COURSES SECTION — full width category grid ── */}
-      <div className="px-5 sm:px-10 lg:px-16 py-8 border-b border-white/[0.07]">
-        <FootColTitle>Courses</FootColTitle>
+      {/* ── COURSES SECTION ── */}
+      <div style={{ padding: "32px 40px", borderBottom: `1px solid ${PrimaryPurple}18` }}>
+        <ColTitle>Courses</ColTitle>
 
         {loading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 animate-pulse">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-9 rounded-lg bg-white/[0.06]" />
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 10 }}>
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="skel" style={{ height: 36 }} />
             ))}
           </div>
         ) : allCategories.length === 0 ? (
-          <p className="text-xs text-gray-600 italic">No courses available yet</p>
+          <p style={{ fontSize: 12, color: "#b097af", fontStyle: "italic" }}>No courses available yet.</p>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2.5">
-            {allCategories.map(({ name, type }) => (
-              <button
-                key={name}
-                onClick={() => handleCategoryClick(name, type)}
-                className="text-left text-sm text-gray-400 px-3 py-2.5 rounded-lg
-                           bg-white/[0.03] border border-white/[0.07]
-                           hover:bg-amber-400/10 hover:border-amber-400/40 hover:text-amber-300
-                           transition-all duration-200 group"
-              >
-                <span className="text-gray-600 group-hover:text-amber-500 mr-1.5">›</span>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 8 }}>
+            {allCategories.map(({ id, name, type }) => (
+              <button key={id} className="foot-cat-btn" onClick={() => handleCategoryClick(name, type)}>
+                <span style={{ color: PrimaryPurple, marginRight: 4, fontWeight: 600 }}>›</span>
                 {name}
               </button>
             ))}
@@ -172,31 +262,228 @@ const Footer = () => {
       </div>
 
       {/* ── BOTTOM BAR ── */}
-      <div className="px-5 sm:px-10 lg:px-16 py-4
-                      flex flex-col sm:flex-row items-start sm:items-center
-                      justify-between gap-2 text-xs text-gray-600">
+      <div style={{
+        padding: "16px 40px",
+        display: "flex", flexWrap: "wrap", alignItems: "center",
+        justifyContent: "space-between", gap: 10,
+        fontSize: 12, color: "#b097af",
+        background: `linear-gradient(90deg, ${DPL} 0%, #fff 50%, ${BLL} 100%)`,
+      }}>
         <span>© {new Date().getFullYear()} ZintSkills. All rights reserved.</span>
-        <div className="flex gap-4 flex-wrap">
+        <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
           {[["Privacy Policy", "/privacy"], ["Terms & Conditions", "/terms"], ["Refund Policy", "/refund"]].map(
             ([label, to]) => (
-              <Link key={to} to={to} className="hover:text-amber-400 transition-colors">{label}</Link>
+              <Link key={to} to={to} className="foot-link" style={{ fontSize: 12 }}>{label}</Link>
             )
           )}
         </div>
       </div>
-
     </footer>
   );
 };
 
-const FootColTitle = ({ children }) => (
-  <p className="text-[11px] font-semibold text-white uppercase tracking-widest mb-4
-                pb-2 border-b border-amber-400/40 w-fit">
-    {children}
-  </p>
-);
-
 export default Footer;
+
+
+// import { useContext } from "react";
+// import { useNavigate, Link } from "react-router-dom";
+// import { DataContext } from "../context/DataContext";
+// import { FaFacebook, FaPhoneAlt, FaInstagramSquare, FaWhatsapp, FaYoutube, FaLinkedin } from "react-icons/fa";
+// import { CiMail, CiLocationOn } from "react-icons/ci";
+// import { RiTelegram2Fill } from "react-icons/ri";
+
+// const COMPANY_LINKS = [
+//   { label: "About Us",        to: "/about"   },
+//   { label: "Contact Us",      to: "/contact" },
+//   { label: "FAQ",             to: "/faq"     },
+//   { label: "Blog",            to: "/blog"    },
+//   { label: "Career Services", to: "/careers" },
+// ];
+
+// const SOCIAL_LINKS = [
+//   { label: "LinkedIn",  href: "https://www.linkedin.com/in/zint-institute-05a4a12a8/", color: "#0A66C2", icon: <FaLinkedin        className="h-4 w-4" /> },
+//   { label: "YouTube",   href: "https://youtube.com/@zintinstitute",                    color: "#FF0000", icon: <FaYoutube         className="h-4 w-4" /> },
+//   { label: "Facebook",  href: "https://www.facebook.com/share/1Cwfquebni/",           color: "#1877F2", icon: <FaFacebook        className="h-4 w-4" /> },
+//   { label: "Instagram", href: "https://www.instagram.com/zintinstitute/",             color: "#E1306C", icon: <FaInstagramSquare  className="h-4 w-4" /> },
+//   { label: "Telegram",  href: "https://t.me/zintinstitute",                           color: "#26A5E4", icon: <RiTelegram2Fill   className="h-4 w-4" /> },
+//   { label: "WhatsApp",  href: "https://chat.whatsapp.com/BbUHk9fOxCa7Z5aEeNiYna",    color: "#25D366", icon: <FaWhatsapp        className="h-4 w-4" /> },
+// ];
+
+// const Footer = () => {
+//   const navigate = useNavigate();
+//   const { data, loading } = useContext(DataContext);
+//   const courses = data?.courses || [];
+
+//   // All unique category names from courses
+//   const allCategories = [
+//     ...new Map(
+//       courses
+//         .filter((c) => c.category?.categoryName)
+//         .map((c) => [c.category._id, { name: c.category.categoryName, type: c.type }])
+//     ).values(),
+//   ];
+
+//   const handleCategoryClick = (catName, type) => {
+//     navigate("/courses", { state: { activeType: type, activeCategory: catName } });
+//     window.scrollTo({ top: 0, behavior: "smooth" });
+//   };
+
+//   return (
+//     <footer className="w-full bg-[#080712] text-gray-400">
+
+//       {/* ── TAGLINE ── */}
+//       <div className="border-b border-white/[0.07] px-5 sm:px-10 lg:px-16 pt-10 pb-8">
+//         <p className="text-[10px] tracking-[0.2em] uppercase text-amber-500/70 mb-2 font-medium">
+//           Zint Institute
+//         </p>
+//         <h2 className="text-2xl sm:text-3xl font-semibold text-white leading-snug max-w-2xl"
+//             style={{ fontFamily: "'Georgia', serif" }}>
+//           Where curiosity meets craft —{" "}
+//           <span className="text-amber-400 italic">build skills that outlast every trend.</span>
+//         </h2>
+//         <p className="mt-2 text-sm text-gray-500 max-w-md">
+//           Invest in knowledge today. The returns compound forever.
+//         </p>
+//       </div>
+
+//       {/* ── TOP GRID : Brand | Company | Social ── */}
+//       <div className="border-b border-white/[0.07] px-5 sm:px-10 lg:px-16 py-8
+//                       grid grid-cols-2 sm:grid-cols-3 gap-8">
+
+//         {/* Brand + Contact */}
+//         <div className="col-span-2 sm:col-span-1">
+//           <div className="flex items-center gap-2 mb-5">
+//             <span className="text-amber-400 text-xl">◈</span>
+//             <span className="text-white text-xl font-semibold tracking-wide"
+//                   style={{ fontFamily: "'Georgia', serif" }}>
+//               Zint<span className="text-amber-400">Skills</span>
+//             </span>
+//           </div>
+//           <ul className="space-y-3 text-sm">
+//             <li>
+//               <a href="tel:+919876543210"
+//                  className="flex items-center gap-2.5 hover:text-amber-300 transition-colors">
+//                 <FaPhoneAlt className="h-3.5 w-3.5 shrink-0 text-amber-500/60" />
+//                 +91 98765 43210
+//               </a>
+//             </li>
+//             <li className="flex items-center gap-2.5">
+//               <CiLocationOn className="h-4 w-4 shrink-0 text-amber-500/60" />
+//               Main Campus, Gwalior
+//             </li>
+//             <li>
+//               <a href="mailto:info@zinstitute.in"
+//                  className="flex items-center gap-2.5 hover:text-amber-300 transition-colors">
+//                 <CiMail className="h-4 w-4 shrink-0 text-amber-500/60" />
+//                 info@zinstitute.in
+//               </a>
+//             </li>
+//           </ul>
+//           <div className="mt-5 inline-flex items-center gap-2 bg-white/[0.04] border border-white/10
+//                           rounded-lg px-3 py-2 text-xs text-gray-500">
+//             <div className="w-6 h-6 rounded-full bg-gradient-to-br from-violet-500 to-amber-400
+//                             flex items-center justify-center text-white font-bold text-[8px]">
+//               ISO
+//             </div>
+//             ISO 9001:2015 Certified
+//           </div>
+//         </div>
+
+//         {/* Company */}
+//         <div>
+//           <FootColTitle>Company</FootColTitle>
+//           <ul className="space-y-2.5">
+//             {COMPANY_LINKS.map(({ label, to }) => (
+//               <li key={to}>
+//                 <Link to={to}
+//                       onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+//                       className="text-sm hover:text-amber-400 transition-colors inline-flex items-center gap-1.5 group">
+//                   <span className="text-gray-600 group-hover:text-amber-500">›</span>
+//                   {label}
+//                 </Link>
+//               </li>
+//             ))}
+//           </ul>
+//         </div>
+
+//         {/* Social */}
+//         <div>
+//           <FootColTitle>Follow Us</FootColTitle>
+//           <ul className="space-y-2.5">
+//             {SOCIAL_LINKS.map(({ label, href, icon, color }) => (
+//               <li key={label}>
+//                 <a href={href} target="_blank" rel="noopener noreferrer"
+//                    className="flex items-center gap-2.5 group">
+//                   <span className="w-6 h-6 rounded-md flex items-center justify-center text-white shrink-0
+//                                    transition-transform group-hover:scale-110"
+//                         style={{ backgroundColor: color }}>
+//                     {icon}
+//                   </span>
+//                   <span className="text-sm group-hover:text-white transition-colors">{label}</span>
+//                 </a>
+//               </li>
+//             ))}
+//           </ul>
+//         </div>
+//       </div>
+
+//       {/* ── COURSES SECTION — full width category grid ── */}
+//       <div className="px-5 sm:px-10 lg:px-16 py-8 border-b border-white/[0.07]">
+//         <FootColTitle>Courses</FootColTitle>
+
+//         {loading ? (
+//           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 animate-pulse">
+//             {Array.from({ length: 6 }).map((_, i) => (
+//               <div key={i} className="h-9 rounded-lg bg-white/[0.06]" />
+//             ))}
+//           </div>
+//         ) : allCategories.length === 0 ? (
+//           <p className="text-xs text-gray-600 italic">No courses available yet</p>
+//         ) : (
+//           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2.5">
+//             {allCategories.map(({ name, type }) => (
+//               <button
+//                 key={name}
+//                 onClick={() => handleCategoryClick(name, type)}
+//                 className="text-left text-sm text-gray-400 px-3 py-2.5 rounded-lg
+//                            bg-white/[0.03] border border-white/[0.07]
+//                            hover:bg-amber-400/10 hover:border-amber-400/40 hover:text-amber-300
+//                            transition-all duration-200 group"
+//               >
+//                 <span className="text-gray-600 group-hover:text-amber-500 mr-1.5">›</span>
+//                 {name}
+//               </button>
+//             ))}
+//           </div>
+//         )}
+//       </div>
+
+//       {/* ── BOTTOM BAR ── */}
+//       <div className="px-5 sm:px-10 lg:px-16 py-4
+//                       flex flex-col sm:flex-row items-start sm:items-center
+//                       justify-between gap-2 text-xs text-gray-600">
+//         <span>© {new Date().getFullYear()} ZintSkills. All rights reserved.</span>
+//         <div className="flex gap-4 flex-wrap">
+//           {[["Privacy Policy", "/privacy"], ["Terms & Conditions", "/terms"], ["Refund Policy", "/refund"]].map(
+//             ([label, to]) => (
+//               <Link key={to} to={to} className="hover:text-amber-400 transition-colors">{label}</Link>
+//             )
+//           )}
+//         </div>
+//       </div>
+
+//     </footer>
+//   );
+// };
+
+// const FootColTitle = ({ children }) => (
+//   <p className="text-[11px] font-semibold text-white uppercase tracking-widest mb-4
+//                 pb-2 border-b border-amber-400/40 w-fit">
+//     {children}
+//   </p>
+// );
+
+// export default Footer;
 
 
 

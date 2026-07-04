@@ -90,9 +90,9 @@ const Mentor = () => {
             key={index}
             className="
               min-w-[220px] 
-              sm:min-w-[250px] 
-              md:min-w-[280px] 
-              lg:min-w-[300px]
+              sm:min-w-[230px] 
+              md:min-w-[250px] 
+              lg:min-w-[280px]
               bg-gradient-to-br from-purple-500 to-orange-400 
               p-[2px] rounded-xl 
               hover:scale-105 transition duration-300
@@ -103,18 +103,19 @@ const Mentor = () => {
               <img
                 src={item.profileImage}
                 alt={item.mentorName}
-                className="w-full h-36 sm:h-40 md:h-48 object-cover rounded-lg mb-3"
+                className="w-full h-40 sm:h-40 md:h-65 object-full rounded-lg mb-3"
               />
 
               <h2 className="text-base sm:text-lg font-semibold">
-                {item.mentorName}
+                 {item.mentorName}
               </h2>
 
-              <p className="text-xs sm:text-sm text-gray-300">
-                {item.expertise}
+              <p className="text-md sm:text-md text-gray-300">
+               Expertise: {item.expertise}
               </p>
-              <h2 className="text-xs sm:text-sm text-gray-300">{item.experience} years experience</h2>
-              <p className="text-xs sm:text-sm text-gray-300"> {item.bio}</p>
+              <h2 className="text-md sm:text-md text-gray-300">
+                 Experience: {item.experience} years </h2>
+              <p className="text-xs sm:text-sm text-gray-400 line-clamp-3"> {item.bio}</p>
               {/* <button className="mt-3 text-xs sm:text-sm bg-cyan-500 px-3 py-1 rounded">
                 View Profile
               </button> */}

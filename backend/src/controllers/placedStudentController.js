@@ -7,65 +7,122 @@ const {
     isValidName,
 } = require("../utils/validator"); // import validation functions
 
-const addPlacedStudent = async (req, res) =>{
-    try{
-        const {name, course, company, package } = req.body
-        
+const addPlacedStudent = async (req, res) => {
+    try {
+        const { name, course, company, package } = req.body;
+
         if (!isValid(name)) {
-         return res.status(400).json({ msg: "placed student name is Missing Or Invalid" });
+            return res.status(400).json({ msg: "placed student name is Missing Or Invalid" });
         }
         if (!isValid(course)) {
-         return res.status(400).json({ msg: "placed student course is Missing Or Invalid" });
+            return res.status(400).json({ msg: "placed student course is Missing Or Invalid" });
         }
-        
-        // profile image
+
+        // profile image (required)
         if (!req.files || !req.files.profileImage) {
-          return res.status(400).json({ msg: "ProfileImage is needed"});
+            return res.status(400).json({ msg: "ProfileImage is needed" });
         }
-        console.log(req.files);
-        const profileLocalPath =  req.files.profileImage[0].path;
 
-       const profileImage =  await uploadOnCloudinary(profileLocalPath);
+        const profileLocalPath = req.files.profileImage[0].path;
+        const profileImage = await uploadOnCloudinary(profileLocalPath);
 
-       if(!profileImage){
-         return res.status(400).json({ msg: "Profile upload is failed" });
-       }
-        
-       //logo image
-       if (!req.files || !req.files.logoImage) {
-          return res.status(400).json({ msg: "logo Image is needed"});
+        if (!profileImage) {
+            return res.status(400).json({ msg: "Profile upload failed" });
         }
-        console.log(req.files);
-        const logoLocalPath =  req.files.logoImage[0].path;
 
-       const logoImage =  await uploadOnCloudinary(logoLocalPath);
+        // logo image (optional)
+        let logoImage = null;
+        if (req.files.logoImage && req.files.logoImage[0]) {
+            const logoLocalPath = req.files.logoImage[0].path;
+            logoImage = await uploadOnCloudinary(logoLocalPath);
 
-       if(!logoImage){
-         return res.status(400).json({ msg: "logo upload is failed" });
-       }
+            if (!logoImage) {
+                return res.status(400).json({ msg: "Logo upload failed" });
+            }
+        }
 
-       const placedStudent = await placedStudentModel.create({
-        name,
-        course,
-        company,
-        package,
-        profileImage: profileImage.url,
-        logoImage: logoImage.url,
-       })
+        const placedStudent = await placedStudentModel.create({
+            name,
+            course,
+            company,
+            package,
+            profileImage: profileImage.url,
+            logoImage: logoImage ? logoImage.url : null,
+        });
 
-       const createdplacedStudent = await placedStudentModel.findById(placedStudent._id);
+        const createdplacedStudent = await placedStudentModel.findById(placedStudent._id);
 
-       if(!createdplacedStudent){
-         return res.status(500).json({ msg: "something went wrong while registering the placedStudent" });
-       }
-       
+        if (!createdplacedStudent) {
+            return res.status(500).json({ msg: "something went wrong while registering the placedStudent" });
+        }
+
         return res.status(201).json({ msg: "new placed Student added successfully", createdplacedStudent });
 
-    }catch(error){
+    } catch (error) {
         console.log(error);
-        return res.status(500).json({msg:"Internal Server Error"});
+        return res.status(500).json({ msg: "Internal Server Error" });
     }
-}
+};
+
+// const addPlacedStudent = async (req, res) =>{
+//     try{
+//         const {name, course, company, package } = req.body
+        
+//         if (!isValid(name)) {
+//          return res.status(400).json({ msg: "placed student name is Missing Or Invalid" });
+//         }
+//         if (!isValid(course)) {
+//          return res.status(400).json({ msg: "placed student course is Missing Or Invalid" });
+//         }
+        
+//         // profile image
+//         if (!req.files || !req.files.profileImage) {
+//           return res.status(400).json({ msg: "ProfileImage is needed"});
+//         }
+//         console.log(req.files);
+//         const profileLocalPath =  req.files.profileImage[0].path;
+
+//        const profileImage =  await uploadOnCloudinary(profileLocalPath);
+
+//        if(!profileImage){
+//          return res.status(400).json({ msg: "Profile upload is failed" });
+//        }
+        
+//        //logo image
+//     //    if (!req.files || !req.files.logoImage) {
+//     //       return res.status(400).json({ msg: "logo Image is needed"});
+//     //     }
+//         console.log(req.files);
+//         const logoLocalPath =  req.files.logoImage[0].path;
+
+//        const logoImage =  await uploadOnCloudinary(logoLocalPath);
+
+//        if(!logoImage){
+//          return res.status(400).json({ msg: "logo upload is failed" });
+//        }
+
+//        const placedStudent = await placedStudentModel.create({
+//         name,
+//         course,
+//         company,
+//         package,
+//         profileImage: profileImage.url,
+//         logoImage: logoImage.url,
+//        })
+
+//        const createdplacedStudent = await placedStudentModel.findById(placedStudent._id);
+
+//        if(!createdplacedStudent){
+//          return res.status(500).json({ msg: "something went wrong while registering the placedStudent" });
+//        }
+       
+//         return res.status(201).json({ msg: "new placed Student added successfully", createdplacedStudent });
+
+//     }catch(error){
+//         console.log(error);
+//         return res.status(500).json({msg:"Internal Server Error"});
+//     }
+// }
 
 const getAllPlacedStudent = async (req, res) => {
     try{

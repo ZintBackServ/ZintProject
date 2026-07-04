@@ -107,7 +107,7 @@ function ScrollRow({ students, direction }) {
   }, [students]);
 
   return (
-    <div
+    <div 
       ref={scrollRef}
       onMouseEnter={stopScroll}
       onMouseLeave={startScroll}
@@ -128,7 +128,7 @@ function StudentCard({ student }) {
 
   return (
     <div
-      className="flex-none w-56 sm:w-64 rounded-2xl overflow-hidden transition-all duration-300 hover:scale-105 group"
+      className="flex-none w-56 sm:w-64 md:w-70 rounded-2xl overflow-hidden transition-all duration-300 hover:scale-105 group"
       style={{
         background:  "#1f2937",
         border:      "1px solid #374151",
@@ -147,7 +147,7 @@ function StudentCard({ student }) {
       <div className="h-0.5" style={{ background: "linear-gradient(90deg, #B026B5, #38BDF8)" }} />
 
       {/* Profile photo */}
-      <div className="relative w-full h-40 overflow-hidden bg-gray-800">
+      <div className="relative w-full h-80 overflow-hidden bg-gray-800">
         {student.profileImage && !imgErr ? (
           <img
             src={student.profileImage}
@@ -173,7 +173,7 @@ function StudentCard({ student }) {
             {student.name || "Student"}
           </h3>
 
-          {/* Company logo — shown only if logoImage exists and hasn't errored */}
+          Company logo — shown only if logoImage exists and hasn't errored
           {student.logoImage && !logoErr && (
             <img
               src={student.logoImage}
@@ -191,7 +191,7 @@ function StudentCard({ student }) {
           </p>
         )}
 
-        {student.package && (
+        {/* {student.package && (
           <div className="mt-3">
             <span
               className="text-[11px] font-bold px-2.5 py-1 rounded-full"
@@ -200,7 +200,7 @@ function StudentCard({ student }) {
               💰 {student.package}
             </span>
           </div>
-        )}
+        )} */}
       </div>
     </div>
   );

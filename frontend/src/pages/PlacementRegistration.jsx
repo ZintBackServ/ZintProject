@@ -2,6 +2,7 @@ import PlacedStudent from "../components/PlacedStudentSlider"
 import { useContext, useEffect, useRef, useState } from "react";
 import { DataContext } from "../context/DataContext";
 import placementImg from "../assets/placementImg2.png"
+import SampleCertificateImg from "../assets/SampleCertificate.jpeg"
 
 /* ═══════════════════════════════════════════
    ZINT COLOR SYSTEM
@@ -26,9 +27,9 @@ const PERKS = [
   { icon: "🌐", title: "Global Hiring Network",        desc: "Direct referrals to 500+ partner companies worldwide." },
 ];
 
-/* ══════════════════════════════════════════════════════
+/* 
    MAIN PAGE
-══════════════════════════════════════════════════════ */
+ */
 export default function PlacementPage() {
   const [placedStudents, setPlacedStudents] = useState([]);
   const [loading, setLoading]               = useState(true);
@@ -58,15 +59,16 @@ export default function PlacementPage() {
       <StatsStrip />
       <PerksSection />
       <PlacedStudent/>
+      <SampleCertificate/>
       <BottomCTA onEnroll={() => setEnrollOpen(true)} />
       {enrollOpen && <EnrollModal onClose={() => setEnrollOpen(false)} />}
     </div>
   );
 }
 
-/* ══════════════════════════════════════════════════════
+/* 
    HERO SECTION
-══════════════════════════════════════════════════════ */
+ */
 function HeroSection({ onEnroll }) {
   return (
     <section className="relative overflow-hidden" style={{ background: "#F8FAFC" }}>
@@ -155,9 +157,9 @@ function HeroSection({ onEnroll }) {
   );
 }
 
-/* ══════════════════════════════════════════════════════
+/* 
    STATS STRIP
-══════════════════════════════════════════════════════ */
+ */
 function StatsStrip() {
   return (
     <section style={{ background: "#111827" }}>
@@ -176,9 +178,9 @@ function StatsStrip() {
   );
 }
 
-/* ══════════════════════════════════════════════════════
+/* 
    PERKS SECTION
-══════════════════════════════════════════════════════ */
+ */
 function PerksSection() {
   return (
     <section className="py-16" style={{ background: "#F8FAFC" }}>
@@ -214,9 +216,94 @@ function PerkCard({ perk }) {
   );
 }
 
-/* ══════════════════════════════════════════════════════
-   BOTTOM CTA
-══════════════════════════════════════════════════════ */
+//SAMPLE CERTIFICATE
+
+function SampleCertificate(){
+  const [hov, setHov] = useState(false);
+
+  return(
+    <section className="relative overflow-hidden py-16" style={{ background: "#F8FAFC" }}>
+      {/* decorative background blobs — consistent with HeroSection */}
+      <div className="absolute -top-24 -left-24 w-80  h-80 rounded-full pointer-events-none opacity-[0.06]"
+        style={{ background: "radial-gradient(circle, #38BDF8, transparent 70%)" }} />
+      <div className="absolute -bottom-24 -right-24 w-96 h-96 rounded-full pointer-events-none opacity-[0.06]"
+        style={{ background: "radial-gradient(circle, #B026B5, transparent 70%)" }} />
+
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center relative z-10">
+        <span className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full mb-5 border"
+          style={{ background: "rgba(176,38,181,0.08)", color: "#B026B5", borderColor: "rgba(176,38,181,0.22)" }}>
+          🏅 Proof of Completion
+        </span>
+
+        <h2 className="text-2xl md:text-3xl font-extrabold mb-3" style={{ color: "#111827" }}>
+          Earn Your Certificate
+        </h2>
+        <p className="text-sm md:text-base mb-10 max-w-xl mx-auto" style={{ color: "#6b7280" }}>
+          Every student who completes the internship walks away with an industry-recognized certificate — proof of the skills you've built.
+        </p>
+
+        {/* image with gradient frame, matches HeroSection treatment */}
+        <div className="relative max-w-xl mx-auto">
+          <div className="absolute -inset-1 rounded-3xl transition-opacity duration-300"
+            style={{
+              background: "linear-gradient(135deg, #B026B5, #38BDF8)",
+              opacity: hov ? 0.9 : 0.6,
+            }} />
+          <div className="relative rounded-3xl overflow-hidden transition-transform duration-300"
+            style={{
+              boxShadow: hov ? "0 28px 70px rgba(176,38,181,0.28)" : "0 20px 50px rgba(176,38,181,0.16)",
+              transform: hov ? "translateY(-6px) scale(1.01)" : "translateY(0) scale(1)",
+            }}
+            onMouseEnter={() => setHov(true)}
+            onMouseLeave={() => setHov(false)}>
+            <div className="absolute top-0 left-0 right-0 h-1 z-10"
+              style={{ background: "linear-gradient(90deg, #B026B5, #38BDF8)" }} />
+            <img
+              className="w-full h-auto block"
+              src={SampleCertificateImg}
+              alt="Sample Certificate"
+              onError={e => { e.target.src = "https://placehold.co/700x460/111827/B026B5?text=Sample+Certificate"; }}
+            />
+            {/* success badge, echoes the HeroSection placement guarantee tag */}
+            <div className="absolute bottom-4 left-4 right-4 rounded-2xl px-5 py-3 backdrop-blur-sm"
+              style={{ background: "rgba(17,24,39,0.82)", border: "1px solid rgba(34,197,94,0.25)" }}>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ background: "rgba(34,197,94,0.2)" }}>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="#22C55E" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <p className="text-white font-semibold text-xs text-left">
+                  Verified &amp; shareable — add it straight to your LinkedIn profile
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// function SampleCertificate(){
+//   return(
+//     <div className="max-w-3xl mx-auto px-4 py-10 text-center">
+//       <p className="text-sm font-semibold mb-4" style={{ color: "#111827" }}>
+//         You will get a certificate after completing the internship
+//       </p>
+//       <img 
+//         className="w-full h-auto rounded-2xl shadow-lg" 
+//         src={SampleCertificateImg} 
+//         alt="Sample Certificate" 
+//       />
+//     </div>
+//   )
+// }
+
+
+ //  BOTTOM CTA
+
 function BottomCTA({ onEnroll }) {
   return (
     <section className="py-16 relative overflow-hidden"
@@ -246,9 +333,9 @@ function BottomCTA({ onEnroll }) {
   );
 }
 
-/* ══════════════════════════════════════════════════════
+/* 
    ENROLL MODAL
-══════════════════════════════════════════════════════ */
+ */
 function EnrollModal({ onClose }) {
   const { data }            = useContext(DataContext);
   const courses             = data?.courses || [];

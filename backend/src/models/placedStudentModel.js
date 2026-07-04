@@ -25,12 +25,12 @@ const placedStudentSchema = new mongoose.Schema(
 
     course: {
       type: String, // keep as fallback display name if courseId is not set
-      required: true,
+      // required: true,
     },
 
     company: {
-      type: String, // FIX: removed the erroneous "// years" comment
-      required: true,
+      type: String, 
+      // required: true,
     },
 
     package: {

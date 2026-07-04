@@ -8,6 +8,9 @@ import SignUp from "./pages/SignUp";
 import Events from "./pages/Events";
 import Internship from "./pages/Internship";
 import Admission from "./components/Admission";
+import PrivacyPolicy from "./components/PrivacyPolicy";
+import RefundPolicy from "./components/RefundPolicy";
+import TermsConditions from "./components/TermsConditions";
 import Blog from "./pages/Blog";
 
   //placement
@@ -45,6 +48,9 @@ function App() {
         <Route path="/about" element={<About />} />
         <Route path="/courses" element={<Courses />} />
         <Route path="/OnlineTraining" element={<OnlineTraining />} />
+        <Route path="/PrivacyPolicy" element={<PrivacyPolicy />} />
+        <Route path="/RefundPolicy" element={<RefundPolicy />} />
+        <Route path="/TermsConditions" element={<TermsConditions />} />
 
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
