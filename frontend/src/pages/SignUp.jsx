@@ -512,7 +512,7 @@ export default function SignUp() {
   };
 
   const handleVerified = (token) => {
-    localStorage.setItem("token", token);
+    // token stored in httpOnly cookie
     navigate("/");
   };
 

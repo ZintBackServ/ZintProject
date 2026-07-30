@@ -1,8 +1,7 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useAuth } from "../../context/AuthContext";
 
 const API = import.meta.env.VITE_API_URL;
-const getToken = () => localStorage.getItem("token");
 
 const inr = (n) => "₹" + Number(n).toLocaleString("en-IN");
 
@@ -97,11 +96,12 @@ function StatCard({ label, value, color }) {
   );
 }
 
-// ─── Course card (enrolled) ───────────────────────────────────────────────────
-function CourseCard({ enrollment, onProgress, onCancel }) {
+// ─── Enrolled Course Card ─────────────────────────────────────────────────────
+function CourseCard({ enrollment, onProgress, onCancel, onPayNow }) {
   const title    = courseName(enrollment.courseId);
   const progress = enrollment.progress || 0;
   const thumb    = courseImage(enrollment.courseId);
+  const isPending = enrollment.paymentStatus === "pending" && enrollment.status === "pending";
 
   return (
     <div className="bg-white border border-slate-200 rounded-xl overflow-hidden hover:-translate-y-0.5 hover:border-violet-400 hover:shadow-md transition-all duration-150 shadow-sm">
@@ -117,40 +117,144 @@ function CourseCard({ enrollment, onProgress, onCancel }) {
             <span className="text-[11px] text-slate-400">{inr(enrollment.amount)}</span>
           )}
         </div>
-        <div className="mb-3">
-          <div className="flex justify-between text-[11px] text-slate-400 mb-1.5">
-            <span>Progress</span><span>{progress}%</span>
+
+        {isPending ? (
+          <div className="mb-3">
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-3">
+              <p className="text-xs text-amber-700 font-medium">
+                ⏳ Payment pending. Click &quot;Pay Now&quot; to complete your enrollment.
+              </p>
+            </div>
+            <button
+              onClick={() => onPayNow(enrollment._id, enrollment.amount, title)}
+              className="w-full px-3 py-2 text-sm font-semibold bg-amber-500 hover:bg-amber-400 text-white rounded-lg transition-colors"
+            >
+              Pay Now ⏳
+            </button>
           </div>
-          <ProgressBar value={progress} />
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {enrollment.status === "active" && (
-            <>
-              <button
-                onClick={() => onProgress(enrollment._id, title, progress)}
-                className="px-3 py-1.5 text-xs font-semibold bg-violet-600 hover:bg-violet-500 text-white rounded-lg transition-colors"
-              >
-                Update Progress
-              </button>
-              <button
-                onClick={() => onCancel(enrollment._id)}
-                className="px-3 py-1.5 text-xs font-semibold bg-white border border-slate-300 hover:border-red-400 text-slate-600 hover:text-red-500 rounded-lg transition-colors"
-              >
-                Cancel
-              </button>
-            </>
-          )}
-          {enrollment.status === "completed" && (
-            <span className="text-xs text-emerald-600 font-semibold">✓ Completed</span>
-          )}
-        </div>
+        ) : (
+          <>
+            <div className="mb-3">
+              <div className="flex justify-between text-[11px] text-slate-400 mb-1.5">
+                <span>Progress</span><span>{progress}%</span>
+              </div>
+              <ProgressBar value={progress} />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {enrollment.status === "active" && (
+                <>
+                  <button
+                    onClick={() => onProgress(enrollment._id, title, progress)}
+                    className="px-3 py-1.5 text-xs font-semibold bg-violet-600 hover:bg-violet-500 text-white rounded-lg transition-colors"
+                  >
+                    Update Progress
+                  </button>
+                  <button
+                    onClick={() => onCancel(enrollment._id)}
+                    className="px-3 py-1.5 text-xs font-semibold bg-white border border-slate-300 hover:border-red-400 text-slate-600 hover:text-red-500 rounded-lg transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </>
+              )}
+              {enrollment.status === "completed" && (
+                <span className="text-xs text-emerald-600 font-semibold">✓ Completed</span>
+              )}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
 }
 
-// ─── Views ────────────────────────────────────────────────────────────────────
-function Dashboard({ enrollments, onProgress, onCancel, onNavigate }) {
+// ─── Browse / Shop Card ───────────────────────────────────────────────────────
+function ShopCard({ course, enrolled, isPending, enrollmentData, onBuy, onFree, onPayNow }) {
+  const title      = course.courseName || course.title;
+  const offlinePrice = course.fee ?? 0;
+  const onlinePrice  = course.online_fee ?? 0;
+  const thumb      = course.courseImage;
+  const isFree     = offlinePrice === 0 && onlinePrice === 0;
+
+  return (
+    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden hover:-translate-y-0.5 hover:border-violet-400 hover:shadow-md transition-all duration-150 shadow-sm">
+      <div className="h-32 flex items-center justify-center text-5xl bg-gradient-to-br from-violet-50 to-sky-50 overflow-hidden">
+        {thumb ? <img src={thumb} alt={title} className="w-full h-full object-cover" /> : "📚"}
+      </div>
+      <div className="p-4">
+        <div className="text-[15px] font-semibold text-slate-800 mb-1">{title}</div>
+        <div className="text-xs text-slate-400 mb-2 leading-relaxed">
+          {course?.category?.categoryName}
+          {course.duration ? ` · ${course.duration}` : ""}
+          {course.mode    ? ` · ${course.mode}` : ""}
+        </div>
+
+        {/* Price display */}
+        {!isFree && (
+          <div className="flex gap-3 mb-3 text-xs">
+            {offlinePrice > 0 && (
+              <span className="text-slate-600 font-medium">Offline: <strong className="text-violet-600">{inr(offlinePrice)}</strong></span>
+            )}
+            {onlinePrice > 0 && (
+              <span className="text-slate-600 font-medium">Online: <strong className="text-sky-600">{inr(onlinePrice)}</strong></span>
+            )}
+          </div>
+        )}
+
+        <div className="flex items-center justify-between">
+          <div className={`text-lg font-bold ${isFree ? "text-emerald-600" : "text-violet-600"}`}>
+            {isFree ? "Free" : offlinePrice > 0 ? inr(offlinePrice) : inr(onlinePrice)}
+          </div>
+
+          {isPending ? (
+            <button
+              onClick={() => onPayNow(enrollmentData.enrollmentId, enrollmentData.amount, title)}
+              className="px-3 py-1.5 text-xs font-semibold bg-amber-500 hover:bg-amber-400 text-white rounded-lg transition-colors"
+            >
+              Pay Now ⏳
+            </button>
+          ) : enrolled ? (
+            <Badge status="active" />
+          ) : isFree ? (
+            <button
+              onClick={() => onFree(course._id)}
+              className="px-3 py-1.5 text-xs font-semibold bg-violet-600 hover:bg-violet-500 text-white rounded-lg transition-colors"
+            >
+              Enroll Free
+            </button>
+          ) : (
+            <div className="flex gap-1.5">
+              {offlinePrice > 0 && (
+                <button
+                  onClick={() => onBuy(course._id, "offline", title)}
+                  className="px-2.5 py-1.5 text-xs font-semibold bg-violet-600 hover:bg-violet-500 text-white rounded-lg transition-colors"
+                >
+                  Offline
+                </button>
+              )}
+              {onlinePrice > 0 && (
+                <button
+                  onClick={() => onBuy(course._id, "online", title)}
+                  className="px-2.5 py-1.5 text-xs font-semibold bg-sky-600 hover:bg-sky-500 text-white rounded-lg transition-colors"
+                >
+                  Online
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+        {isPending && (
+          <div className="mt-2 text-xs text-amber-600 font-medium">
+            ⏳ Payment pending — click &quot;Pay Now&quot; to complete
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Dashboard View ────────────────────────────────────────────────────────────
+function DashboardView({ enrollments, onProgress, onCancel, onPayNow, onNavigate }) {
   const active     = enrollments.filter((e) => e.status === "active").length;
   const completed  = enrollments.filter((e) => e.status === "completed").length;
   const spent      = enrollments.filter((e) => e.paymentStatus === "paid").reduce((s, e) => s + (e.amount || 0), 0);
@@ -163,13 +267,12 @@ function Dashboard({ enrollments, onProgress, onCancel, onNavigate }) {
           <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Dashboard 👋</h1>
           <p className="text-sm text-slate-500 mt-1">Track your learning progress and manage enrollments</p>
         </div>
-        {/* "Explore Courses" links to the Admission/Browse page outside this dashboard */}
-        <a
-          href="/courses"
+        <button
+          onClick={() => onNavigate("browse")}
           className="flex items-center gap-1.5 px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
         >
-          + Explore Courses
-        </a>
+          + Enroll in a Course
+        </button>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
@@ -186,17 +289,17 @@ function Dashboard({ enrollments, onProgress, onCancel, onNavigate }) {
           <div className="text-5xl mb-3">📚</div>
           <h3 className="text-base font-semibold text-slate-600 mb-1">No active courses yet</h3>
           <p className="text-sm mb-4">Browse the catalog to get started</p>
-          <a
-            href="/courses"
+          <button
+            onClick={() => onNavigate("browse")}
             className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold rounded-lg transition-colors"
           >
-            Browse Courses
-          </a>
+            Browse &amp; Enroll
+          </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {inProgress.map((e) => (
-            <CourseCard key={e._id} enrollment={e} onProgress={onProgress} onCancel={onCancel} />
+            <CourseCard key={e._id} enrollment={e} onProgress={onProgress} onCancel={onCancel} onPayNow={onPayNow} />
           ))}
         </div>
       )}
@@ -204,10 +307,11 @@ function Dashboard({ enrollments, onProgress, onCancel, onNavigate }) {
   );
 }
 
-function MyCourses({ enrollments, onProgress, onCancel }) {
+// ─── My Courses View ──────────────────────────────────────────────────────────
+function MyCoursesView({ enrollments, onProgress, onCancel, onPayNow }) {
   const [filter, setFilter] = useState("all");
   const filters  = ["all", "active", "completed", "pending", "cancelled"];
-  const filtered = filter === "all" ? enrollments : enrollments.filter((e) => e.status === filter);
+  const filtered = filter === "all" ? enrollments : enrollments.filter((e) => e.status === filter || e.paymentStatus === filter);
 
   return (
     <div>
@@ -234,16 +338,12 @@ function MyCourses({ enrollments, onProgress, onCancel }) {
         <div className="text-center py-16 text-slate-400">
           <div className="text-5xl mb-3">🎓</div>
           <h3 className="text-base font-semibold text-slate-600 mb-1">No courses here</h3>
-          <p className="text-sm">
-            {filter === "all"
-              ? <><a href="/courses" className="text-violet-600 hover:underline">Browse courses</a> to get started</>
-              : "Try a different filter"}
-          </p>
+          <p className="text-sm">Try a different filter</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {filtered.map((e) => (
-            <CourseCard key={e._id} enrollment={e} onProgress={onProgress} onCancel={onCancel} />
+            <CourseCard key={e._id} enrollment={e} onProgress={onProgress} onCancel={onCancel} onPayNow={onPayNow} />
           ))}
         </div>
       )}
@@ -251,20 +351,107 @@ function MyCourses({ enrollments, onProgress, onCancel }) {
   );
 }
 
-// Only Dashboard + My Courses — Browse is its own Admission page
+// ─── Browse & Enroll View ─────────────────────────────────────────────────────
+function BrowseView({ enrollments, onBuy, onFree, onPayNow }) {
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error,   setError]   = useState(null);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res  = await fetch(`${API}/course/getAllCourse`);
+        const data = await res.json();
+        setCourses(data.courses || data.data || []);
+      } catch {
+        setError("Failed to load courses");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  const enrollmentMap = useMemo(() => {
+    const map = new Map();
+    enrollments.forEach((e) => {
+      const cid = e.courseId?._id || e.courseId;
+      map.set(cid, {
+        status:      e.status,
+        paymentStatus: e.paymentStatus,
+        enrollmentId: e._id,
+        amount:      e.amount,
+        courseTitle: e.courseId?.courseName || e.courseName,
+      });
+    });
+    return map;
+  }, [enrollments]);
+
+  return (
+    <div>
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Browse &amp; Enroll</h1>
+        <p className="text-sm text-slate-500 mt-1">Find your next learning adventure</p>
+      </div>
+
+      {loading && (
+        <div className="text-center py-16 text-slate-400">
+          <div className="text-5xl mb-3 animate-spin">⏳</div>
+          <p className="text-sm">Loading courses…</p>
+        </div>
+      )}
+      {error && (
+        <div className="text-center py-16 text-red-500">
+          <div className="text-5xl mb-3">⚠️</div>
+          <p className="text-sm">{error}</p>
+        </div>
+      )}
+      {!loading && !error && courses.length === 0 && (
+        <div className="text-center py-16 text-slate-400">
+          <div className="text-5xl mb-3">📭</div>
+          <p className="text-sm">No courses available</p>
+        </div>
+      )}
+      {!loading && !error && courses.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {courses.map((c) => {
+            const enrollment = enrollmentMap.get(c._id);
+            const isEnrolled = enrollment && ["active", "completed"].includes(enrollment.status);
+            const isPending  = enrollment && enrollment.paymentStatus === "pending" && enrollment.status === "pending";
+            return (
+              <ShopCard
+                key={c._id}
+                course={c}
+                enrolled={isEnrolled}
+                isPending={isPending}
+                enrollmentData={enrollment}
+                onBuy={onBuy}
+                onFree={onFree}
+                onPayNow={onPayNow}
+              />
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Nav config ───────────────────────────────────────────────────────────────
 const NAV = [
-  { id: "dashboard",  icon: "📊", label: "Dashboard"  },
-  { id: "my-courses", icon: "🎓", label: "My Courses" },
+  { id: "dashboard",  icon: "📊", label: "Dashboard"      },
+  { id: "my-courses", icon: "🎓", label: "My Courses"     },
+  { id: "browse",     icon: "🛒", label: "Browse & Enroll" },
 ];
 
+// ─── Root Component ───────────────────────────────────────────────────────────
 export default function UserDashboard() {
   const { user } = useAuth();
 
-  const [view, setView]                   = useState("dashboard");
-  const [enrollments, setEnrollments]     = useState([]);
-  const [toast, setToast]                 = useState(null);
-  const [progressModal, setProgressModal] = useState(null);
-  const [progressVal, setProgressVal]     = useState(50);
+  const [view,           setView]           = useState("dashboard");
+  const [enrollments,    setEnrollments]    = useState([]);
+  const [toast,          setToast]          = useState(null);
+  const [progressModal,  setProgressModal]  = useState(null);
+  const [progressVal,    setProgressVal]    = useState(50);
   const toastTimer = useRef(null);
 
   const showToast = useCallback((msg, type = "info") => {
@@ -273,11 +460,10 @@ export default function UserDashboard() {
     toastTimer.current = setTimeout(() => setToast(null), 3200);
   }, []);
 
+  // All API calls use credentials: "include" (cookie-based auth)
   const loadEnrollments = useCallback(async () => {
     try {
-      const res  = await fetch(`${API}/api/enrollments`, {
-        headers: { Authorization: `Bearer ${getToken()}` },
-      });
+      const res  = await fetch(`${API}/api/enrollments`, { credentials: "include" });
       const data = await res.json();
       setEnrollments(data.success ? data.data : []);
     } catch {
@@ -289,7 +475,7 @@ export default function UserDashboard() {
 
   const navigate = (v) => {
     setView(v);
-    loadEnrollments();
+    if (v === "dashboard" || v === "my-courses") loadEnrollments();
   };
 
   const handleCancel = async (id) => {
@@ -297,7 +483,7 @@ export default function UserDashboard() {
     try {
       const res  = await fetch(`${API}/api/enrollments/${id}/cancel`, {
         method: "PATCH",
-        headers: { Authorization: `Bearer ${getToken()}` },
+        credentials: "include",
       });
       const data = await res.json();
       showToast(data.message, data.success ? "success" : "error");
@@ -306,13 +492,14 @@ export default function UserDashboard() {
     } catch { showToast("Failed to cancel enrollment", "error"); }
   };
 
-  const openProgress = (id, title, current) => { setProgressModal({ id, title, current }); setProgressVal(current); };
+  const openProgress  = (id, title, current) => { setProgressModal({ id, title, current }); setProgressVal(current); };
 
   const submitProgress = async () => {
     try {
       const res  = await fetch(`${API}/api/enrollments/${progressModal.id}/progress`, {
         method: "PATCH",
-        headers: { Authorization: `Bearer ${getToken()}`, "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ progress: progressVal }),
       });
       const data = await res.json();
@@ -326,12 +513,103 @@ export default function UserDashboard() {
     } catch { showToast("Failed to update progress", "error"); }
   };
 
+  const handleFree = async (courseId) => {
+    try {
+      const res  = await fetch(`${API}/api/payments/enroll-free`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ courseId }),
+      });
+      const data = await res.json();
+      showToast(data.message, data.success ? "success" : "error");
+      if (data.success) { setEnrollments((prev) => [...prev, data.data]); }
+    } catch { showToast("Enrollment failed", "error"); }
+  };
+
+  // Shared Razorpay checkout handler
+  const openRazorpay = useCallback(({ order, key, courseTitle, enrollmentId }) => {
+    const options = {
+      key,
+      amount:   order.amount,
+      currency: order.currency,
+      name:     "Zint Institute",
+      description: courseTitle,
+      order_id: order.id,
+      handler: async (response) => {
+        showToast("Verifying payment…", "info");
+        try {
+          const verifyRes  = await fetch(`${API}/api/payments/verify`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({
+              razorpay_order_id:  response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            }),
+          });
+          const verifyData = await verifyRes.json();
+          if (verifyData.success) {
+            showToast("Payment successful! 🎉", "success");
+            await loadEnrollments();
+            setTimeout(() => navigate("my-courses"), 1200);
+          } else {
+            showToast(verifyData.message || "Payment verification failed", "error");
+          }
+        } catch { showToast("Verification failed", "error"); }
+      },
+      theme: { color: "#7c3aed" },
+      modal: { ondismiss: () => showToast("Payment cancelled", "info") },
+    };
+    const rzp = new window.Razorpay(options);
+    rzp.on("payment.failed", (r) =>
+      showToast("Payment failed: " + (r.error?.description || "Unknown error"), "error")
+    );
+    rzp.open();
+  }, [loadEnrollments, showToast]);
+
+  // Buy a paid course — sends mode (online/offline) to backend; backend fetches price from DB
+  const handleBuy = async (courseId, mode, courseTitle) => {
+    showToast("Creating order…", "info");
+    try {
+      const res  = await fetch(`${API}/api/payments/create-order`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ courseId, mode }),   // NO amount — backend fetches from DB
+      });
+      const data = await res.json();
+      if (!data.success) { showToast(data.message, "error"); return; }
+      openRazorpay({ order: data.order, key: data.key, courseTitle });
+    } catch { showToast("Could not create order", "error"); }
+  };
+
+  // Resume a pending payment
+  const handlePayNow = async (enrollmentId, amount, courseTitle) => {
+    showToast("Resuming payment…", "info");
+    const enrollment = enrollments.find((e) => e._id === enrollmentId);
+    if (!enrollment) { showToast("Enrollment not found", "error"); return; }
+    const courseId = enrollment.courseId?._id || enrollment.courseId;
+    try {
+      const res  = await fetch(`${API}/api/payments/create-order`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ courseId, mode: enrollment.mode || "offline" }),
+      });
+      const data = await res.json();
+      if (!data.success) { showToast(data.message, "error"); return; }
+      openRazorpay({ order: data.order, key: data.key, courseTitle, enrollmentId });
+    } catch { showToast("Could not initiate payment", "error"); }
+  };
+
   return (
     <div className="flex min-h-screen bg-slate-50 text-slate-800 font-sans">
       {/* Sidebar */}
       <nav className="hidden md:flex w-60 flex-shrink-0 flex-col gap-1 bg-white border-r border-slate-200 px-4 py-7 shadow-sm">
         <div className="px-3 pb-6 text-lg font-bold tracking-tight bg-gradient-to-r from-violet-600 to-sky-500 bg-clip-text text-transparent">
-          CourseEnroll
+          My Learning
         </div>
         {NAV.map((n) => (
           <button
@@ -348,16 +626,15 @@ export default function UserDashboard() {
           </button>
         ))}
 
-        {/* Divider + external link to course catalog */}
-        <div className="mt-auto pt-4 border-t border-slate-100">
-          <a
-            href="/courses"
-            className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-slate-500 hover:bg-violet-50 hover:text-violet-700 transition-all"
-          >
-            <span className="w-5 text-center text-base">🛒</span>
-            Browse Courses
-          </a>
-        </div>
+        {/* User info at bottom */}
+        {user && (
+          <div className="mt-auto pt-4 border-t border-slate-100">
+            <div className="px-3 py-2.5">
+              <div className="text-xs font-semibold text-slate-700 truncate">{user.firstName} {user.lastName}</div>
+              <div className="text-[10px] text-slate-400 truncate">{user.email}</div>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Mobile bottom nav */}
@@ -374,19 +651,35 @@ export default function UserDashboard() {
             {n.label}
           </button>
         ))}
-        <a
-          href="/courses"
-          className="flex-1 flex flex-col items-center gap-0.5 py-2.5 text-[10px] font-semibold text-slate-400"
-        >
-          <span className="text-xl">🛒</span>
-          Browse
-        </a>
       </nav>
 
-      {/* Main */}
+      {/* Main content */}
       <main className="flex-1 p-6 md:p-8 overflow-y-auto pb-20 md:pb-8">
-        {view === "dashboard"  && <Dashboard enrollments={enrollments} onProgress={openProgress} onCancel={handleCancel} onNavigate={navigate} />}
-        {view === "my-courses" && <MyCourses enrollments={enrollments} onProgress={openProgress} onCancel={handleCancel} />}
+        {view === "dashboard"  && (
+          <DashboardView
+            enrollments={enrollments}
+            onProgress={openProgress}
+            onCancel={handleCancel}
+            onPayNow={handlePayNow}
+            onNavigate={navigate}
+          />
+        )}
+        {view === "my-courses" && (
+          <MyCoursesView
+            enrollments={enrollments}
+            onProgress={openProgress}
+            onCancel={handleCancel}
+            onPayNow={handlePayNow}
+          />
+        )}
+        {view === "browse" && (
+          <BrowseView
+            enrollments={enrollments}
+            onBuy={handleBuy}
+            onFree={handleFree}
+            onPayNow={handlePayNow}
+          />
+        )}
       </main>
 
       {/* Progress modal */}
@@ -404,10 +697,16 @@ export default function UserDashboard() {
           <div className="mt-2"><ProgressBar value={progressVal} /></div>
         </div>
         <div className="flex gap-3 justify-end">
-          <button onClick={() => setProgressModal(null)} className="px-4 py-2 text-sm font-semibold bg-white border border-slate-300 text-slate-600 rounded-lg hover:border-violet-400 hover:text-violet-600 transition-colors">
+          <button
+            onClick={() => setProgressModal(null)}
+            className="px-4 py-2 text-sm font-semibold bg-white border border-slate-300 text-slate-600 rounded-lg hover:border-violet-400 hover:text-violet-600 transition-colors"
+          >
             Cancel
           </button>
-          <button onClick={submitProgress} className="px-4 py-2 text-sm font-semibold bg-violet-600 hover:bg-violet-500 text-white rounded-lg transition-colors shadow-sm">
+          <button
+            onClick={submitProgress}
+            className="px-4 py-2 text-sm font-semibold bg-violet-600 hover:bg-violet-500 text-white rounded-lg transition-colors shadow-sm"
+          >
             Save Progress
           </button>
         </div>

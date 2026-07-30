@@ -15,7 +15,7 @@ const eventSchema = new mongoose.Schema(
     },
 
     date: {
-      type: Date, 
+      type: Date,
       required: true,
     },
 
@@ -34,21 +34,20 @@ const eventSchema = new mongoose.Schema(
       required: true,
     },
 
-    // FIX: link event to one or more mentors/speakers
+    // speakers are now plain names, not Mentor references
     speakers: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Mentor",
+        type: String,
+        trim: true,
       },
     ],
 
-    // FIX: track whether registrations are still open
     isRegistrationOpen: {
       type: Boolean,
       default: true,
     },
   },
-  { timestamps: true } // FIX: was "timestaps" (typo)
+  { timestamps: true }
 );
 
 module.exports = mongoose.model("Event", eventSchema);

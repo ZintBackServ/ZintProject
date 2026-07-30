@@ -1,4 +1,20 @@
-import { useState } from "react";
+﻿import { useState, useEffect } from "react";
+import {
+  FiMonitor, FiHome, FiTool, FiBriefcase, FiCalendar,
+  FiBookOpen, FiSearch, FiPlay, FiLoader, FiInbox, FiLogIn, FiUserPlus,
+} from "react-icons/fi";
+import { MdSchool } from "react-icons/md";
+
+const GRAY          = "#6E6E6E";
+const WHITE          = "#FFFFFF";
+const DarkPurple    = "#8E1387";
+const PrimaryPurple = "#B11FA8";
+const BLUE          = "#53BFEA";
+const GREEN         = "#45B51D";
+
+// GET /timeTable/allTimetable requires a logged-in user (see authMiddleware
+// on the route), so every request must carry the bearer token.
+const TIMETABLE_URL = `${import.meta.env.VITE_API_URL}/timeTable/allTimetable`;
 
 const NAV_TABS = [
   "Online Training",
@@ -9,71 +25,55 @@ const NAV_TABS = [
   "Other Classes",
 ];
 
-const generateData = (tab) => {
-  const datasets = {
-    "Online Training": [
-      { sno: 1, course: "Full Stack .Net Core 10 with AI", faculty: "Mr. Bangar Raju", date: "25 May 2026", time: "9:15 AM (IST)" },
-      { sno: 2, course: "Playwright Automation", faculty: "Mr. Sumanth", date: "28 May 2026", time: "7:30 AM (IST)" },
-      { sno: 3, course: "MS Azure + Azure DevOps", faculty: "Mr. Sandeep", date: "28 May 2026", time: "8:00 AM (IST)" },
-      { sno: 4, course: "Unix / Linux", faculty: "Mr. Imran", date: "25 May 2026", time: "4:30 PM (IST)" },
-      { sno: 5, course: "Power BI", faculty: "Miss. Mohana", date: "25 May 2026", time: "9:00 AM (IST)" },
-      { sno: 6, course: "Full Stack Python", faculty: "Mr. Shareef", date: "25 May 2026", time: "6:00 PM (IST)" },
-      { sno: 7, course: "Python Programming", faculty: "Mr. Shareef", date: "25 May 2026", time: "6:00 PM (IST)" },
-      { sno: 8, course: "Full Stack Java", faculty: "Mr. Hari Krishna", date: "25 May 2026", time: "6:00 PM (IST)" },
-      { sno: 9, course: "Core Java", faculty: "Mr. Hari Krishna", date: "25 May 2026", time: "6:00 PM (IST)" },
-      { sno: 10, course: "C#.NET", faculty: "Mr. Bangar Raju", date: "25 May 2026", time: "9:15 AM (IST)" },
-      { sno: 11, course: "Full Stack Data Science & AI", faculty: "Mr. Omkar", date: "25 May 2026", time: "11:00 AM (IST)" },
-      { sno: 12, course: "Full Stack Python with Gen AI", faculty: "Mr. Satish Gupta", date: "25 May 2026", time: "11:00 AM (IST)" },
-      { sno: 13, course: "Python with Gen AI", faculty: "Mr. Satish Gupta", date: "25 May 2026", time: "11:00 AM (IST)" },
-    ],
-    "Classroom Training": [
-      { sno: 1, course: "Java Full Stack", faculty: "Mr. Ramesh", date: "26 May 2026", time: "10:00 AM (IST)" },
-      { sno: 2, course: "React JS", faculty: "Mr. Kiran", date: "26 May 2026", time: "11:00 AM (IST)" },
-      { sno: 3, course: "Node.js & Express", faculty: "Ms. Priya", date: "27 May 2026", time: "9:00 AM (IST)" },
-      { sno: 4, course: "Data Structures & Algorithms", faculty: "Mr. Suresh", date: "27 May 2026", time: "2:00 PM (IST)" },
-      { sno: 5, course: "Database Management (SQL)", faculty: "Ms. Ananya", date: "28 May 2026", time: "10:30 AM (IST)" },
-    ],
-    "Workshops": [
-      { sno: 1, course: "Docker & Kubernetes Workshop", faculty: "Mr. Vikram", date: "29 May 2026", time: "9:00 AM (IST)" },
-      { sno: 2, course: "Machine Learning Bootcamp", faculty: "Dr. Neha", date: "30 May 2026", time: "10:00 AM (IST)" },
-      { sno: 3, course: "DevOps Essentials", faculty: "Mr. Arjun", date: "31 May 2026", time: "11:00 AM (IST)" },
-      { sno: 4, course: "Flutter App Development", faculty: "Ms. Ritu", date: "01 Jun 2026", time: "9:30 AM (IST)" },
-    ],
-    "Internships": [
-      { sno: 1, course: "Web Development Internship", faculty: "Mr. Rahul", date: "01 Jun 2026", time: "10:00 AM (IST)" },
-      { sno: 2, course: "Data Science Internship", faculty: "Ms. Kavya", date: "01 Jun 2026", time: "11:00 AM (IST)" },
-      { sno: 3, course: "Cloud Computing Internship", faculty: "Mr. Sanjay", date: "02 Jun 2026", time: "9:00 AM (IST)" },
-    ],
-    "Weekend Training": [
-      { sno: 1, course: "Selenium with Java (Weekend)", faculty: "Mr. Manoj", date: "31 May 2026", time: "8:00 AM (IST)" },
-      { sno: 2, course: "Angular JS (Weekend)", faculty: "Ms. Divya", date: "31 May 2026", time: "10:00 AM (IST)" },
-      { sno: 3, course: "AWS Solutions Architect (Weekend)", faculty: "Mr. Ajay", date: "01 Jun 2026", time: "9:00 AM (IST)" },
-      { sno: 4, course: "Cyber Security (Weekend)", faculty: "Mr. Deepak", date: "01 Jun 2026", time: "11:00 AM (IST)" },
-    ],
-    "Other Classes": [
-      { sno: 1, course: "Soft Skills & Communication", faculty: "Ms. Preethi", date: "26 May 2026", time: "3:00 PM (IST)" },
-      { sno: 2, course: "Interview Preparation", faculty: "Mr. Naveen", date: "27 May 2026", time: "4:00 PM (IST)" },
-      { sno: 3, course: "Resume Building Workshop", faculty: "Ms. Lakshmi", date: "28 May 2026", time: "2:00 PM (IST)" },
-    ],
-  };
-  return datasets[tab] || [];
-};
-
 const tabIcons = {
-  "Online Training": "🖥️",
-  "Classroom Training": "🏫",
-  "Workshops": "🔧",
-  "Internships": "💼",
-  "Weekend Training": "📅",
-  "Other Classes": "📚",
+  "Online Training": FiMonitor,
+  "Classroom Training": FiHome,
+  "Workshops": FiTool,
+  "Internships": FiBriefcase,
+  "Weekend Training": FiCalendar,
+  "Other Classes": FiBookOpen,
 };
 
-export default function App() {
-  const [activeTab, setActiveTab] = useState("Online Training");
-  const [search, setSearch] = useState("");
-  const [entries, setEntries] = useState(10);
+async function safeFetch(url) {
+  const res = await fetch(url, {
+    credentials: "include",
+  });
+  const raw = await res.text();
+  let data = null;
+  try { data = raw ? JSON.parse(raw) : null; } catch { /* not JSON */ }
+  if (!res.ok) throw new Error(data?.msg || `Request failed with status ${res.status}`);
+  return data;
+}
 
-  const data = generateData(activeTab);
+export default function OnlineClassesTimetable() {
+  const [activeTab, setActiveTab] = useState("Online Training");
+  const [search, setSearch]       = useState("");
+  const [entries, setEntries]     = useState(10);
+  const [data, setData]           = useState([]);
+  const [loading, setLoading]     = useState(true);
+  const [error, setError]         = useState(null);
+
+  // Re-checked on every render so the UI updates right after sign in/out.
+
+  useEffect(() => {
+    const fetchTimetable = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const url = `${TIMETABLE_URL}?category=${encodeURIComponent(activeTab)}`;
+        const result = await safeFetch(url);
+        setData(result?.data || []);
+      } catch (err) {
+        console.log(err);
+        setError(err.message || "Failed to load timetable.");
+        setData([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTimetable();
+  }, [activeTab]);
+
   const filtered = data.filter(
     (r) =>
       r.course.toLowerCase().includes(search.toLowerCase()) ||
@@ -82,34 +82,28 @@ export default function App() {
   const shown = filtered.slice(0, entries);
 
   return (
-    <div
-      className="min-h-screen"
-      style={{
-        background: "linear-gradient(135deg, #0f0c29, #302b63, #24243e)",
-        fontFamily: "'Segoe UI', sans-serif",
-      }}
-    >
+    <div className="min-h-screen font-sans" style={{ background: WHITE }}>
       {/* Header */}
       <div
         className="px-6 pt-8 pb-4"
         style={{
-          background: "linear-gradient(90deg, rgba(99,102,241,0.15) 0%, rgba(139,92,246,0.1) 100%)",
-          borderBottom: "1px solid rgba(139,92,246,0.25)",
+          background: `linear-gradient(90deg, ${PrimaryPurple}14 0%, ${BLUE}0d 100%)`,
+          borderBottom: `1px solid ${PrimaryPurple}30`,
         }}
       >
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center gap-3 mb-1">
             <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center text-xl"
-              style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)" }}
+              className="w-10 h-10 rounded-xl flex items-center justify-center text-xl text-white"
+              style={{ background: `linear-gradient(135deg, ${DarkPurple}, ${PrimaryPurple})` }}
             >
-              🎓
+              <MdSchool />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white tracking-tight">
-               Online Classes Timetable
+              <h1 className="text-2xl font-bold tracking-tight" style={{ color: "#1a1a1a" }}>
+                Online Classes Timetable
               </h1>
-              <p className="text-sm" style={{ color: "#a5b4fc" }}>
+              <p className="text-sm" style={{ color: GRAY }}>
                 Explore new and trending courses
               </p>
             </div>
@@ -121,35 +115,38 @@ export default function App() {
       <div
         className="px-6 py-0 sticky top-0 z-20"
         style={{
-          background: "rgba(15,12,41,0.95)",
-          backdropFilter: "blur(12px)",
-          borderBottom: "1px solid rgba(139,92,246,0.2)",
+          background: WHITE,
+          borderBottom: `1px solid ${PrimaryPurple}20`,
         }}
       >
         <div className="max-w-7xl mx-auto overflow-x-auto">
           <div className="flex gap-1 py-2" style={{ minWidth: "max-content" }}>
-            {NAV_TABS.map((tab) => (
-              <button
-                key={tab}
-                onClick={() => { setActiveTab(tab); setSearch(""); setEntries(10); }}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap"
-                style={
-                  activeTab === tab
-                    ? {
-                        background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
-                        color: "#ffffff",
-                        boxShadow: "0 4px 15px rgba(99,102,241,0.4)",
-                      }
-                    : {
-                        color: "#a5b4fc",
-                        background: "transparent",
-                      }
-                }
-              >
-                <span>{tabIcons[tab]}</span>
-                {tab}
-              </button>
-            ))}
+            {NAV_TABS.map((tab) => {
+              const Icon = tabIcons[tab];
+              const isActive = activeTab === tab;
+              return (
+                <button
+                  key={tab}
+                  onClick={() => { setActiveTab(tab); setSearch(""); setEntries(10); }}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap"
+                  style={
+                    isActive
+                      ? {
+                          background: `linear-gradient(135deg, ${DarkPurple}, ${PrimaryPurple})`,
+                          color: "#ffffff",
+                          boxShadow: `0 4px 15px ${PrimaryPurple}40`,
+                        }
+                      : {
+                          color: GRAY,
+                          background: "transparent",
+                        }
+                  }
+                >
+                  <Icon size={15} />
+                  {tab}
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -159,7 +156,7 @@ export default function App() {
         {/* Controls Row */}
         <div className="flex flex-wrap items-center justify-between gap-4 mb-5">
           <div className="flex items-center gap-2">
-            <span className="text-sm" style={{ color: "#a5b4fc" }}>
+            <span className="text-sm" style={{ color: GRAY }}>
               Show entries:
             </span>
             <select
@@ -167,13 +164,13 @@ export default function App() {
               onChange={(e) => setEntries(Number(e.target.value))}
               className="px-3 py-1.5 rounded-lg text-sm font-medium outline-none cursor-pointer"
               style={{
-                background: "rgba(99,102,241,0.15)",
-                border: "1px solid rgba(139,92,246,0.35)",
-                color: "#e0e7ff",
+                background: WHITE,
+                border: `1px solid ${PrimaryPurple}40`,
+                color: "#1a1a1a",
               }}
             >
               {[5, 10, 20, 30, 50].map((n) => (
-                <option key={n} value={n} style={{ background: "#1e1b4b" }}>
+                <option key={n} value={n}>
                   {n}
                 </option>
               ))}
@@ -182,12 +179,11 @@ export default function App() {
 
           {/* Search */}
           <div className="relative">
-            <span
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-sm"
-              style={{ color: "#818cf8" }}
-            >
-              🔍
-            </span>
+            <FiSearch
+              className="absolute left-3 top-1/2 -translate-y-1/2"
+              size={14}
+              style={{ color: BLUE }}
+            />
             <input
               type="text"
               placeholder="Search course or faculty…"
@@ -195,9 +191,9 @@ export default function App() {
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9 pr-4 py-2 rounded-xl text-sm outline-none w-64"
               style={{
-                background: "rgba(99,102,241,0.12)",
-                border: "1px solid rgba(139,92,246,0.3)",
-                color: "#e0e7ff",
+                background: WHITE,
+                border: `1px solid ${PrimaryPurple}30`,
+                color: "#1a1a1a",
               }}
             />
           </div>
@@ -207,18 +203,18 @@ export default function App() {
         <div
           className="rounded-2xl overflow-hidden"
           style={{
-            background: "rgba(255,255,255,0.04)",
-            border: "1px solid rgba(139,92,246,0.2)",
-            boxShadow: "0 20px 60px rgba(0,0,0,0.4)",
+            background: WHITE,
+            border: `1px solid ${PrimaryPurple}20`,
+            boxShadow: "0 8px 30px rgba(0,0,0,0.06)",
           }}
         >
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm min-w-[720px]">
               <thead>
                 <tr
                   style={{
-                    background: "linear-gradient(90deg, rgba(99,102,241,0.3), rgba(139,92,246,0.2))",
-                    borderBottom: "1px solid rgba(139,92,246,0.3)",
+                    background: DarkPurple,
+                    borderBottom: `1px solid ${PrimaryPurple}40`,
                   }}
                 >
                   {["S.No", "Course Name", "Faculty", "Date", "Time", "Meeting Link"].map(
@@ -226,7 +222,7 @@ export default function App() {
                       <th
                         key={h}
                         className="px-5 py-4 text-left font-semibold tracking-wide uppercase text-xs"
-                        style={{ color: "#c4b5fd" }}
+                        style={{ color: "#f3e0f5" }}
                       >
                         {h}
                       </th>
@@ -235,64 +231,71 @@ export default function App() {
                 </tr>
               </thead>
               <tbody>
-                {shown.length === 0 ? (
+                {loading ? (
                   <tr>
-                    <td
-                      colSpan={6}
-                      className="px-5 py-12 text-center"
-                      style={{ color: "#6366f1" }}
-                    >
-                      No results found
+                    <td colSpan={6} className="px-5 py-16 text-center">
+                      <div className="flex items-center justify-center gap-2" style={{ color: BLUE }}>
+                        <FiLoader className="animate-spin" /> Loading timetable…
+                      </div>
+                    </td>
+                  </tr>
+                ) : error ? (
+                  <tr>
+                    <td colSpan={6} className="px-5 py-16 text-center" style={{ color: "#dc2626" }}>
+                      {error}
+                    </td>
+                  </tr>
+                ) : shown.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-5 py-16 text-center">
+                      <div className="flex flex-col items-center gap-2" style={{ color: PrimaryPurple }}>
+                        <FiInbox size={28} />
+                        <span>No results found</span>
+                      </div>
                     </td>
                   </tr>
                 ) : (
                   shown.map((row, i) => (
                     <tr
-                      key={row.sno}
-                      className="transition-all duration-150 group"
+                      key={row._id}
+                      className="transition-all duration-150"
                       style={{
-                        background:
-                          i % 2 === 0
-                            ? "rgba(255,255,255,0.02)"
-                            : "rgba(99,102,241,0.04)",
-                        borderBottom: "1px solid rgba(139,92,246,0.08)",
+                        background: i % 2 === 0 ? WHITE : `${PrimaryPurple}05`,
+                        borderBottom: `1px solid ${PrimaryPurple}10`,
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.background =
-                          "rgba(99,102,241,0.12)";
+                        e.currentTarget.style.background = `${PrimaryPurple}0d`;
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.background =
-                          i % 2 === 0
-                            ? "rgba(255,255,255,0.02)"
-                            : "rgba(99,102,241,0.04)";
+                          i % 2 === 0 ? WHITE : `${PrimaryPurple}05`;
                       }}
                     >
                       <td className="px-5 py-4">
                         <span
                           className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
                           style={{
-                            background: "rgba(99,102,241,0.25)",
-                            color: "#a5b4fc",
+                            background: `${PrimaryPurple}14`,
+                            color: PrimaryPurple,
                             display: "inline-flex",
                           }}
                         >
-                          {row.sno}
+                          {i + 1}
                         </span>
                       </td>
-                      <td className="px-5 py-4 font-medium" style={{ color: "#e0e7ff" }}>
+                      <td className="px-5 py-4 font-medium" style={{ color: "#1a1a1a" }}>
                         {row.course}
                       </td>
-                      <td className="px-5 py-4" style={{ color: "#a5b4fc" }}>
+                      <td className="px-5 py-4" style={{ color: GRAY }}>
                         {row.faculty}
                       </td>
                       <td className="px-5 py-4">
                         <span
                           className="px-2.5 py-1 rounded-full text-xs font-medium"
                           style={{
-                            background: "rgba(16,185,129,0.15)",
-                            color: "#6ee7b7",
-                            border: "1px solid rgba(16,185,129,0.25)",
+                            background: `${GREEN}14`,
+                            color: GREEN,
+                            border: `1px solid ${GREEN}30`,
                           }}
                         >
                           {row.date}
@@ -302,35 +305,62 @@ export default function App() {
                         <span
                           className="px-2.5 py-1 rounded-full text-xs font-medium"
                           style={{
-                            background: "rgba(245,158,11,0.15)",
-                            color: "#fcd34d",
-                            border: "1px solid rgba(245,158,11,0.25)",
+                            background: `${BLUE}14`,
+                            color: BLUE,
+                            border: `1px solid ${BLUE}30`,
                           }}
                         >
                           {row.time}
                         </span>
                       </td>
                       <td className="px-5 py-4">
-                        <button
-                          className="px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 flex items-center gap-1.5"
-                          style={{
-                            background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
-                            color: "#fff",
-                            boxShadow: "0 2px 10px rgba(99,102,241,0.3)",
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.boxShadow =
-                              "0 4px 18px rgba(99,102,241,0.55)";
-                            e.currentTarget.style.transform = "translateY(-1px)";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.boxShadow =
-                              "0 2px 10px rgba(99,102,241,0.3)";
-                            e.currentTarget.style.transform = "translateY(0)";
-                          }}
-                        >
-                          <span>▶</span> Join Meeting
-                        </button>
+                        {isLoggedIn ? (
+                          <a
+                            href={row.meetingLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 inline-flex items-center gap-1.5"
+                            style={{
+                              background: `linear-gradient(135deg, ${DarkPurple}, ${PrimaryPurple})`,
+                              color: "#fff",
+                              boxShadow: `0 2px 10px ${PrimaryPurple}30`,
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.boxShadow = `0 4px 18px ${PrimaryPurple}55`;
+                              e.currentTarget.style.transform = "translateY(-1px)";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.boxShadow = `0 2px 10px ${PrimaryPurple}30`;
+                              e.currentTarget.style.transform = "translateY(0)";
+                            }}
+                          >
+                            <FiPlay size={11} /> Join Meeting
+                          </a>
+                        ) : (
+                          <div className="flex items-center gap-1.5">
+                            <a
+                              href="/login"
+                              className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 inline-flex items-center gap-1.5"
+                              style={{
+                                background: `linear-gradient(135deg, ${DarkPurple}, ${PrimaryPurple})`,
+                                color: "#fff",
+                              }}
+                            >
+                              <FiLogIn size={11} /> Sign In
+                            </a>
+                            <a
+                              href="/signup"
+                              className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 inline-flex items-center gap-1.5"
+                              style={{
+                                background: WHITE,
+                                border: `1px solid ${PrimaryPurple}40`,
+                                color: PrimaryPurple,
+                              }}
+                            >
+                              <FiUserPlus size={11} /> Sign Up
+                            </a>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   ))
@@ -343,21 +373,30 @@ export default function App() {
           <div
             className="px-5 py-3 flex items-center justify-between"
             style={{
-              borderTop: "1px solid rgba(139,92,246,0.15)",
-              background: "rgba(99,102,241,0.05)",
+              borderTop: `1px solid ${PrimaryPurple}15`,
+              background: `${PrimaryPurple}05`,
             }}
           >
-            <span className="text-xs" style={{ color: "#6366f1" }}>
+            <span className="text-xs" style={{ color: PrimaryPurple }}>
               Showing {shown.length} of {filtered.length} entries
             </span>
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs" style={{ color: "#6366f1" }}>
-                {tabIcons[activeTab]} {activeTab}
-              </span>
+            <div className="flex items-center gap-1.5 text-xs" style={{ color: PrimaryPurple }}>
+              {(() => {
+                const Icon = tabIcons[activeTab];
+                return <Icon size={12} />;
+              })()}
+              {activeTab}
             </div>
           </div>
         </div>
+
+        {!isLoggedIn && (
+          <p className="text-xs text-center mt-4" style={{ color: GRAY }}>
+            Sign in to join a live class, or create a free account to get started.
+          </p>
+        )}
       </div>
     </div>
   );
 }
+

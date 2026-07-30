@@ -1,7 +1,6 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+﻿import { useState, useEffect, useCallback, useRef } from "react";
 
 const API = import.meta.env.VITE_API_URL;
-const getToken = () => localStorage.getItem("token");
 
 const inr = (n) => "₹" + Number(n).toLocaleString("en-IN");
 
@@ -166,7 +165,7 @@ export default function AdminDashboard() {
     setLoading(true);
     try {
       const res  = await fetch(`${API}/api/enrollments`, {
-        headers: { Authorization: `Bearer ${getToken()}` },
+        credentials: "include",
       });
       const data = await res.json();
       setEnrollments(data.success ? data.data : []);
@@ -191,7 +190,7 @@ export default function AdminDashboard() {
     try {
       const res  = await fetch(`${API}/api/enrollments/${statusModal.id}/status`, {
         method: "PATCH",
-        headers: { Authorization: `Bearer ${getToken()}`, "Content-Type": "application/json" },
+        credentials: "include", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
       });
       const data = await res.json();
@@ -205,7 +204,7 @@ export default function AdminDashboard() {
     try {
       const res  = await fetch(`${API}/api/payments/refund/${id}`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${getToken()}`, "Content-Type": "application/json" },
+        credentials: "include", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ reason: "Admin initiated refund" }),
       });
       const data = await res.json();
@@ -219,7 +218,7 @@ export default function AdminDashboard() {
     try {
       const res  = await fetch(`${API}/api/enrollments/${id}`, {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${getToken()}` },
+        credentials: "include",
       });
       const data = await res.json();
       showToast(data.message, data.success ? "success" : "error");

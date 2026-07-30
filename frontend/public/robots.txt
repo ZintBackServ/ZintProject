@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+# Disallow admin and user-specific pages from indexing
+Disallow: /admin/
+Disallow: /user/dashboard
+Disallow: /auth/
+
+# Sitemap location
+Sitemap: https://www.zintinstitute.com/sitemap.xml

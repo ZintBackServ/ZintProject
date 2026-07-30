@@ -1,10 +1,12 @@
-const express = require("express");
-const router = express.Router();
-const passport = require("../config/passport");
+const express   = require("express");
+const router    = express.Router();
+const passport  = require("../config/passport");
+const rateLimit = require("express-rate-limit");
 
 const {
   signUpUser,
   loginUser,
+  logoutUser,
   verifyOTP,
   resendOTP,
   googleAuthCallback,
@@ -13,27 +15,46 @@ const {
   getUsersByIDs,
   UpdateUser,
   deleteUser,
+  getMyProfile,
 } = require("../controllers/userController");
 
 const authentication = require("../middlewares/authMiddleware");
-const authorization = require("../middlewares/authorization");
+const authorization  = require("../middlewares/authorization");
 
-// Public Routes 
-router.post("/newUser", signUpUser);          // Register → sends OTP email
-router.post("/login", loginUser);             // Local login
+// ── Rate Limiters ─────────────────────────────────────────────────────────────
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10,
+  message: { success: false, msg: "Too many attempts. Please try again in 15 minutes." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
-//  OTP Routes 
-router.post("/verify-otp", verifyOTP);        // Verify OTP → returns JWT
-router.post("/resend-otp", resendOTP);        // Resend OTP to email
+const otpLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { success: false, msg: "Too many OTP requests. Please try again in 15 minutes." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
-//  Google OAuth Routes 
+// ── Public Routes ─────────────────────────────────────────────────────────────
+router.post("/newUser",     signUpUser);
+router.post("/login",       authLimiter, loginUser);
+router.post("/logout",      logoutUser);
+
+// OTP Routes
+router.post("/verify-otp",  otpLimiter, verifyOTP);
+router.post("/resend-otp",  otpLimiter, resendOTP);
+
+// ── Google OAuth Routes ───────────────────────────────────────────────────────
 // Step 1: Redirect user to Google login page
 router.get(
   "/auth/google",
   passport.authenticate("google", { scope: ["profile", "email"], session: false })
 );
 
-// Step 2: Google redirects back here after login
+// Step 2: Google redirects back — cookie is set, redirect to /auth/google/success
 router.get(
   "/auth/google/callback",
   passport.authenticate("google", {
@@ -43,13 +64,14 @@ router.get(
   googleAuthCallback
 );
 
-//  Protected Routes 
-router.get("/allUsers",       authentication, authorization("admin"), getAllUser);
-router.get("/getUserById/:id",authentication, authorization("admin"), getUserById);
-router.get("/getUsersByIDs",  authentication, authorization("admin"), getUsersByIDs);
-router.put("/UpdateUser/:id", authentication, UpdateUser);
+// ── Protected Routes ──────────────────────────────────────────────────────────
+router.get("/me",                authentication, getMyProfile);
+router.put("/UpdateUser/:id",    authentication, UpdateUser);
 
-// Delete Routes 
+// Admin only
+router.get("/allUsers",          authentication, authorization("admin"), getAllUser);
+router.get("/getUserById/:id",   authentication, authorization("admin"), getUserById);
+router.post("/getUsersByIDs",    authentication, authorization("admin"), getUsersByIDs);
 router.delete("/deleteUser/:id", authentication, authorization("admin"), deleteUser);
 router.delete("/user/:userId",   authentication, authorization("admin"), deleteUser);
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   FiUser, FiMail, FiPhone, FiBookOpen,
   FiMonitor, FiMessageSquare, FiSend, FiCheck,
@@ -7,16 +7,8 @@ import {
 import { HiSparkles } from "react-icons/hi2";
 import { MdSchool } from "react-icons/md";
 
-const courses = [
-  "Full Stack Development",
-  "Data Science & ML",
-  "DevOps & Cloud",
-  "Java Backend",
-  "Python Programming",
-  "React & Frontend",
-  "Cybersecurity",
-  "UI/UX Design",
-];
+const COURSE_URL  = `${import.meta.env.VITE_API_URL}/course/getAllCourse`;
+const ENQUIRY_URL = `${import.meta.env.VITE_API_URL}/enquiry/addEnquiry`;
 
 const modes = ["Online Live", "Offline Classroom", "Self-Paced", "Hybrid"];
 
@@ -34,6 +26,15 @@ const avatars = [
   { initials: "KN", color: "from-teal-400 to-emerald-500" },
   { initials: "VT", color: "from-blue-400 to-indigo-500" },
 ];
+
+async function safeFetch(url, options) {
+  const res = await fetch(url, options);
+  const raw = await res.text();
+  let data = null;
+  try { data = raw ? JSON.parse(raw) : null; } catch { /* not JSON */ }
+  if (!res.ok) throw new Error(data?.msg || `Request failed with status ${res.status}`);
+  return data;
+}
 
 function InputField({ icon: Icon, label, type = "text", value, onChange, name }) {
   const [focused, setFocused] = useState(false);
@@ -55,12 +56,14 @@ function InputField({ icon: Icon, label, type = "text", value, onChange, name })
         onChange={onChange}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
+        required
         className="w-full pl-11 pr-4 py-3.5 bg-white rounded-xl text-sm text-gray-700 placeholder-gray-400 outline-none transition-all duration-200"
       />
     </div>
   );
 }
 
+// options now expects [{ value, label }] pairs
 function SelectField({ icon: Icon, label, options, value, onChange, name }) {
   const [focused, setFocused] = useState(false);
   return (
@@ -79,11 +82,12 @@ function SelectField({ icon: Icon, label, options, value, onChange, name }) {
         onChange={onChange}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
+        required
         className="w-full pl-11 pr-4 py-3.5 bg-white rounded-xl text-sm text-gray-600 outline-none appearance-none cursor-pointer transition-all duration-200"
       >
         <option value="">{label}</option>
         {options.map((o) => (
-          <option key={o} value={o}>{o}</option>
+          <option key={o.value} value={o.value}>{o.label}</option>
         ))}
       </select>
       <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 text-xs">▾</div>
@@ -95,18 +99,47 @@ export default function ContactPage() {
   const [form, setForm] = useState({
     fullName: "", email: "", mobile: "", course: "", mode: "", message: "",
   });
+  const [courses, setCourses] = useState([]);
+  const [coursesLoading, setCoursesLoading] = useState(true);
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const data = await safeFetch(COURSE_URL);
+        const list = data?.courses || data?.data || [];
+        setCourses(list.map(c => ({ value: c._id, label: c.courseName })));
+      } catch (err) {
+        console.log(err);
+        setCourses([]);
+      } finally {
+        setCoursesLoading(false);
+      }
+    };
+    fetchCourses();
+  }, []);
 
   const handleChange = (e) =>
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(null);
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 1500));
-    setLoading(false);
-    setSubmitted(true);
+    try {
+      await safeFetch(ENQUIRY_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      setSubmitted(true);
+    } catch (err) {
+      setError(err.message || "Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -118,11 +151,9 @@ export default function ContactPage() {
         {/* ── LEFT PANEL ────────────────────────────────── */}
         <div className="relative bg-gradient-to-br from-[#0f0e17] via-[#1c1540] to-[#130e2b] text-white p-10 lg:p-14 flex flex-col justify-between overflow-hidden">
 
-          {/* BG blobs */}
           <div className="absolute -top-20 -left-20 w-72 h-72 bg-violet-600 rounded-full opacity-10 blur-3xl pointer-events-none" />
           <div className="absolute -bottom-24 -right-10 w-80 h-80 bg-pink-500 rounded-full opacity-10 blur-3xl pointer-events-none" />
 
-          {/* Dot grid */}
           <div className="absolute inset-0 pointer-events-none"
             style={{
               backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px)",
@@ -131,12 +162,10 @@ export default function ContactPage() {
           />
 
           <div className="relative z-10">
-            {/* Badge */}
             <div className="inline-flex items-center gap-2 bg-white/10 border border-white/15 rounded-full px-4 py-1.5 text-xs font-semibold tracking-widest uppercase text-violet-300 mb-8">
               <HiSparkles /> Enroll Today
             </div>
 
-            {/* Heading */}
             <h1 className="text-4xl sm:text-5xl font-black leading-tight tracking-tight mb-4">
               Enroll for a{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-400 via-pink-400 to-violet-400">
@@ -147,7 +176,6 @@ export default function ContactPage() {
               Take the first step toward your dream career. Our expert mentors are ready to guide you through industry-ready programs.
             </p>
 
-            {/* Stats */}
             <div className="grid grid-cols-2 gap-4 mb-10">
               {stats.map((s) => (
                 <div key={s.label} className="bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur-sm">
@@ -160,7 +188,6 @@ export default function ContactPage() {
             </div>
           </div>
 
-          {/* Bottom: Avatar row + love note */}
           <div className="relative z-10">
             <div className="flex items-center gap-3">
               <div className="flex -space-x-2.5">
@@ -184,7 +211,6 @@ export default function ContactPage() {
         {/* ── RIGHT PANEL: Form ─────────────────────────── */}
         <div className="p-10 lg:p-14 flex flex-col justify-center">
           {submitted ? (
-            /* Success state */
             <div className="flex flex-col items-center justify-center text-center gap-5 py-12">
               <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center">
                 <FiCheck size={36} className="text-emerald-500" />
@@ -202,7 +228,6 @@ export default function ContactPage() {
             </div>
           ) : (
             <>
-              {/* Header */}
               <div className="mb-8">
                 <div className="flex items-center gap-2 mb-1">
                   <MdSchool className="text-fuchsia-500 text-xl" />
@@ -220,22 +245,32 @@ export default function ContactPage() {
 
               <form onSubmit={handleSubmit} className="flex flex-col gap-4">
 
-                {/* Row 1 */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <InputField icon={FiUser} label="Full Name" name="fullName" value={form.fullName} onChange={handleChange} />
                   <InputField icon={FiMail} label="Email Address" type="email" name="email" value={form.email} onChange={handleChange} />
                 </div>
 
-                {/* Row 2 */}
                 <InputField icon={FiPhone} label="Mobile Number" type="tel" name="mobile" value={form.mobile} onChange={handleChange} />
 
-                {/* Row 3 */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <SelectField icon={FiBookOpen} label="Select Course" options={courses} name="course" value={form.course} onChange={handleChange} />
-                  <SelectField icon={FiMonitor} label="Mode of Training" options={modes} name="mode" value={form.mode} onChange={handleChange} />
+                  <SelectField
+                    icon={FiBookOpen}
+                    label={coursesLoading ? "Loading courses..." : "Select Course"}
+                    options={courses}
+                    name="course"
+                    value={form.course}
+                    onChange={handleChange}
+                  />
+                  <SelectField
+                    icon={FiMonitor}
+                    label="Mode of Training"
+                    options={modes.map(m => ({ value: m, label: m }))}
+                    name="mode"
+                    value={form.mode}
+                    onChange={handleChange}
+                  />
                 </div>
 
-                {/* Textarea */}
                 <div className="relative group">
                   <div className="absolute inset-0 rounded-xl ring-1 ring-gray-200 group-hover:ring-gray-300 group-focus-within:ring-2 group-focus-within:ring-fuchsia-500 transition-all duration-300 pointer-events-none" />
                   <FiMessageSquare size={17} className="absolute left-4 top-4 text-gray-400 group-focus-within:text-fuchsia-500 transition-colors duration-200" />
@@ -249,7 +284,8 @@ export default function ContactPage() {
                   />
                 </div>
 
-                {/* Submit */}
+                {error && <p className="text-red-500 text-xs font-medium text-center">{error}</p>}
+
                 <button
                   type="submit"
                   disabled={loading}

@@ -1,40 +1,32 @@
 import { useEffect, useRef, useState } from "react";
 
-  const PRIMARY = "#8E1387";
-  const SECONDARY = "#B11FA8";
-  const LightPurple = "#C94CC2";
-  const BLUE = "#53BFEA";
-  const GREEN = "#45B51D";
+const PRIMARY     = "#8E1387";
+const LightPurple = "#C94CC2";
 
-/* ── Company list with logo URLs ── */
+// companies our students have been placed at
 const COMPANIES = [
-  { name: "Google", logo: "https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" },
-  { name: "Microsoft", logo: "https://upload.wikimedia.org/wikipedia/commons/9/96/Microsoft_logo_%282012%29.svg" },
-  { name: "Amazon",  logo: "https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" },
-  { name: "Meta", logo: "https://upload.wikimedia.org/wikipedia/commons/7/7b/Meta_Platforms_Inc._logo.svg" },
-  { name: "IBM", logo: "https://upload.wikimedia.org/wikipedia/commons/5/51/IBM_logo.svg" },
-  { name: "Infosys", logo: "https://upload.wikimedia.org/wikipedia/commons/9/95/Infosys_logo.svg" },
-  { name: "TCS", logo: "https://upload.wikimedia.org/wikipedia/commons/b/b1/Tata_Consultancy_Services_Logo.svg" },
-  { name: "Wipro", logo: "https://upload.wikimedia.org/wikipedia/commons/a/a0/Wipro_Primary_Logo_Color_RGB.svg" },
-  { name: "HCL", logo: "https://upload.wikimedia.org/wikipedia/commons/6/68/HCL_Technologies_logo.svg" },
-  { name: "Accenture", logo: "https://upload.wikimedia.org/wikipedia/commons/c/cd/Accenture.svg" },
-  { name: "Deloitte", logo: "https://upload.wikimedia.org/wikipedia/commons/5/56/Deloitte.svg" },
-  { name: "Capgemini", logo: "https://upload.wikimedia.org/wikipedia/commons/d/d3/Capgemini_logo_2021.svg" },
+  { name: "Google",     logo: "https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" },
+  { name: "Microsoft",  logo: "https://upload.wikimedia.org/wikipedia/commons/9/96/Microsoft_logo_%282012%29.svg" },
+  { name: "Amazon",     logo: "https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" },
+  { name: "Meta",       logo: "https://upload.wikimedia.org/wikipedia/commons/7/7b/Meta_Platforms_Inc._logo.svg" },
+  { name: "IBM",        logo: "https://upload.wikimedia.org/wikipedia/commons/5/51/IBM_logo.svg" },
+  { name: "Infosys",    logo: "https://upload.wikimedia.org/wikipedia/commons/9/95/Infosys_logo.svg" },
+  { name: "TCS",        logo: "https://upload.wikimedia.org/wikipedia/commons/b/b1/Tata_Consultancy_Services_Logo.svg" },
+  { name: "Wipro",      logo: "https://upload.wikimedia.org/wikipedia/commons/a/a0/Wipro_Primary_Logo_Color_RGB.svg" },
+  { name: "HCL",        logo: "https://upload.wikimedia.org/wikipedia/commons/6/68/HCL_Technologies_logo.svg" },
+  { name: "Accenture",  logo: "https://upload.wikimedia.org/wikipedia/commons/c/cd/Accenture.svg" },
+  { name: "Deloitte",   logo: "https://upload.wikimedia.org/wikipedia/commons/5/56/Deloitte.svg" },
+  { name: "Capgemini",  logo: "https://upload.wikimedia.org/wikipedia/commons/d/d3/Capgemini_logo_2021.svg" },
 ];
 
-/* ══════════════════════════════════════════════════════
-   MAIN COMPONENT
-══════════════════════════════════════════════════════ */
 export default function CompanyLogoSlider() {
-  /* Row 1 scrolls left, Row 2 scrolls right */
-  const mid    = Math.ceil(COMPANIES.length / 2);
-  const row1   = COMPANIES.slice(0, mid);
-  const row2   = COMPANIES.slice(mid);
+  const mid  = Math.ceil(COMPANIES.length / 2);
+  const row1 = COMPANIES.slice(0, mid);
+  const row2 = COMPANIES.slice(mid);
 
   return (
     <section className="py-16 overflow-hidden" style={{ background: "#111827" }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center mb-10">
-        {/* section label */}
         <p className="text-xs text-fuchsia-200 font-bold uppercase tracking-widest mb-2">
           Our Hiring Partners
         </p>
@@ -53,30 +45,28 @@ export default function CompanyLogoSlider() {
         </p>
       </div>
 
-      {/* ── edge fade masks ── */}
+      {/* edge fade on both sides */}
       <div className="relative">
-        {/* left fade */}
         <div className="absolute left-0 top-0 bottom-0 w-24 z-10 pointer-events-none"
           style={{ background: "linear-gradient(to right, #111827, transparent)" }} />
-        {/* right fade */}
         <div className="absolute right-0 top-0 bottom-0 w-24 z-10 pointer-events-none"
           style={{ background: "linear-gradient(to left, #111827, transparent)" }} />
 
         <div className="space-y-5">
-          <ScrollRow companies={row1} direction={1} speed={1} />
-          <ScrollRow companies={row2} direction={-1} speed={1.2} />
+          <ScrollRow companies={row1} direction={1}   speed={1} />
+          <ScrollRow companies={row2} direction={-1}  speed={1.2} />
         </div>
       </div>
 
-      {/* bottom trust strip */}
+      {/* stats strip */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-12">
         <div className="rounded-2xl px-6 py-5 flex flex-wrap items-center justify-center gap-6 md:gap-10 border"
           style={{ background: "rgba(255,255,255,0.04)", borderColor: "rgba(255,255,255,0.08)" }}>
           {[
-            { value: "500+",  label: "Partner Companies",  color: "#B026B5" },
-            { value: "98%",   label: "Placement Rate",      color: "#38BDF8" },
-            { value: "₹9.5 LPA", label: "Average Package",   color: "#22C55E" },
-            { value: "2 Months",  label: "Avg. Time to Hire",   color: "#B026B5" },
+            { value: "500+",     label: "Partner Companies",  color: "#B026B5" },
+            { value: "98%",      label: "Placement Rate",     color: "#38BDF8" },
+            { value: "₹9.5 LPA", label: "Average Package",    color: "#22C55E" },
+            { value: "2 Months", label: "Avg. Time to Hire",  color: "#B026B5" },
           ].map(s => (
             <div key={s.label} className="text-center">
               <p className="text-2xl font-extrabold" style={{ color: s.color }}>{s.value}</p>
@@ -89,14 +79,12 @@ export default function CompanyLogoSlider() {
   );
 }
 
-/* ══════════════════════════════════════════════════════
-   SCROLL ROW — interval-based, pause on hover
-══════════════════════════════════════════════════════ */
+// auto-scrolling row — row 1 goes left, row 2 goes right
 function ScrollRow({ companies, direction, speed }) {
   const scrollRef   = useRef(null);
   const intervalRef = useRef(null);
 
-  /* duplicate for seamless infinite loop */
+  // triple the list so there's always content on both sides for the loop
   const loopData = [...companies, ...companies, ...companies];
 
   const startScroll = () => {
@@ -116,7 +104,6 @@ function ScrollRow({ companies, direction, speed }) {
   const stopScroll = () => clearInterval(intervalRef.current);
 
   useEffect(() => {
-    /* set initial position for reverse row */
     if (direction < 0 && scrollRef.current) {
       scrollRef.current.scrollLeft = scrollRef.current.scrollWidth / 3;
     }
@@ -139,9 +126,6 @@ function ScrollRow({ companies, direction, speed }) {
   );
 }
 
-/* ══════════════════════════════════════════════════════
-   LOGO CARD
-══════════════════════════════════════════════════════ */
 function LogoCard({ company }) {
   const [hov, setHov]       = useState(false);
   const [imgErr, setImgErr] = useState(false);
@@ -150,13 +134,13 @@ function LogoCard({ company }) {
     <div
       className="flex-none flex flex-col items-center justify-center gap-2 rounded-2xl transition-all duration-300"
       style={{
-        minWidth:    "140px",
-        height:      "80px",
-        background:  hov ? "rgba(176,38,181,0.10)" : "rgba(255,255,255,0.05)",
-        border:      `1px solid ${hov ? "#B026B5" : "rgba(255,255,255,0.08)"}`,
-        boxShadow:   hov ? "0 8px 28px rgba(176,38,181,0.2)" : "none",
-        transform:   hov ? "translateY(-3px) scale(1.03)" : "translateY(0) scale(1)",
-        padding:     "12px 20px",
+        minWidth:  "140px",
+        height:    "80px",
+        background: hov ? "rgba(176,38,181,0.10)" : "rgba(255,255,255,0.05)",
+        border:    `1px solid ${hov ? "#B026B5" : "rgba(255,255,255,0.08)"}`,
+        boxShadow: hov ? "0 8px 28px rgba(176,38,181,0.2)" : "none",
+        transform: hov ? "translateY(-3px) scale(1.03)" : "translateY(0) scale(1)",
+        padding:   "12px 20px",
       }}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
@@ -164,13 +148,14 @@ function LogoCard({ company }) {
       {!imgErr ? (
         <img
           src={company.logo}
-          alt={company.name}
+          alt={`${company.name} logo`}
+          loading="lazy"
+          decoding="async"
           className="max-h-8 max-w-[100px] object-contain transition-all duration-300"
           style={{ filter: hov ? "brightness(1.1)" : "brightness(0) invert(1)", opacity: hov ? 1 : 0.65 }}
           onError={() => setImgErr(true)}
         />
       ) : (
-        /* fallback: company name text */
         <span className="text-sm font-bold tracking-wide transition-all duration-300"
           style={{ color: hov ? "#B026B5" : "#9ca3af" }}>
           {company.name}

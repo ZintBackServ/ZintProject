@@ -1,6 +1,7 @@
 import { useContext, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { DataContext } from "../context/DataContext";
+import SpecularButton from "../components/SpecularButton";
 
 
   const DarkPurple = "#8E1387";
@@ -206,24 +207,30 @@ function CourseCard({ course, onKnowMore }) {
   );
 }
 
-/* ── Purple CTA button with darker-purple hover ── */
+/* ── Purple CTA button with Specular Light Reflection Animation ── */
 function KnowMoreBtn({ onClick }) {
-  const [hov, setHov] = useState(false);
   return (
-    <button
+    <SpecularButton
+      size="sm"
+      radius={20}
+      tint="#ffffff"
+      tintOpacity={0}
+      blur={0}
+      textColor="#ffffff"
+      lineColor="#bc05f3"
+      baseColor="#8E1387"
+      intensity={1}
+      shineSize={30}
+      shineFade={47}
+      thickness={2}
+      speed={0.35}
+      followMouse
+      proximity={300}
+      autoAnimate={false}
       onClick={onClick}
-      className="text-white text-xs w-full font-bold px-5 py-2.5 rounded-xl transition-all duration-200"
-      style={{
-        background:  hov ? DarkPurple : PrimaryPurple,
-        boxShadow:   hov
-          ? "0 6px 20px rgba(176,38,181,0.35)"
-          : "0 4px 14px rgba(176,38,181,0.22)",
-        transform:   hov ? "scale(0.97)" : "scale(1)",
-      }}
-      onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
+      className="w-full font-bold text-xs"
     >
-      Know More →
-    </button>
+      Know More <span className="ml-1">&rarr;</span>
+    </SpecularButton>
   );
 }

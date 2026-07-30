@@ -1,12 +1,17 @@
 // import Mentor from "./Mentor"
-import PlacedStudent from "../components/PlacedStudentSlider"
-import WhyZint from "../components/WhyZint"
-import Mentor from "../pages/Mentor"
+import PlacedStudent from "../components/PlacedStudentSlider";
+import WhyZint from "../components/WhyZint";
+import Mentor from "../pages/Mentor";
 import { FaIndustry } from "react-icons/fa";
 import { FaComputer } from "react-icons/fa6";
 import { SiCodementor } from "react-icons/si";
+import { usePageMeta } from "../hooks/usePageMeta";
 
 function About() {
+  usePageMeta(
+    "About Us",
+    "Learn about Zint Computer Education Institute — ISO 9001:2015 Certified institute in Gwalior. Our vision, mission, expert mentors and placement success story."
+  );
   return (
    <div className="mb-10">
 

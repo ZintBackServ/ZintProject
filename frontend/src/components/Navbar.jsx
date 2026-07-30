@@ -2,7 +2,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import zintLogo from "../assets/zintLogo.jpeg";
+import zintLogo from "../assets/zintLogo.webp";
+import { usePWAInstall } from "../hooks/usePWAInstall";
 
 // ── Mobile accordion ──────────────────────────────────────────────────────────
 function MobileAccordion({ label, children }) {
@@ -495,9 +496,10 @@ function CourseSearch({ onNavigate }) {
 
 // ── Main Navbar ───────────────────────────────────────────────────────────────
 function Navbar() {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const { user, logout }        = useAuth();
-  const navigate                = useNavigate();
+  const [menuOpen, setMenuOpen]         = useState(false);
+  const { user, logout }                = useAuth();
+  const navigate                        = useNavigate();
+  const { installable, promptInstall }  = usePWAInstall();
 
   const handleLogout = () => { logout(); navigate("/login"); setMenuOpen(false); };
   const closeMenu    = () => setMenuOpen(false);
@@ -518,7 +520,7 @@ function Navbar() {
 
           {/* Logo */}
           <Link to="/" className="shrink-0">
-            <img src={zintLogo} alt="Zint Logo" className="h-8 sm:h-9 md:h-10 w-auto" />
+            <img src={zintLogo} alt="Zint Logo" className="h-10 sm:h-11 md:h-12 w-auto max-w-[160px] md:max-w-[200px] object-contain" />
           </Link>
 
           {/* Search — below lg this grows to fill all remaining space between
@@ -585,7 +587,7 @@ function Navbar() {
               </div>
             </DesktopDropdown>
 
-            {/* Auth */}
+            {/* Auth + PWA Install */}
             <div className="flex items-center gap-1.5 ml-1 pl-2 border-l border-gray-200 shrink-0">
               {user?.role === "user" && (
                 <Link to="/user/dashboard"
@@ -599,6 +601,23 @@ function Navbar() {
                   Admin
                 </Link>
               )}
+
+              {/* PWA Install button — only shown when browser provides prompt */}
+              {installable && (
+                <button
+                  id="pwa-install-btn"
+                  onClick={promptInstall}
+                  title="Install Zint App"
+                  className="flex items-center gap-1.5 px-2 lg:px-3 py-2 text-sm font-semibold bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 active:scale-95 transition-all whitespace-nowrap shadow-sm"
+                >
+                  {/* Download / Install icon */}
+                  <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" />
+                  </svg>
+                  <span className="hidden xl:inline">Install App</span>
+                </button>
+              )}
+
               {user ? (
                 <button onClick={handleLogout}
                   className="px-2 lg:px-3 py-2 text-sm font-semibold bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors whitespace-nowrap">
@@ -712,6 +731,21 @@ function Navbar() {
                   className="block px-5 py-3.5 text-sm font-semibold text-purple-600 hover:bg-purple-50 transition-colors">
                   Admin Dashboard
                 </Link>
+              </li>
+            )}
+
+            {/* PWA Install — mobile */}
+            {installable && (
+              <li className="px-4 pt-3 pb-1">
+                <button
+                  onClick={() => { promptInstall(); closeMenu(); }}
+                  className="flex items-center justify-center gap-2 w-full py-2.5 text-sm font-semibold bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 active:scale-95 transition-all"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" />
+                  </svg>
+                  Install Zint App
+                </button>
               </li>
             )}
 

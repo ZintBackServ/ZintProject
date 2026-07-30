@@ -1,9 +1,8 @@
-// pages/CoursePricing.jsx
+﻿// pages/CoursePricing.jsx
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
 const API = import.meta.env.VITE_API_URL;
-const getToken = () => localStorage.getItem("token");
 
 // ── Theme ──────────────────────────────────────────────────────────────────────
 const THEME = {
@@ -205,8 +204,7 @@ export default function CoursePricing() {
       const orderRes = await fetch(`${API}/api/payments/create-order`, {
         method: "POST",
         headers: {
-          Authorization:  `Bearer ${token}`,
-          "Content-Type": "application/json",
+              "Content-Type": "application/json",
         },
         body: JSON.stringify({
           courseId: id,
@@ -243,8 +241,7 @@ export default function CoursePricing() {
             const verifyRes = await fetch(`${API}/api/payments/verify`, {
               method: "POST",
               headers: {
-                Authorization:  `Bearer ${token}`,
-                "Content-Type": "application/json",
+                          "Content-Type": "application/json",
               },
               body: JSON.stringify({
                 razorpay_order_id:   response.razorpay_order_id,

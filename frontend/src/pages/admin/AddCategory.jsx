@@ -39,14 +39,13 @@ export default function AddCategory() {
   const [saveError, setSaveError]       = useState("");
   const [saveSuccess, setSaveSuccess]   = useState("");
 
-  const token = localStorage.getItem("token");
 
   /* fetch existing */
   const fetchExisting = async () => {
     setExLoading(true);
     try {
       const res  = await fetch(`${import.meta.env.VITE_API_URL}/category/getAllCategories`, {
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: "include",
       });
       const data = await res.json();
       setExisting(data.categories || []);
@@ -78,7 +77,7 @@ export default function AddCategory() {
       queue.map(cat =>
         fetch(`${import.meta.env.VITE_API_URL}/category/addCategory`, {
           method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ categoryName: cat.categoryName, description: cat.description }),
         }).then(r => r.json().then(d => ({ ok: r.ok, data: d, cat })))
       )
@@ -106,7 +105,7 @@ export default function AddCategory() {
     setDeletingId(id);
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/category/deleteCategory/${id}`, {
-        method: "DELETE", headers: { Authorization: `Bearer ${token}` },
+        method: "DELETE", credentials: "include",
       });
       if (res.ok) setExisting(prev => prev.filter(c => c._id !== id));
       else { const d = await res.json(); alert(d.msg || "Delete failed."); }

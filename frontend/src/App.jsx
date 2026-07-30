@@ -1,84 +1,97 @@
-import React from "react";
-import Home from "./pages/Home";
-import Courses from "./pages/Courses";
-import CourseDetail from "./pages/CourseDetail";
-import About from "./pages/About";
-import Login from "./pages/Login";
-import SignUp from "./pages/SignUp";
-import Events from "./pages/Events";
-import Internship from "./pages/Internship";
-import Admission from "./components/Admission";
-import PrivacyPolicy from "./components/PrivacyPolicy";
-import RefundPolicy from "./components/RefundPolicy";
-import TermsConditions from "./components/TermsConditions";
-import Blog from "./pages/Blog";
-
-  //placement
-import PlacementRegistration from "./pages/PlacementRegistration";
-import PlacedStudent from "./components/PlacedStudentSlider";
-
-import AdminDashboard from "./pages/admin/AdminDashboard";  // admin dashboard
-import Dashboard from "./pages/user/Dashboard";
-import OnlineTraining from "./pages/OnlineTraining";
-import { Routes, Route } from "react-router-dom"; // removed BrowserRouter
+import React, { lazy, Suspense } from "react";
+import { Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
-import TopInfo from "./pages/TopInfo";  //top info bar
-import Footer from "./pages/Footer";   //footer
+import TopInfo from "./pages/TopInfo";
+import Footer from "./pages/Footer";
 import DataProvider from "./context/DataProvider";
 import { AdminRoute, PrivateRoute } from "./components/ProtectedRoute";
-import { AdminRatingDashboard } from "./pages/admin/Rating";
 import NotificationPopup from "./components/Notification";
+import ScrollToTop from "./components/ScrollToTop";
+import Loading from "./components/Loading";
 
-import FeePay from "./pages/user/FeePay";
-import GoogleAuthSuccess from "./pages/GoogleAuthSuccess";
+// ── Eagerly loaded (above-fold, always needed) ─────────────────────────────
+import Home from "./pages/Home";
 
+// ── Lazy-loaded routes (split into separate JS chunks) ─────────────────────
+const Courses              = lazy(() => import("./pages/Courses"));
+const CourseDetail         = lazy(() => import("./pages/CourseDetail"));
+const About                = lazy(() => import("./pages/About"));
+const Login                = lazy(() => import("./pages/Login"));
+const SignUp               = lazy(() => import("./pages/SignUp"));
+const Events               = lazy(() => import("./pages/Events"));
+const Internship           = lazy(() => import("./pages/Internship"));
+const Blog                 = lazy(() => import("./pages/Blog"));
+const OnlineTraining       = lazy(() => import("./pages/OnlineTraining"));
+const PlacementRegistration = lazy(() => import("./pages/PlacementRegistration"));
+const MagicBento           = lazy(() => import("./pages/MagicBento"));
+const GoogleAuthSuccess    = lazy(() => import("./pages/Googleauthsuccess"));
+const Antigravity          = lazy(() => import("./pages/Antigravity"));
 
-<Route path="/auth/google/success" element={<GoogleAuthSuccess />} />
+// ── Components used as routes ──────────────────────────────────────────────
+const Admission      = lazy(() => import("./components/Admission"));
+const PrivacyPolicy  = lazy(() => import("./components/PrivacyPolicy"));
+const RefundPolicy   = lazy(() => import("./components/RefundPolicy"));
+const TermsConditions = lazy(() => import("./components/TermsConditions"));
+const ContactUS      = lazy(() => import("./components/ContactUS"));
+const Careers        = lazy(() => import("./components/Careers"));
+const PlacedStudent  = lazy(() => import("./components/PlacedStudentSlider"));
+
+// ── Protected / admin ──────────────────────────────────────────────────────
+const AdminDashboard       = lazy(() => import("./pages/admin/AdminDashboard"));
+const Dashboard            = lazy(() => import("./pages/user/Dashboard"));
+const FeePay               = lazy(() => import("./pages/user/FeePay"));
+const AdminRatingDashboard = lazy(() => import("./pages/admin/Rating").then(m => ({ default: m.AdminRatingDashboard })));
 
 function App() {
   return (
-    // No BrowserRouter here — it lives in main.jsx now
     <DataProvider>
+      <ScrollToTop />
       <TopInfo />
       <Navbar />
       <NotificationPopup />
-      <Routes>
-        {/* Public routes */}
-        <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/courses" element={<Courses />} />
-        <Route path="/OnlineTraining" element={<OnlineTraining />} />
-        <Route path="/PrivacyPolicy" element={<PrivacyPolicy />} />
-        <Route path="/RefundPolicy" element={<RefundPolicy />} />
-        <Route path="/TermsConditions" element={<TermsConditions />} />
 
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<SignUp />} />
-        <Route path="/courses/:id" element={<CourseDetail />} />
-        <Route path="/courses/:id/fee" element={<FeePay />} />
-        <Route path="/Events" element={<Events />} />
-        <Route path="/Blog" element={<Blog />} />
-        <Route path="/Internship" element={<Internship />} />
-        <Route path="/PlacedStudent" element={<PlacedStudent />} />
-        <Route path="/OnlineAdmission" element={<Admission />} />
-        <Route path="/PlacementRegistration" element={<PlacementRegistration />} />
-       
-        {/* Logged in users only */}
-      <Route path="/user/dashboard" element={
-        <PrivateRoute>
-          <Dashboard />
-        </PrivateRoute>
-      } />
+      {/* Suspense fallback shown while any lazy chunk is loading */}
+      <Suspense fallback={<Loading />}>
+        <Routes>
+          {/* Public routes */}
+          <Route path="/"                    element={<Home />} />
+          <Route path="/about"               element={<About />} />
+          <Route path="/courses"             element={<Courses />} />
+          <Route path="/OnlineTraining"      element={<OnlineTraining />} />
+          <Route path="/PrivacyPolicy"       element={<PrivacyPolicy />} />
+          <Route path="/RefundPolicy"        element={<RefundPolicy />} />
+          <Route path="/TermsConditions"     element={<TermsConditions />} />
+          <Route path="/contact"             element={<ContactUS />} />
+          <Route path="/careers"             element={<Careers />} />
+          <Route path="/login"               element={<Login />} />
+          <Route path="/Login"               element={<Login />} />
+          <Route path="/signup"              element={<SignUp />} />
+          <Route path="/courses/:id"         element={<CourseDetail />} />
+          <Route path="/courses/:id/fee"     element={<FeePay />} />
+          <Route path="/Events"              element={<Events />} />
+          <Route path="/Blog"                element={<Blog />} />
+          <Route path="/Internship"          element={<Internship />} />
+          <Route path="/PlacedStudent"       element={<PlacedStudent />} />
+          <Route path="/OnlineAdmission"     element={<Admission />} />
+          <Route path="/PlacementRegistration" element={<PlacementRegistration />} />
+          <Route path="/auth/google/success" element={<GoogleAuthSuccess />} />
+          <Route path="/magic-bento"         element={<MagicBento />} />
+          <Route path="/antigravity"         element={<Antigravity />} />
 
-        {/* Admin only route */}
-        <Route path="/admin/dashboard/*" element={
-          <AdminRoute>
-            <AdminDashboard />
-          </AdminRoute>
-        } />
-        <Route path="/admin/ratings" element={<AdminRatingDashboard />} />
-      </Routes>
-      <Footer/>
+          {/* Logged in users only */}
+          <Route path="/user/dashboard" element={
+            <PrivateRoute><Dashboard /></PrivateRoute>
+          } />
+
+          {/* Admin only */}
+          <Route path="/admin/dashboard/*" element={
+            <AdminRoute><AdminDashboard /></AdminRoute>
+          } />
+          <Route path="/admin/ratings" element={<AdminRatingDashboard />} />
+        </Routes>
+      </Suspense>
+
+      <Footer />
     </DataProvider>
   );
 }

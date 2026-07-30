@@ -1,14 +1,23 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 
-const BASE =`${import.meta.env.VITE_API_URL}/rating`;
+const BASE = `${import.meta.env.VITE_API_URL}/rating`;
 const API = {
   addRating:          `${BASE}/addRating`,
-  getRatingsByTarget: (id) => `${BASE}/target/${Id}`,
+  getRatingsByTarget: (name) => `${BASE}/target/${encodeURIComponent(name)}`,
   getAllRatings:       `${BASE}/all`,
-  getStats:           `${BASE}/stats`,
+  getStats:            `${BASE}/stats`,
   toggleVisibility:   (id) => `${BASE}/visibility/${id}`,
   deleteRating:       (id) => `${BASE}/delete/${id}`,
 };
+
+const TARGET_TYPES = ["event", "course", "mentor", "internship"];
+
+// Attaches the logged-in user's JWT to admin requests. The server is the
+// actual gatekeeper (it verifies the token and checks role === "admin");
+// this header is just how the token gets there.
+function authHeaders() {
+  return {};
+}
 
 // ── Mock data ────────────────────────────────────────────────────────────────
 const MOCK_STATS = {
@@ -28,19 +37,19 @@ const MOCK_STATS = {
 const MOCK_ALL = {
   total: 128,
   summary: [
-    { targetId:"t1", targetName:"ZintRojgar Fair", targetType:"event",  totalRatings:38, avgRating:4.5, distribution:{ 1:1,2:2,3:5,4:12,5:18 } },
-    { targetId:"t2", targetName:"Web Dev Course",  targetType:"course", totalRatings:29, avgRating:4.2, distribution:{ 1:1,2:3,3:4,4:10,5:11 } },
-    { targetId:"t3", targetName:"Tech Summit",     targetType:"event",  totalRatings:22, avgRating:3.8, distribution:{ 1:2,2:3,3:6,4:7,5:4  } },
-    { targetId:"t4", targetName:"Python Basics",   targetType:"course", totalRatings:39, avgRating:4.7, distribution:{ 1:0,2:1,3:3,4:10,5:25 } },
+    { targetName:"ZintRojgar Fair", targetType:"event",  totalRatings:38, avgRating:4.5, distribution:{ 1:1,2:2,3:5,4:12,5:18 } },
+    { targetName:"Web Dev Course",  targetType:"course", totalRatings:29, avgRating:4.2, distribution:{ 1:1,2:3,3:4,4:10,5:11 } },
+    { targetName:"Tech Summit",     targetType:"event",  totalRatings:22, avgRating:3.8, distribution:{ 1:2,2:3,3:6,4:7,5:4  } },
+    { targetName:"Python Basics",   targetType:"course", totalRatings:39, avgRating:4.7, distribution:{ 1:0,2:1,3:3,4:10,5:25 } },
   ],
   ratings: [
-    { _id:"r1", studentName:"Aarav Sharma",  rollNo:"ITM001", studentEmail:"aarav@x.com", targetName:"ZintRojgar Fair", targetType:"event",  rating:5, review:"Amazing event! Got placed on spot.",     createdAt:"2026-05-10T09:00:00Z", isVisible:true  },
-    { _id:"r2", studentName:"Priya Verma",   rollNo:"ITM002", studentEmail:"priya@x.com", targetName:"Web Dev Course",  targetType:"course", rating:4, review:"Great content, practical approach.",      createdAt:"2026-05-09T11:00:00Z", isVisible:true  },
-    { _id:"r3", studentName:"Rohit Kumar",   rollNo:"ITM003", studentEmail:"rohit@x.com", targetName:"Tech Summit",     targetType:"event",  rating:3, review:"Good but hall was very crowded.",         createdAt:"2026-05-08T14:00:00Z", isVisible:false },
-    { _id:"r4", studentName:"Sneha Patel",   rollNo:"ITM004", studentEmail:"sneha@x.com", targetName:"Python Basics",   targetType:"course", rating:5, review:"Best course I took this year!",           createdAt:"2026-05-07T08:00:00Z", isVisible:true  },
-    { _id:"r5", studentName:"Karan Singh",   rollNo:"ITM005", studentEmail:"karan@x.com", targetName:"ZintRojgar Fair", targetType:"event",  rating:4, review:"Well organized, loved the recruiters.",   createdAt:"2026-05-06T10:00:00Z", isVisible:true  },
-    { _id:"r6", studentName:"Meera Joshi",   rollNo:"ITM006", studentEmail:"meera@x.com", targetName:"Web Dev Course",  targetType:"course", rating:5, review:"Instructor was very helpful.",            createdAt:"2026-05-05T12:00:00Z", isVisible:true  },
-    { _id:"r7", studentName:"Dev Malhotra",  rollNo:"ITM007", studentEmail:"dev@x.com",   targetName:"Python Basics",   targetType:"course", rating:4, review:"Good pace, clear explanations.",          createdAt:"2026-05-04T15:00:00Z", isVisible:true  },
+    { _id:"r1", studentName:"Aarav Sharma",  studentEmail:"aarav@x.com", targetName:"ZintRojgar Fair", targetType:"event",  rating:5, review:"Amazing event! Got placed on spot.",     createdAt:"2026-05-10T09:00:00Z", isVisible:true  },
+    { _id:"r2", studentName:"Priya Verma",   studentEmail:"priya@x.com", targetName:"Web Dev Course",  targetType:"course", rating:4, review:"Great content, practical approach.",      createdAt:"2026-05-09T11:00:00Z", isVisible:true  },
+    { _id:"r3", studentName:"Rohit Kumar",   studentEmail:"rohit@x.com", targetName:"Tech Summit",     targetType:"event",  rating:3, review:"Good but hall was very crowded.",         createdAt:"2026-05-08T14:00:00Z", isVisible:false },
+    { _id:"r4", studentName:"Sneha Patel",   studentEmail:"sneha@x.com", targetName:"Python Basics",   targetType:"course", rating:5, review:"Best course I took this year!",           createdAt:"2026-05-07T08:00:00Z", isVisible:true  },
+    { _id:"r5", studentName:"Karan Singh",   studentEmail:"karan@x.com", targetName:"ZintRojgar Fair", targetType:"event",  rating:4, review:"Well organized, loved the recruiters.",   createdAt:"2026-05-06T10:00:00Z", isVisible:true  },
+    { _id:"r6", studentName:"Meera Joshi",   studentEmail:"meera@x.com", targetName:"Web Dev Course",  targetType:"course", rating:5, review:"Instructor was very helpful.",            createdAt:"2026-05-05T12:00:00Z", isVisible:true  },
+    { _id:"r7", studentName:"Dev Malhotra",  studentEmail:"dev@x.com",   targetName:"Python Basics",   targetType:"course", rating:4, review:"Good pace, clear explanations.",          createdAt:"2026-05-04T15:00:00Z", isVisible:true  },
   ],
 };
 
@@ -72,17 +81,38 @@ function RatingBar({ label, count, total, color }) {
   );
 }
 
+// Shared star-picker + fields used by both the public form and the admin
+// "add review" modal, so the two stay visually and behaviorally consistent.
+function StarPicker({ value, onChange }) {
+  const [hover, setHover] = useState(0);
+  const labels = ["", "Poor", "Fair", "Good", "Very Good", "Excellent"];
+  return (
+    <div className="flex flex-col items-center mb-6">
+      <div className="flex gap-2 mb-2">
+        {[1,2,3,4,5].map(i => (
+          <button
+            key={i}
+            type="button"
+            onMouseEnter={() => setHover(i)}
+            onMouseLeave={() => setHover(0)}
+            onClick={() => onChange(i)}
+            className={`text-4xl transition-transform hover:scale-110 ${i <= (hover || value) ? "text-amber-400" : "text-zinc-700"}`}
+          >★</button>
+        ))}
+      </div>
+      <p className="text-zinc-400 text-sm h-5">{labels[hover || value] || "Select a rating"}</p>
+    </div>
+  );
+}
+
 // ══════════════════════════════════════════════════════════════════════════════
 // STUDENT — Rating Submission Form
 // ══════════════════════════════════════════════════════════════════════════════
-export function RatingForm({ targetId, targetType, targetName, onSuccess }) {
-  const [hover,    setHover]   = useState(0);
-  const [form,     setForm]    = useState({ rating:0, review:"", studentName:"", studentEmail:""});
-  const [loading,  setLoading] = useState(false);
-  const [done,     setDone]    = useState(false);
-  const [error,    setError]   = useState("");
-
-  const labels = ["", "Poor", "Fair", "Good", "Very Good", "Excellent"];
+export function RatingForm({ targetType, targetName, onSuccess }) {
+  const [form,    setForm]    = useState({ rating:0, review:"", studentName:"", studentEmail:"" });
+  const [loading, setLoading] = useState(false);
+  const [done,    setDone]    = useState(false);
+  const [error,   setError]   = useState("");
 
   const handleSubmit = async () => {
     setError("");
@@ -97,7 +127,7 @@ export function RatingForm({ targetId, targetType, targetName, onSuccess }) {
       const res = await fetch(API.addRating, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ targetId, targetType, targetName, ...form }),
+        body: JSON.stringify({ targetType, targetName, ...form }),
       });
       const d = await res.json();
       if (!res.ok) throw new Error(d.msg || "Failed");
@@ -123,30 +153,11 @@ export function RatingForm({ targetId, targetType, targetName, onSuccess }) {
       <h3 className="text-white font-bold text-lg mb-0.5">Rate & Review</h3>
       <p className="text-amber-400 text-sm font-medium mb-6">{targetName}</p>
 
-      {/* Star selector */}
-      <div className="flex flex-col items-center mb-6">
-        <div className="flex gap-2 mb-2">
-          {[1,2,3,4,5].map(i => (
-            <button
-              key={i}
-              onMouseEnter={() => setHover(i)}
-              onMouseLeave={() => setHover(0)}
-              onClick={() => setForm({ ...form, rating: i })}
-              className={`text-4xl transition-transform hover:scale-110 ${i <= (hover || form.rating) ? "text-amber-400" : "text-zinc-700"}`}
-            >★</button>
-          ))}
-        </div>
-        <p className="text-zinc-400 text-sm h-5">
-          {labels[hover || form.rating] || "Select a rating"}
-        </p>
-      </div>
+      <StarPicker value={form.rating} onChange={i => setForm({ ...form, rating: i })} />
 
-      {/* Fields */}
       <div className="space-y-3 mb-4">
         {[
           { key:"studentName",  label:"Full Name *",     type:"text",  ph:"Your name" },
-           { key:"targetType",  label:"Type *",     type:"text",  ph:"'event','course', 'mentor','internship'" },
-          { key:"targetName",       label:"Name",    type:"text",  ph:"e.g. Rojgar Event" },
           { key:"studentEmail", label:"Email Address *", type:"email", ph:"you@example.com" },
         ].map(({ key, label, type, ph }) => (
           <div key={key}>
@@ -189,34 +200,176 @@ export function RatingForm({ targetId, targetType, targetName, onSuccess }) {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
+// ADMIN — Add Review Modal
+// Lets an admin log a review on behalf of anyone, for any target, without the
+// one-review-per-email restriction that applies to the public form. The
+// admin's JWT (sent via authHeaders()) is how the backend knows to skip its
+// duplicate check — nothing in the request body is trusted for that.
+// ══════════════════════════════════════════════════════════════════════════════
+function AdminAddReviewModal({ knownTargets, onClose, onCreated }) {
+  const [form, setForm] = useState({
+    targetType: "course",
+    targetName: "",
+    studentName: "",
+    studentEmail: "",
+    rating: 0,
+    review: "",
+  });
+  const [loading, setLoading] = useState(false);
+  const [error,   setError]   = useState("");
+
+  const targetNameOptions = knownTargets
+    .filter(t => t.targetType === form.targetType)
+    .map(t => t.targetName);
+
+  const handleSubmit = async () => {
+    setError("");
+    if (!form.targetName.trim()) { setError("Target name is required."); return; }
+    if (!form.studentName.trim() || !form.studentEmail.trim()) { setError("Name and email are required."); return; }
+    if (!form.rating) { setError("Please select a star rating."); return; }
+
+    setLoading(true);
+    try {
+      const res = await fetch(API.addRating, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...authHeaders() },
+        body: JSON.stringify(form),
+      });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.msg || "Failed to add review");
+      onCreated(d.rating);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between mb-1">
+          <h3 className="text-white font-bold text-lg">Add Review</h3>
+          <button onClick={onClose} className="text-zinc-500 hover:text-white text-xl leading-none">×</button>
+        </div>
+        <p className="text-zinc-500 text-xs mb-6">Admin entries skip the one-review-per-email limit.</p>
+
+        <StarPicker value={form.rating} onChange={i => setForm({ ...form, rating: i })} />
+
+        <div className="space-y-3 mb-4">
+          <div>
+            <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-1.5">Type *</label>
+            <div className="flex gap-2 flex-wrap">
+              {TARGET_TYPES.map(t => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setForm({ ...form, targetType: t })}
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold capitalize transition-all ${form.targetType === t ? "bg-amber-400 text-black" : "bg-zinc-800 border border-zinc-700 text-zinc-400 hover:border-zinc-500"}`}
+                >{t}</button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-1.5">Target Name *</label>
+            <input
+              type="text"
+              list="admin-known-targets"
+              value={form.targetName}
+              onChange={e => setForm({ ...form, targetName: e.target.value })}
+              placeholder="e.g. Web Dev Course"
+              className="w-full bg-zinc-800 border border-zinc-700 focus:border-amber-400 text-white rounded-xl px-4 py-2.5 text-sm outline-none transition-colors placeholder-zinc-600"
+            />
+            <datalist id="admin-known-targets">
+              {targetNameOptions.map(name => <option key={name} value={name} />)}
+            </datalist>
+          </div>
+
+          {[
+            { key:"studentName",  label:"Student Name *",  type:"text",  ph:"Their name" },
+            { key:"studentEmail", label:"Student Email *", type:"email", ph:"student@example.com" },
+          ].map(({ key, label, type, ph }) => (
+            <div key={key}>
+              <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-1.5">{label}</label>
+              <input
+                type={type}
+                value={form[key]}
+                onChange={e => setForm({ ...form, [key]: e.target.value })}
+                placeholder={ph}
+                className="w-full bg-zinc-800 border border-zinc-700 focus:border-amber-400 text-white rounded-xl px-4 py-2.5 text-sm outline-none transition-colors placeholder-zinc-600"
+              />
+            </div>
+          ))}
+
+          <div>
+            <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-1.5">Review (optional)</label>
+            <textarea
+              value={form.review}
+              onChange={e => setForm({ ...form, review: e.target.value })}
+              placeholder="Review text..."
+              rows={3}
+              maxLength={500}
+              className="w-full bg-zinc-800 border border-zinc-700 focus:border-amber-400 text-white rounded-xl px-4 py-2.5 text-sm outline-none transition-colors placeholder-zinc-600 resize-none"
+            />
+            <p className="text-zinc-600 text-xs text-right mt-1">{form.review.length}/500</p>
+          </div>
+        </div>
+
+        {error && <p className="text-red-400 text-xs mb-3">{error}</p>}
+
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 border border-zinc-700 text-zinc-300 hover:border-zinc-500 font-semibold py-3 rounded-xl text-sm transition-colors"
+          >Cancel</button>
+          <button
+            onClick={handleSubmit}
+            disabled={loading}
+            className="flex-1 bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-black font-bold py-3 rounded-xl text-sm transition-colors"
+          >{loading ? "Adding..." : "Add Review"}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
 // ADMIN — Rating Dashboard
 // ══════════════════════════════════════════════════════════════════════════════
 export function AdminRatingDashboard() {
-  const [stats,     setStats]     = useState(null);
-  const [allData,   setAllData]   = useState(null);
-  const [loading,   setLoading]   = useState(true);
-  const [tab,       setTab]       = useState("overview");
-  const [filter,    setFilter]    = useState("all");
-  const [search,    setSearch]    = useState("");
-  const [deleting,  setDeleting]  = useState(null);
-  const [toggling,  setToggling]  = useState(null);
-  const [selected,  setSelected]  = useState(null); // selected summary item
+  const [stats,      setStats]      = useState(null);
+  const [allData,    setAllData]    = useState(null);
+  const [loading,    setLoading]    = useState(true);
+  const [tab,        setTab]        = useState("overview");
+  const [filter,     setFilter]     = useState("all");
+  const [search,     setSearch]     = useState("");
+  const [deleting,   setDeleting]   = useState(null);
+  const [toggling,   setToggling]   = useState(null);
+  const [selected,   setSelected]   = useState(null); // selected summary item
+  const [showAdd,    setShowAdd]    = useState(false);
 
-  useEffect(() => {
+  const loadData = () => {
+    setLoading(true);
     Promise.all([
-      fetch(API.getStats).then(r => r.json()).catch(() => MOCK_STATS),
-      fetch(API.getAllRatings).then(r => r.json()).catch(() => MOCK_ALL),
+      fetch(API.getStats,      { headers: authHeaders() }).then(r => r.json()).catch(() => MOCK_STATS),
+      fetch(API.getAllRatings, { headers: authHeaders() }).then(r => r.json()).catch(() => MOCK_ALL),
     ]).then(([s, a]) => {
       setStats(s.totalRatings !== undefined ? s : MOCK_STATS);
       setAllData(a.total !== undefined ? a : MOCK_ALL);
     }).finally(() => setLoading(false));
-  }, []);
+  };
+
+  useEffect(() => { loadData(); }, []);
 
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this rating permanently?")) return;
     setDeleting(id);
     try {
-      await fetch(API.deleteRating(id), { method:"DELETE" });
+      await fetch(API.deleteRating(id), { method:"DELETE", headers: authHeaders() });
       setAllData(prev => ({
         ...prev,
         ratings: prev.ratings.filter(r => r._id !== id),
@@ -229,7 +382,7 @@ export function AdminRatingDashboard() {
   const handleToggle = async (id) => {
     setToggling(id);
     try {
-      const res = await fetch(API.toggleVisibility(id), { method:"PATCH" });
+      const res = await fetch(API.toggleVisibility(id), { method:"PATCH", headers: authHeaders() });
       const d   = await res.json();
       setAllData(prev => ({
         ...prev,
@@ -237,6 +390,14 @@ export function AdminRatingDashboard() {
       }));
     } catch { alert("Failed"); }
     setToggling(null);
+  };
+
+  // Admin just added a review — refetch so stats/summary stay accurate
+  // (recomputing averages/distributions client-side would drift from the
+  // server's grouping, so a full reload keeps everything trustworthy).
+  const handleCreated = () => {
+    setShowAdd(false);
+    loadData();
   };
 
   if (loading) return (
@@ -254,12 +415,20 @@ export function AdminRatingDashboard() {
     const matchType   = filter === "all" || r.targetType === filter;
     const matchSel    = !selected || r.targetName === selected;
     const q           = search.toLowerCase();
-    const matchSearch = !q || r.studentName.toLowerCase().includes(q) || r.targetName.toLowerCase().includes(q) || r.studentEmail.toLowerCase().includes(q);
+    const matchSearch = !q || r.studentName.toLowerCase().includes(q) || r.targetName.toLowerCase().includes(q) || (r.studentEmail || "").toLowerCase().includes(q);
     return matchType && matchSel && matchSearch;
   });
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
+
+      {showAdd && (
+        <AdminAddReviewModal
+          knownTargets={summary}
+          onClose={() => setShowAdd(false)}
+          onCreated={handleCreated}
+        />
+      )}
 
       {/* ── Nav ── */}
       <div className="bg-zinc-900 border-b border-zinc-800 sticky top-0 z-40">
@@ -271,12 +440,20 @@ export function AdminRatingDashboard() {
               <p className="text-zinc-500 text-xs">Admin Dashboard</p>
             </div>
           </div>
-          <div className="flex gap-2">
-            {["overview","reviews"].map(t => (
-              <button key={t} onClick={() => setTab(t)}
-                className={`px-4 py-1.5 rounded-full text-xs font-semibold capitalize transition-all ${tab===t ? "bg-amber-400 text-black" : "text-zinc-400 hover:text-white"}`}
-              >{t}</button>
-            ))}
+          <div className="flex items-center gap-3">
+            <div className="flex gap-2">
+              {["overview","reviews"].map(t => (
+                <button key={t} onClick={() => setTab(t)}
+                  className={`px-4 py-1.5 rounded-full text-xs font-semibold capitalize transition-all ${tab===t ? "bg-amber-400 text-black" : "text-zinc-400 hover:text-white"}`}
+                >{t}</button>
+              ))}
+            </div>
+            <button
+              onClick={() => setShowAdd(true)}
+              className="px-4 py-1.5 rounded-full text-xs font-bold bg-amber-400 text-black hover:bg-amber-300 transition-colors flex items-center gap-1.5"
+            >
+              <span className="text-sm leading-none">+</span> Add Review
+            </button>
           </div>
         </div>
       </div>
@@ -356,7 +533,7 @@ export function AdminRatingDashboard() {
               <div className="grid sm:grid-cols-2 gap-3">
                 {summary.map(item => (
                   <button
-                    key={item.targetId}
+                    key={`${item.targetType}-${item.targetName}`}
                     onClick={() => { setSelected(s => s === item.targetName ? null : item.targetName); setTab("reviews"); }}
                     className={`text-left p-4 rounded-xl border transition-all ${selected===item.targetName ? "border-amber-400/60 bg-amber-400/5" : "border-zinc-800 bg-zinc-800/30 hover:border-zinc-600"}`}
                   >
@@ -434,7 +611,7 @@ export function AdminRatingDashboard() {
               </div>
 
               <div className="flex gap-2 overflow-x-auto pb-1">
-                {["all","event","course","mentor","internship"].map(f => (
+                {["all", ...TARGET_TYPES].map(f => (
                   <button key={f} onClick={() => setFilter(f)}
                     className={`shrink-0 px-3 py-2 rounded-xl text-xs font-semibold capitalize transition-all ${filter===f ? "bg-amber-400 text-black" : "bg-zinc-900 border border-zinc-700 text-zinc-400 hover:border-zinc-500"}`}
                   >{f}</button>
@@ -467,7 +644,7 @@ export function AdminRatingDashboard() {
                       <td className="px-4 py-3 text-zinc-500 text-xs">{i+1}</td>
                       <td className="px-4 py-3">
                         <p className="text-white font-semibold text-sm">{r.studentName}</p>
-                        <p className="text-zinc-500 text-xs">{r.rollNo || r.studentEmail}</p>
+                        <p className="text-zinc-500 text-xs">{r.studentEmail}</p>
                       </td>
                       <td className="px-4 py-3">
                         <p className="text-white text-sm">{r.targetName}</p>
@@ -532,7 +709,6 @@ export default function RatingPage() {
       {view === "form" ? (
         <div className="flex justify-center px-4 py-8">
           <RatingForm
-            targetId="m1"
             targetType="event"
             targetName="ZintRojgar Fair 2026"
           />

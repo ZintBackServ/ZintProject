@@ -1,86 +1,68 @@
 import { useEffect, useState } from "react";
-import img1 from "../assets/EventImg1.jpeg"
-import img2 from "../assets/EventImg2.jpeg"
-import img3 from "../assets/EventImg3.jpeg"
-import img4 from "../assets/EventImg4.jpeg"
-import img5 from "../assets/EventImg5.jpeg"
-import img6 from "../assets/EventImg6.jpeg"
-import img7 from "../assets/EventImg7.jpeg"
-import img8 from "../assets/EventImg8.jpeg"
-import img9 from "../assets/EventImg9.jpeg"
-import img10 from "../assets/EventImg10.jpeg"
-import img11 from "../assets/EventImg11.jpeg"
-import img12 from "../assets/EventImg12.jpeg"
-import img13 from "../assets/EventImg13.jpeg"
-import img14 from "../assets/EventImg14.jpeg"
-import img15 from "../assets/EventImg15.jpeg"
-import img16 from "../assets/EventImg16.jpeg"
+import img1  from "../assets/EventImg1.webp";
+import img2  from "../assets/EventImg2.webp";
+import img3  from "../assets/EventImg3.webp";
+import img4  from "../assets/EventImg4.webp";
+import img5  from "../assets/EventImg5.webp";
+import img6  from "../assets/EventImg6.webp";
+import img7  from "../assets/EventImg7.webp";
+import img8  from "../assets/EventImg8.webp";
+import img9  from "../assets/EventImg9.webp";
+import img10 from "../assets/EventImg10.webp";
+import img11 from "../assets/EventImg11.webp";
+import img12 from "../assets/EventImg12.webp";
+import img13 from "../assets/EventImg13.webp";
+import img14 from "../assets/EventImg14.webp";
+import img15 from "../assets/EventImg15.webp";
+import img16 from "../assets/EventImg16.webp";
+
+const images = [
+  { src: img1,  alt: "Zint Institute Event 1"  },
+  { src: img2,  alt: "Zint Institute Event 2"  },
+  { src: img4,  alt: "Zint Institute Event 4"  },
+  { src: img5,  alt: "Zint Institute Event 5"  },
+  { src: img6,  alt: "Zint Institute Event 6"  },
+  { src: img7,  alt: "Zint Institute Event 7"  },
+  { src: img8,  alt: "Zint Institute Event 8"  },
+  { src: img9,  alt: "Zint Institute Event 9"  },
+  { src: img10, alt: "Zint Institute Event 10" },
+  { src: img11, alt: "Zint Institute Event 11" },
+  { src: img12, alt: "Zint Institute Event 12" },
+  { src: img13, alt: "Zint Institute Event 13" },
+  { src: img14, alt: "Zint Institute Event 14" },
+  { src: img15, alt: "Zint Institute Event 15" },
+  { src: img16, alt: "Zint Institute Event 16" },
+];
 
 export default function ImageSlider() {
-
-  const images = [
-    img1,
-    img2,
-    img4,
-    img5,
-    img6,
-    img7,
-    img8,
-    img9,
-    img10,
-    img11,
-    img12,
-    img13,
-    img14,
-    img15,
-    img16,
-    
-  ];
-
   const [current, setCurrent] = useState(0);
 
-  // Auto slide
   useEffect(() => {
-
     const interval = setInterval(() => {
-      setCurrent((prev) =>
-        prev === images.length - 1 ? 0 : prev + 1
-      );
+      setCurrent((prev) => (prev === images.length - 1 ? 0 : prev + 1));
     }, 3000);
-
     return () => clearInterval(interval);
-
   }, []);
 
-  // Next
-  const nextSlide = () => {
-    setCurrent(
-      current === images.length - 1 ? 0 : current + 1
-    );
-  };
-
-  // Prev
-  const prevSlide = () => {
-    setCurrent(
-      current === 0 ? images.length - 1 : current - 1
-    );
-  };
+  const nextSlide = () =>
+    setCurrent(current === images.length - 1 ? 0 : current + 1);
+  const prevSlide = () =>
+    setCurrent(current === 0 ? images.length - 1 : current - 1);
 
   return (
     <div className="relative w-full max-w-5xl mx-auto overflow-hidden rounded-2xl">
-
-      {/* Images */}
+      {/* Render only the visible slide — all but first are lazy */}
       <div
         className="flex transition-transform duration-700"
-        style={{
-          transform: `translateX(-${current * 100}%)`,
-        }}
+        style={{ transform: `translateX(-${current * 100}%)` }}
       >
-        {images.map((img, index) => (
+        {images.map(({ src, alt }, index) => (
           <img
             key={index}
-            src={img}
-            alt="slider"
+            src={src}
+            alt={alt}
+            loading={index === 0 ? "eager" : "lazy"}
+            decoding="async"
             className="w-full h-[250px] md:h-[500px] object-cover flex-shrink-0"
           />
         ))}
@@ -89,7 +71,8 @@ export default function ImageSlider() {
       {/* Left Button */}
       <button
         onClick={prevSlide}
-        className="absolute top-1/2 left-4 -translate-y-1/2 bg-black/50 text-white w-10 h-10 rounded-full"
+        aria-label="Previous event image"
+        className="absolute top-1/2 left-4 -translate-y-1/2 bg-black/50 text-white w-10 h-10 rounded-full hover:bg-black/70 transition-colors"
       >
         ‹
       </button>
@@ -97,26 +80,11 @@ export default function ImageSlider() {
       {/* Right Button */}
       <button
         onClick={nextSlide}
-        className="absolute top-1/2 right-4 -translate-y-1/2 bg-black/50 text-white w-10 h-10 rounded-full"
+        aria-label="Next event image"
+        className="absolute top-1/2 right-4 -translate-y-1/2 bg-black/50 text-white w-10 h-10 rounded-full hover:bg-black/70 transition-colors"
       >
         ›
       </button>
-
-      {/* Dots */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-        {images.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => setCurrent(index)}
-            className={`w-3 h-3 rounded-full ${
-              current === index
-                ? "bg-white"
-                : "bg-white/50"
-            }`}
-          />
-        ))}
-      </div>
-
     </div>
   );
 }

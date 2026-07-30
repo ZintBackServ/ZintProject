@@ -17,12 +17,15 @@ const Mentor = () => {
     const fetchMentors = async () => {
       try {
         const res = await fetch(`${import.meta.env.VITE_API_URL}/mentor/allMentor`);
+        if (!res.ok) {
+          setMentors([]);
+          return;
+        }
         const data = await res.json();
-        console.log("I am mentor",data.mentors);
-        setMentors(data.mentors);
+        setMentors(Array.isArray(data?.mentors) ? data.mentors : []);
       } catch (err) {
-        console.log("error in mentor",err,`${import.meta.env.VITE_API_URL}/mentor/allMentor`)
-        console.log(err);
+        console.log("error in mentor", err);
+        setMentors([]);
       }
     };
 
@@ -64,7 +67,7 @@ const Mentor = () => {
   };
 
   // duplicate for smooth loop
-  const loopData = [...mentors, ...mentors];
+  const loopData = Array.isArray(mentors) && mentors.length > 0 ? [...mentors, ...mentors] : [];
 
   return (
     

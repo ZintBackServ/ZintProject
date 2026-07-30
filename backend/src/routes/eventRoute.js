@@ -5,6 +5,7 @@ const {
     addEvent,
     updateEvent,
     deleteEvent,
+    getEventByName,
 } = require("../controllers/eventController");
 
 const upload = require("../middlewares/multerMiddleware")
@@ -17,6 +18,7 @@ router.post("/addEvent",upload.fields([
 ]),addEvent);
 
 router.get("/allEvent", getAllEvent);
+router.get("/event/name/:name", getEventByName);
 router.delete("/deleteEvent/:id", deleteEvent);
 router.put("/updateEvent/:id",
     upload.fields([{ name: "eventImage", maxCount: 1 }]),

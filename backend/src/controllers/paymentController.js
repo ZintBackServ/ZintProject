@@ -1,9 +1,11 @@
-const Razorpay = require("razorpay");
-const crypto = require("crypto");
-const Enrollment = require("../models/enrollmentModel");
+const Razorpay    = require("razorpay");
+const crypto      = require("crypto");
+const Enrollment  = require("../models/enrollmentModel");
+const courseModel = require("../models/courseModel");
+const logger      = require("../utils/logger");
 
 const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
+  key_id:     process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
@@ -14,12 +16,28 @@ const razorpay = new Razorpay({
 // ─────────────────────────────────────────────
 const createOrder = async (req, res) => {
   try {
-    const { courseId, amount, currency = "INR" } = req.body;
+    // FIX: accept mode from client, but fetch actual price from DB
+    const { courseId, mode = "offline", currency = "INR" } = req.body;
 
-    if (!courseId || !amount) {
+    if (!courseId) {
       return res.status(400).json({
         success: false,
-        message: "courseId and amount are required.",
+        message: "courseId is required.",
+      });
+    }
+
+    // Fetch course from DB — never trust client-sent amount
+    const course = await courseModel.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ success: false, message: "Course not found." });
+    }
+
+    // Determine price based on mode selected by user
+    const amount = mode === "online" ? course.online_fee : course.fee;
+    if (!amount || amount <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "This course has no fee. Use the free enrollment endpoint.",
       });
     }
 
@@ -29,7 +47,6 @@ const createOrder = async (req, res) => {
       courseId,
       status: { $in: ["active", "completed"] },
     });
-
     if (existing) {
       return res.status(409).json({
         success: false,
@@ -53,19 +70,11 @@ const createOrder = async (req, res) => {
       notes: {
         userId:   req.user._id.toString(),
         courseId: courseId.toString(),
+        mode,
       },
     });
 
-     console.log( {
-        userId:        req.user._id,
-        courseId,
-        orderId:       order.id,
-        amount,
-        currency,
-
-        paymentStatus: "pending",
-        status:        "pending",
-      },)
+    logger.info("Razorpay order created:", { userId: req.user._id, courseId, orderId: order.id, amount, mode });
 
 
     // Create a pending enrollment linked to this order
@@ -94,7 +103,7 @@ const createOrder = async (req, res) => {
     });
   } catch (error) {
     if (res.headersSent) return;
-    console.error("createOrder error:", error);
+    logger.error("createOrder error:", error);
     return res.status(500).json({
       success: false,
       message: error?.error?.description || error.message,
@@ -171,7 +180,7 @@ const verifyPayment = async (req, res) => {
     });
   } catch (error) {
     if (res.headersSent) return;
-    console.error("verifyPayment error:", error);
+    logger.error("verifyPayment error:", error);
     return res.status(500).json({
       success: false,
       message: error?.error?.description || error.message,
@@ -225,7 +234,7 @@ const enrollFree = async (req, res) => {
     });
   } catch (error) {
     if (res.headersSent) return;
-    console.error("enrollFree error:", error);
+    logger.error("enrollFree error:", error);
     if (error.code === 11000) {
       return res.status(409).json({
         success: false,
@@ -286,7 +295,7 @@ const razorpayWebhook = async (req, res) => {
     return res.status(200).json({ success: true });
   } catch (error) {
     if (res.headersSent) return;
-    console.error("razorpayWebhook error:", error);
+    logger.error("razorpayWebhook error:", error);
     return res.status(500).json({
       success: false,
       message: error.message,
@@ -343,7 +352,7 @@ const refundPayment = async (req, res) => {
     });
   } catch (error) {
     if (res.headersSent) return;
-    console.error("refundPayment error:", error);
+    logger.error("refundPayment error:", error);
     return res.status(500).json({
       success: false,
       message: error?.error?.description || error.message,

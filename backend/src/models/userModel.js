@@ -35,10 +35,6 @@ const userSchema = new mongoose.Schema(
       enum: ["user", "admin"],
       default: "user",
     },
-    refreshToken: {
-      type: String,
-      select: false,
-    },
 
     //  Google OAuth
     googleId: {
@@ -57,7 +53,7 @@ const userSchema = new mongoose.Schema(
       default: "local",
     },
 
-    //  Email OTP Verification 
+    //  Email OTP Verification
     isEmailVerified: {
       type: Boolean,
       default: false,
@@ -68,6 +64,17 @@ const userSchema = new mongoose.Schema(
     },
     otpExpiry: {
       type: Date,
+      select: false,
+    },
+    // OTP brute-force protection
+    otpAttempts: {
+      type: Number,
+      default: 0,
+      select: false,
+    },
+    otpLockedUntil: {
+      type: Date,
+      default: null,
       select: false,
     },
   },

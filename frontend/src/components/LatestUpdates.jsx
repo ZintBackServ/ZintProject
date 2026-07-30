@@ -1,10 +1,30 @@
+
+import React, { useEffect, useState } from "react";
+import SpecularButton from "./SpecularButton";
+
 export default function LatestUpdatesSection() {
-  const updates = [
-    "Recruitment Application for Non Teaching Director Post Exam",
-    "National Seminar on Social Media and Human Life",
-    "National Seminar on Indian Knowledge System in Geology and Management of Geo-Heritage Sites of Madhya Pradesh",
-  ];
-  
+
+
+  const [updates, setUpdates] = useState([]);
+  const [selectedPdf, setSelectedPdf] = useState(null);
+
+  useEffect(() => {
+    const fetchUpdates = async () => {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/updates/getAllUpdates`);
+        if (!res.ok) throw new Error(`Request failed with status ${res.status}`);
+        const data = await res.json();
+        setUpdates(data.data || []);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    fetchUpdates();
+  }, []);
+
+  const openPdf = (url) => setSelectedPdf(url);
+  const closePdf = () => setSelectedPdf(null);
+
   const PRIMARY = "#8E1387";
   const SECONDARY = "#B11FA8";
   const BLUE = "#53BFEA";
@@ -54,15 +74,15 @@ export default function LatestUpdatesSection() {
         <div className="w-full md:flex-1 order-2 md:order-1">
 
           {/* Eyebrow */}
-          <span className="inline-flex items-center gap-2 bg-purple-100 border border-pink-200  text-xs font-bold uppercase tracking-widest rounded-full px-4 py-1.5 mb-5" style={{backgroundColor:`${BLUE}` }} >
-            <span className="w-2 h-2 rounded-full  animate-pulse" style={{backgroundColor:`${SECONDARY}` }}></span>
+          <span className="inline-flex items-center gap-2 bg-purple-100 border border-pink-200  text-xs font-bold uppercase tracking-widest rounded-full px-4 py-1.5 mb-5" style={{ backgroundColor: `${BLUE}` }} >
+            <span className="w-2 h-2 rounded-full  animate-pulse" style={{ backgroundColor: `${SECONDARY}` }}></span>
             Institute News
           </span>
 
           {/* Heading */}
           <h1 className="text-4xl sm:text-5xl md:text-5xl font-bold text-gray-900 leading-tight mb-4">
             Latest{" "}
-            <span style={{color:`${PRIMARY}`}}>
+            <span style={{ color: `${PRIMARY}` }}>
               Updates
             </span>
           </h1>
@@ -73,31 +93,83 @@ export default function LatestUpdatesSection() {
           </p>
 
           {/* Card */}
+
           <div className="bg-white/80 backdrop-blur-xl border border-pink-200/50 rounded-3xl shadow-xl shadow-pink-100/60 p-6 sm:p-8">
-            <ul className="space-y-0 divide-y divide-pink-100">
-              {updates.map((item, index) => (
-                <li
-                  key={index}
-                  className="flex items-start gap-4 group cursor-pointer py-4 first:pt-0 last:pb-0"
+            {updates.map((item, idx) => (
+              <React.Fragment key={item._id}>
+                <div
+                  className="flex items-center gap-3 py-3.5 cursor-pointer group"
+                  onClick={() => openPdf(item.pdf)}
                 >
-                  {/* Bullet */}
-                  <div className="min-w-[10px] h-[10px] mt-2 rounded-full bg-gradient-to-br from-pink-500 to-pink-300 group-hover:scale-125 group-hover:shadow-md group-hover:shadow-pink-300 transition-all duration-300 shrink-0"></div>
-
-                  <p className="text-gray-700 text-sm sm:text-base leading-relaxed group-hover:text-pink-700 transition-colors duration-200">
-                    {item}
+                  <span className="w-2 h-2 rounded-full bg-pink-500 flex-shrink-0" />
+                  <p className="m-0 text-gray-700 text-[15px] group-hover:text-pink-900 transition-colors">
+                    {item.heading}
                   </p>
-                </li>
-              ))}
-            </ul>
+                </div>
+                {idx !== updates.length - 1 && (
+                  <hr className="border-t border-gray-100 m-0" />
+                )}
+              </React.Fragment>
+            ))}
 
-            {/* Button */}
-            <button className="mt-7 w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 rounded-2xl text-white font-semibold text-base shadow-lg shadow-pink-200 hover:shadow-pink-300 hover:scale-105 active:scale-95 transition-all duration-300" style={{backgroundColor:`${PRIMARY}`}}>
-              View All Updates
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-              </svg>
-            </button>
+            <SpecularButton
+              size="lg"
+              radius={24}
+              tint="#ffffff"
+              tintOpacity={0}
+              blur={0}
+              textColor="#ffffff"
+              lineColor="#bc05f3"
+              baseColor="#8E1387"
+              intensity={1}
+              shineSize={35}
+              shineFade={47}
+              thickness={2}
+              speed={0.35}
+              followMouse
+              proximity={300}
+              autoAnimate={false}
+              className="mt-7 w-full sm:w-auto"
+            >
+              View All Updates <span className="ml-1">&rarr;</span>
+            </SpecularButton>
+
+            {selectedPdf && (
+              <div
+                className="fixed inset-0 bg-black/55 flex items-center justify-center z-[1000]"
+                onClick={closePdf}
+              >
+                <div
+                  className="bg-white w-[90%] max-w-3xl h-[85vh] rounded-lg overflow-hidden flex flex-col"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex justify-between items-center px-4 py-2.5 border-b border-gray-200">
+                    <a
+                      href={selectedPdf}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-purple-900 text-sm font-semibold no-underline"
+                    >
+                      Open in new tab
+                    </a>
+                    <button
+                      onClick={closePdf}
+                      aria-label="Close"
+                      className="bg-gray-100 border-none rounded-full w-8 h-8 text-base cursor-pointer hover:bg-gray-200 transition-colors"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <iframe
+                    src={selectedPdf}
+                    title="PDF Viewer"
+                    className="flex-1 border-none w-full"
+                  />
+                </div>
+              </div>
+            )}
           </div>
+
         </div>
 
       </div>

@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { useGoogleLogin } from "@react-oauth/google";
+import Antigravity from "./Antigravity";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -28,6 +28,7 @@ export default function Login() {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/user/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",   // ← backend sets httpOnly cookie in response
         body: JSON.stringify(formData),
       });
       const data = await res.json();
@@ -35,11 +36,24 @@ export default function Login() {
         setError(data.msg || "Login failed.");
         return;
       }
-      login(data.token);
-      const payload = JSON.parse(atob(data.token.split(".")[1]));
-      if (redirect) navigate(redirect);
-      else if (payload.role === "admin") navigate("/admin/dashboard");
-      else navigate("/");
+      // Cookie is now set. Fetch /user/me to populate auth state.
+      await login();
+      // Redirect based on role (login() fetches /me and sets user)
+      if (redirect) {
+        navigate(redirect);
+      } else {
+        // Re-read role from /me after login
+        const meRes = await fetch(`${import.meta.env.VITE_API_URL}/user/me`, {
+          credentials: "include",
+        });
+        if (meRes.ok) {
+          const me = await meRes.json();
+          if (me.data?.role === "admin") navigate("/admin/dashboard");
+          else navigate("/");
+        } else {
+          navigate("/");
+        }
+      }
     } catch {
       setError("Network error. Please try again.");
     } finally {
@@ -53,19 +67,43 @@ export default function Login() {
     window.location.href = `${import.meta.env.VITE_API_URL}/user/auth/google`;
   };
 
+  const cardRef = useRef(null);
+
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12"
-      style={{ background: "linear-gradient(135deg, #0f0318 0%, #1a0529 50%, #0a0a1a 100%)" }}>
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 relative overflow-hidden"
+      style={{ background: "#0a0a0f" }}>
+
+      {/* Antigravity background — React Bits floating capsules without ring shape */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <Antigravity
+          count={350}
+          magnetRadius={8}
+          ringRadius={7}
+          waveSpeed={0.4}
+          waveAmplitude={1}
+          particleSize={1.4}
+          lerpSpeed={0.06}
+          color="#5227FF"
+          autoAnimate={false}
+          particleVariance={1}
+          rotationSpeed={0}
+          depthFactor={1}
+          pulseSpeed={3}
+          particleShape="capsule"
+          fieldStrength={10}
+          cardBoundsRef={cardRef}
+        />
+      </div>
 
       {/* Ambient glow blobs */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         <div className="absolute top-1/4 -left-32 w-96 h-96 rounded-full opacity-20 blur-3xl"
           style={{ background: "#8E1387" }} />
         <div className="absolute bottom-1/4 -right-32 w-96 h-96 rounded-full opacity-15 blur-3xl"
           style={{ background: "#53BFEA" }} />
       </div>
 
-      <div className="relative w-full max-w-md">
+      <div className="relative z-10 w-full max-w-md">
         {/* Logo/Brand */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4"
@@ -79,9 +117,9 @@ export default function Login() {
           <p className="text-sm mt-1" style={{ color: "#9ca3af" }}>Sign in to your account</p>
         </div>
 
-        {/* Card */}
-        <div className="rounded-2xl p-8 border"
-          style={{ background: "rgba(255,255,255,0.04)", borderColor: "rgba(255,255,255,0.08)", backdropFilter: "blur(20px)" }}>
+        {/* Sign In Card */}
+        <div ref={cardRef} className="relative rounded-2xl p-8 border overflow-hidden transition-all duration-300 shadow-2xl z-10"
+          style={{ background: "#0b0b14", borderColor: "rgba(82,39,255,0.25)" }}>
 
           {/* Google Button */}
           <button

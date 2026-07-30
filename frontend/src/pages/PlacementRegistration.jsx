@@ -1,8 +1,8 @@
 import PlacedStudent from "../components/PlacedStudentSlider"
 import { useContext, useEffect, useRef, useState } from "react";
 import { DataContext } from "../context/DataContext";
-import placementImg from "../assets/placementImg2.png"
-import SampleCertificateImg from "../assets/SampleCertificate.jpeg"
+import placementImg from "../assets/placementImg2.webp"
+import SampleCertificateImg from "../assets/SampleCertificate.webp"
 
 /* ═══════════════════════════════════════════
    ZINT COLOR SYSTEM
@@ -286,66 +286,64 @@ function SampleCertificate(){
   )
 }
 
-// function SampleCertificate(){
-//   return(
-//     <div className="max-w-3xl mx-auto px-4 py-10 text-center">
-//       <p className="text-sm font-semibold mb-4" style={{ color: "#111827" }}>
-//         You will get a certificate after completing the internship
-//       </p>
-//       <img 
-//         className="w-full h-auto rounded-2xl shadow-lg" 
-//         src={SampleCertificateImg} 
-//         alt="Sample Certificate" 
-//       />
-//     </div>
-//   )
-// }
+// Bottom CTA
 
+const REGISTER_URL = `${import.meta.env.VITE_API_URL}/placementRegistration/addPlacementRegistration`;
+const PROFILE_URL  = `${import.meta.env.VITE_API_URL}/user/me`;
 
- //  BOTTOM CTA
-
-function BottomCTA({ onEnroll }) {
-  return (
-    <section className="py-16 relative overflow-hidden"
-      style={{ background: "linear-gradient(135deg, #B026B5 0%, #7c3aed 50%, #38BDF8 100%)" }}>
-      <div className="absolute inset-0 pointer-events-none"
-        style={{ background: "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255,255,255,0.09) 0%, transparent 65%)" }} />
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center relative z-10">
-        <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-3">
-          Ready to Launch Your IT Career?
-        </h2>
-        <p className="mb-8 text-sm md:text-base" style={{ color: "rgba(255,255,255,0.75)" }}>
-          Join 2,400+ students who secured top jobs through our placement programme.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <button onClick={onEnroll}
-            className="bg-white font-bold px-10 py-4 rounded-xl text-sm transition-all duration-200 hover:bg-purple-50"
-            style={{ color: "#B026B5", boxShadow: "0 10px 30px rgba(0,0,0,0.18)" }}>
-            Enroll Now — Free Registration
-          </button>
-          <button className="border-2 border-white font-bold px-8 py-4 rounded-xl text-sm text-white
-            hover:bg-white/10 transition-all duration-200">
-            Know More →
-          </button>
-        </div>
-      </div>
-    </section>
-  );
+async function safeFetch(url, options = {}) {
+  const res = await fetch(url, {
+    ...options,
+    headers: {
+      ...(options.headers || {}),
+      credentials: "include",
+    },
+  });
+  const raw = await res.text();
+  let data = null;
+  try { data = raw ? JSON.parse(raw) : null; } catch { /* not JSON */ }
+  if (!res.ok) throw new Error(data?.msg || `Request failed with status ${res.status}`);
+  return data;
 }
 
-/* 
-   ENROLL MODAL
- */
 function EnrollModal({ onClose }) {
   const { data }            = useContext(DataContext);
   const courses             = data?.courses || [];
   const [search, setSearch] = useState("");
-  const [selected, setSelected] = useState(null);
+  const [selectedCourseName, setSelectedCourseName] = useState(null);
   const [dropOpen, setDropOpen] = useState(false);
   const [form, setForm]     = useState({ name: "", email: "", phone: "", message: "" });
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError]   = useState("");
   const dropRef = useRef(null);
+
+  // ── Login/profile — autofill + lock ──
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+          if (!token) { setProfileLoading(false); return; }
+      try {
+        const res = await safeFetch(PROFILE_URL);
+        const user = res?.data;
+        if (user) {
+          setIsLoggedIn(true);
+          setForm(p => ({
+            ...p,
+            name: `${user.firstName} ${user.lastName || ""}`.trim(),
+            email: user.email || "",
+            phone: user.contactNo || "",
+          }));
+        }
+      } catch {
+        setIsLoggedIn(false);
+      } finally {
+        setProfileLoading(false);
+      }
+    })();
+  }, []);
 
   const filtered = courses.filter(c =>
     c.courseName?.toLowerCase().includes(search.toLowerCase())
@@ -362,12 +360,36 @@ function EnrollModal({ onClose }) {
     return () => { document.body.style.overflow = ""; };
   }, []);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selected) { alert("Please select a course."); return; }
+    setError("");
+
+    if (!selectedCourseName) { setError("Please select a course."); return; }
+    if (!isLoggedIn && (!form.name.trim() || !form.email.trim() || !form.phone.trim())) {
+      setError("Full name, email and phone are required.");
+      return;
+    }
+
     setSubmitting(true);
-    setTimeout(() => { setSubmitting(false); setSubmitted(true); }, 1500);
+    try {
+      const payload = isLoggedIn
+        ? { course: selectedCourseName, message: form.message }
+        : { course: selectedCourseName, fullName: form.name, email: form.email, phone: form.phone, message: form.message };
+
+      await safeFetch(REGISTER_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      setSubmitted(true);
+    } catch (err) {
+      setError(err.message || "Something went wrong. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
+
+  const lockedStyle = { borderColor: "#e5e7eb", color: "#9ca3af", background: "#f3f4f6", cursor: "not-allowed" };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -406,7 +428,7 @@ function EnrollModal({ onClose }) {
             <p className="text-sm mb-1" style={{ color: "#6b7280" }}>
               Thanks <strong style={{ color: "#111827" }}>{form.name}</strong>! Your registration for
             </p>
-            <p className="font-bold text-base mb-4" style={{ color: "#B026B5" }}>{selected?.courseName}</p>
+            <p className="font-bold text-base mb-4" style={{ color: "#B026B5" }}>{selectedCourseName}</p>
             <p className="text-sm" style={{ color: "#6b7280" }}>
               Our team will contact you on <strong style={{ color: "#111827" }}>{form.phone}</strong> within 24 hours.
             </p>
@@ -419,6 +441,12 @@ function EnrollModal({ onClose }) {
         ) : (
           <form onSubmit={handleSubmit} className="px-7 pb-8 space-y-4">
 
+            {isLoggedIn && !profileLoading && (
+              <div className="rounded-xl px-4 py-2.5 text-xs" style={{ background: "rgba(56,189,248,0.1)", color: "#0369a1", border: "1px solid rgba(56,189,248,0.3)" }}>
+                You're logged in — your name, email and phone are filled in automatically and can't be edited here.
+              </div>
+            )}
+
             {/* Course search */}
             <div ref={dropRef}>
               <label className="block text-xs font-semibold mb-1.5" style={{ color: "#111827" }}>
@@ -427,8 +455,8 @@ function EnrollModal({ onClose }) {
               <div className="relative">
                 <input type="text"
                   placeholder="Search or type a course name…"
-                  value={selected ? selected.courseName : search}
-                  onChange={e => { setSearch(e.target.value); setSelected(null); setDropOpen(true); }}
+                  value={selectedCourseName ? selectedCourseName : search}
+                  onChange={e => { setSearch(e.target.value); setSelectedCourseName(null); setDropOpen(true); }}
                   onFocus={() => setDropOpen(true)}
                   className="w-full rounded-xl px-4 py-3 text-sm border outline-none transition-all duration-200"
                   style={{
@@ -455,7 +483,7 @@ function EnrollModal({ onClose }) {
                           style={{ color: "#111827" }}
                           onMouseEnter={e => { e.currentTarget.style.background = "rgba(176,38,181,0.06)"; e.currentTarget.style.color = "#B026B5"; }}
                           onMouseLeave={e => { e.currentTarget.style.background = "white"; e.currentTarget.style.color = "#111827"; }}
-                          onClick={() => { setSelected(c); setSearch(c.courseName); setDropOpen(false); }}>
+                          onClick={() => { setSelectedCourseName(c.courseName); setSearch(c.courseName); setDropOpen(false); }}>
                           <span className="font-semibold">{c.courseName}</span>
                           {c.duration && <span className="ml-2 text-xs text-gray-400">· {c.duration}</span>}
                         </button>
@@ -467,11 +495,11 @@ function EnrollModal({ onClose }) {
             </div>
 
             <FormField label="Full Name"      required placeholder="Enter your full name"
-              value={form.name}    onChange={v => setForm(p => ({ ...p, name: v }))} />
+              value={form.name}    onChange={v => setForm(p => ({ ...p, name: v }))} disabled={isLoggedIn} disabledStyle={lockedStyle} />
             <FormField label="Email Address"  required type="email" placeholder="you@email.com"
-              value={form.email}   onChange={v => setForm(p => ({ ...p, email: v }))} />
+              value={form.email}   onChange={v => setForm(p => ({ ...p, email: v }))} disabled={isLoggedIn} disabledStyle={lockedStyle} />
             <FormField label="Phone Number"   required type="tel"   placeholder="+91 98765 43210"
-              value={form.phone}   onChange={v => setForm(p => ({ ...p, phone: v }))} />
+              value={form.phone}   onChange={v => setForm(p => ({ ...p, phone: v }))} disabled={isLoggedIn} disabledStyle={lockedStyle} />
 
             <div>
               <label className="block text-xs font-semibold mb-1.5" style={{ color: "#111827" }}>
@@ -485,6 +513,8 @@ function EnrollModal({ onClose }) {
                 onBlur={e  => { e.target.style.borderColor = "#e5e7eb"; e.target.style.boxShadow = "none"; }}
               />
             </div>
+
+            {error && <p className="text-sm font-medium" style={{ color: "#dc2626" }}>{error}</p>}
 
             <button type="submit" disabled={submitting}
               className="w-full font-bold py-4 rounded-xl text-sm text-white transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-70"
@@ -501,7 +531,7 @@ function EnrollModal({ onClose }) {
 }
 
 /* ── Form Field ── */
-function FormField({ label, required, type = "text", placeholder, value, onChange }) {
+function FormField({ label, required, type = "text", placeholder, value, onChange, disabled, disabledStyle }) {
   const [focused, setFocused] = useState(false);
   return (
     <div>
@@ -510,9 +540,10 @@ function FormField({ label, required, type = "text", placeholder, value, onChang
       </label>
       <input type={type} required={required} placeholder={placeholder}
         value={value} onChange={e => onChange(e.target.value)}
+        disabled={disabled}
         onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
         className="w-full rounded-xl px-4 py-3 text-sm border outline-none transition-all duration-200"
-        style={{
+        style={disabled ? disabledStyle : {
           borderColor: focused ? "#B026B5" : "#e5e7eb",
           boxShadow:   focused ? "0 0 0 3px rgba(176,38,181,0.1)" : "none",
           color: "#111827",
@@ -520,6 +551,28 @@ function FormField({ label, required, type = "text", placeholder, value, onChang
     </div>
   );
 }
+
+
+// /* ── Form Field ── */
+// function FormField({ label, required, type = "text", placeholder, value, onChange }) {
+//   const [focused, setFocused] = useState(false);
+//   return (
+//     <div>
+//       <label className="block text-xs font-semibold mb-1.5" style={{ color: "#111827" }}>
+//         {label} {required && <span style={{ color: "#B026B5" }}>*</span>}
+//       </label>
+//       <input type={type} required={required} placeholder={placeholder}
+//         value={value} onChange={e => onChange(e.target.value)}
+//         onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
+//         className="w-full rounded-xl px-4 py-3 text-sm border outline-none transition-all duration-200"
+//         style={{
+//           borderColor: focused ? "#B026B5" : "#e5e7eb",
+//           boxShadow:   focused ? "0 0 0 3px rgba(176,38,181,0.1)" : "none",
+//           color: "#111827",
+//         }} />
+//     </div>
+//   );
+// }
 
 /* ── Buttons ── */
 function PurpleBtn({ onClick, label }) {

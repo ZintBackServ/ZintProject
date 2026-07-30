@@ -128,7 +128,7 @@ function StudentCard({ student }) {
 
   return (
     <div
-      className="flex-none w-56 sm:w-64 md:w-70 rounded-2xl overflow-hidden transition-all duration-300 hover:scale-105 group"
+      className="flex-none w-56 sm:w-64 md:w-60 rounded-2xl overflow-hidden transition-all duration-300 hover:scale-105 group"
       style={{
         background:  "#1f2937",
         border:      "1px solid #374151",
@@ -147,12 +147,14 @@ function StudentCard({ student }) {
       <div className="h-0.5" style={{ background: "linear-gradient(90deg, #B026B5, #38BDF8)" }} />
 
       {/* Profile photo */}
-      <div className="relative w-full h-80 overflow-hidden bg-gray-800">
+      <div className="relative w-full h-50 overflow-hidden bg-gray-800">
         {student.profileImage && !imgErr ? (
           <img
             src={student.profileImage}
-            alt={student.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            alt={`${student.name} - placed student at Zint Institute`}
+            className="w-full h-full object-full group-hover:scale-105 transition-transform duration-500"
+            loading="lazy"
+            decoding="async"
             onError={() => setImgErr(true)}
           />
         ) : (
@@ -173,8 +175,8 @@ function StudentCard({ student }) {
             {student.name || "Student"}
           </h3>
 
-          Company logo — shown only if logoImage exists and hasn't errored
-          {student.logoImage && !logoErr && (
+          {/* Company logo — shown only if logoImage exists and hasn't errored */}
+          {/* {student.logoImage && !logoErr && (
             <img
               src={student.logoImage}
               alt="company"
@@ -182,12 +184,24 @@ function StudentCard({ student }) {
               style={{ background: "white", padding: "2px" }}
               onError={() => setLogoErr(true)}
             />
-          )}
+          )} */}
         </div>
 
         {student.course && (
-          <p className="text-xs mt-1 truncate" style={{ color: "#38BDF8" }}>
-            {student.course}
+          <p className="text-xs mt-1 truncate text-white" >
+            <span className="" style={{ color: "#38BDF8" }} >Course : </span>{student.course}
+          </p>
+        )}
+
+        {student.company && (
+          <p className="text-xs mt-1 truncate text-white" >
+            <span className="" style={{ color: "#38BDF8" }} >Company : </span>{student.company}
+          </p>
+        )}
+
+        {student.package && (
+          <p className="text-xs mt-1 truncate text-white" >
+            <span className="" style={{ color: "#38BDF8" }} >Package : </span>{student.package} LPA
           </p>
         )}
 

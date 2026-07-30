@@ -1,4 +1,4 @@
-// pages/admin/UserAdminDashboard.jsx
+﻿// pages/admin/UserAdminDashboard.jsx
 // API routes from userRoute.js:
 //   GET  /allUsers          (admin only)
 //   GET  /getUserById/:id   (admin only)
@@ -8,9 +8,7 @@
 import { useState, useEffect, useCallback } from "react";
 
 const BASE       = `${import.meta.env.VITE_API_URL}/user`;
-const getToken   = () => localStorage.getItem("token");
 const authHeader = () => ({
-  Authorization:  `Bearer ${getToken()}`,
   "Content-Type": "application/json",
 });
 

@@ -1,4 +1,4 @@
-// pages/admin/ShowAllCourse.jsx
+﻿// pages/admin/ShowAllCourse.jsx
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -14,9 +14,8 @@ function ShowAllCourse() {
   const fetchCourses = async () => {
     setLoading(true); setError("");
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/course/getAllCourse`, {
-        headers: { Authorization: `Bearer ${token}` },
+          const res = await fetch(`${import.meta.env.VITE_API_URL}/course/getAllCourse`, {
+        credentials: "include",
       });
       const data = await res.json();
       if (!res.ok) { setError(data.msg || "Failed to fetch courses."); return; }
@@ -34,9 +33,8 @@ function ShowAllCourse() {
     if (!window.confirm(`Delete "${courseName}"?`)) return;
     setDeleting(id);
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/course/deleteCourse/${id}`, {
-        method: "DELETE", headers: { Authorization: `Bearer ${token}` },
+          const res = await fetch(`${import.meta.env.VITE_API_URL}/course/deleteCourse/${id}`, {
+        method: "DELETE", credentials: "include",
       });
       const data = await res.json();
       if (!res.ok) { alert(data.msg || "Failed to delete."); return; }

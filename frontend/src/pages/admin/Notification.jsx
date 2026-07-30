@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -28,9 +28,8 @@ export default function AdminNotifications() {
     setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem("token");
-      const res   = await fetch(`${API}/notification/all`, {
-        headers: { Authorization: `Bearer ${token}` },
+          const res   = await fetch(`${API}/notification/all`, {
+        credentials: "include",
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.message);
@@ -63,7 +62,6 @@ export default function AdminNotifications() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      const token    = localStorage.getItem("token");
       const formData = new FormData();
 
       formData.append("title",    form.title);
@@ -81,7 +79,7 @@ export default function AdminNotifications() {
 
       const res  = await fetch(url, {
         method,
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: "include",
         body: formData,
       });
       const data = await res.json();
@@ -100,10 +98,9 @@ export default function AdminNotifications() {
   // ── Toggle active/hidden ──────────────────────────────────
   const handleToggle = async (id) => {
     try {
-      const token = localStorage.getItem("token");
-      const res   = await fetch(`${API}/notification/${id}/toggle`, {
+          const res   = await fetch(`${API}/notification/${id}/toggle`, {
         method:  "PATCH",
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: "include",
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.message);
@@ -118,10 +115,9 @@ export default function AdminNotifications() {
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this notification?")) return;
     try {
-      const token = localStorage.getItem("token");
-      const res   = await fetch(`${API}/notification/${id}`, {
+          const res   = await fetch(`${API}/notification/${id}`, {
         method:  "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: "include",
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.message);

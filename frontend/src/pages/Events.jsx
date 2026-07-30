@@ -1,12 +1,15 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { FaSearch } from "react-icons/fa";
+import { useAuth as useAuthContext } from "../context/AuthContext";
 import EventImgSlider from "../components/EventImgSlider";
-import eventImg1 from "../assets/zintRojgarImg3.png";
-import eventImg2 from "../assets/zintRojgarImg2.jpeg";
-import eventImg3 from "../assets/zintRojgarMission2026.png";
+import eventImg1 from "../assets/zintRojgarImg3.webp";
+import eventImg2 from "../assets/zintRojgarImg2.webp";
+import eventImg3 from "../assets/zintRojgarMission2026.webp";
+import { usePageMeta } from "../hooks/usePageMeta";
 
 const API_URL      = `${import.meta.env.VITE_API_URL}/event/allEvent`;
-const REGISTER_URL = `${import.meta.env.VITE_API_URL}/registration/add`;
+const REGISTER_URL = `${import.meta.env.VITE_API_URL}/eventRegistration/add`;
 
 const MONTHS = [
   "All","January","February","March","April","May","June",
@@ -21,9 +24,54 @@ function parseDateParts(dateStr) {
   return { month: d.getMonth() + 1, year: d.getFullYear() };
 }
 
+// ── Auth helpers ─────────────────────────────────────────────────────────────
+// Uses the real AuthContext (cookie-based, no localStorage)
+function useAuth() {
+  const { user } = useAuthContext();
+  return { isLoggedIn: !!user, token: null, user };
+}
+
+// ── Sign in / Sign up prompt (shown when a logged-out user tries to register) ─
+function AuthPromptModal({ eventName, onClose }) {
+  const navigate = useNavigate();
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
+      <div className="bg-zinc-900 border border-zinc-700 rounded-2xl p-6 w-full max-w-sm relative shadow-2xl text-center">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-zinc-500 hover:text-white text-2xl leading-none transition-colors"
+        >×</button>
+
+        <div className="w-14 h-14 rounded-full bg-amber-400/10 border border-amber-400/30 flex items-center justify-center text-2xl mx-auto mb-4">🔒</div>
+        <h3 className="text-white text-lg font-bold mb-2">Sign in to register</h3>
+        <p className="text-zinc-400 text-sm mb-6 leading-relaxed">
+          You need an account to register for <span className="text-amber-400 font-semibold">{eventName}</span>.
+        </p>
+
+        <div className="flex flex-col gap-2.5">
+          <button
+            onClick={() => navigate("/login", { state: { redirectTo: "/events" } })}
+            className="w-full bg-amber-400 hover:bg-amber-300 text-black font-bold py-2.5 rounded-xl text-sm transition-colors"
+          >Sign In</button>
+          <button
+            onClick={() => navigate("/signup", { state: { redirectTo: "/events" } })}
+            className="w-full border border-zinc-700 hover:border-amber-400 hover:text-amber-400 text-white font-semibold py-2.5 rounded-xl text-sm transition-colors"
+          >Create Account</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Register Modal ────────────────────────────────────────────────────────────
-function RegisterModal({ event, onClose }) {
-  const [form, setForm]       = useState({ name:"", email:"", phone:"", rollNo:"" });
+function RegisterModal({ event, token, prefill, onClose }) {
+  const [form, setForm]       = useState({
+    name: prefill?.name || "",
+    email: prefill?.email || "",
+    phone: "",
+    highestQualification: "",
+  });
   const [loading, setLoading] = useState(false);
   const [done, setDone]       = useState(false);
   const [error, setError]     = useState("");
@@ -38,19 +86,24 @@ function RegisterModal({ event, onClose }) {
     try {
       const res = await fetch(REGISTER_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
-          eventId:   event._id,
-          eventName: event.name,
-          name:      form.name,
-          email:     form.email,
-          phone:     form.phone,
-          rollNo:    form.rollNo,
+          event: event._id,
+          name: form.name.trim(),
+          email: form.email.trim(),
+          phone: form.phone.trim(),
+          highestQualification: form.highestQualification.trim(),
         }),
       });
+      const data = await res.json().catch(() => null);
       if (!res.ok) {
-        const d = await res.json();
-        throw new Error(d.msg || "Registration failed");
+        if (res.status === 401 || res.status === 403) {
+          throw new Error("Your session has expired. Please sign in again.");
+        }
+        throw new Error(data?.msg || "Registration failed");
       }
       setDone(true);
     } catch (err) {
@@ -84,13 +137,13 @@ function RegisterModal({ event, onClose }) {
         ) : (
           <>
             <h3 className="text-white text-lg font-bold mb-0.5">Register for Event</h3>
-            <p className="text-amber-400 text-sm mb-5 font-medium">{event.name} · {event.date}</p>
+            <p className="text-amber-400 text-sm mb-5 font-medium">{event.name} · {event.date?.slice(0, 10) || event.date}</p>
 
             {[
-              { key:"name",   label:"Full Name *",     type:"text",  ph:"Your full name" },
-              { key:"rollNo", label:"Roll No / ID",    type:"text",  ph:"e.g. ITM2024001" },
-              { key:"email",  label:"Email Address *", type:"email", ph:"you@example.com" },
-              { key:"phone",  label:"Phone",           type:"tel",   ph:"+91 XXXXX XXXXX" },
+              { key:"name",  label:"Full Name *",     type:"text",  ph:"Your full name" },
+              { key:"email", label:"Email Address *", type:"email", ph:"you@example.com" },
+              { key:"phone", label:"Phone",           type:"tel",   ph:"+91 XXXXX XXXXX" },
+              { key:"highestQualification", label:"Highest Qualification", type:"text", ph:"e.g. B.Tech, MBA" },
             ].map(({ key, label, type, ph }) => (
               <div key={key} className="mb-3.5">
                 <label className="block text-zinc-400 text-xs uppercase tracking-widest mb-1.5">{label}</label>
@@ -125,7 +178,9 @@ function UpcomingCard({ event, onRegister }) {
       <div className="relative h-44 sm:h-48 overflow-hidden shrink-0">
         <img
           src={event.eventImage}
-          alt={event.name}
+          alt={event.name || "Zint Institute event"}
+          loading="lazy"
+          decoding="async"
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-zinc-900/90 to-transparent" />
@@ -136,7 +191,7 @@ function UpcomingCard({ event, onRegister }) {
         <p className="text-zinc-500 text-xs leading-relaxed mb-3 line-clamp-2 flex-1">{event.about}</p>
         <div className="space-y-1 mb-4">
           <p className="text-zinc-400 text-xs flex gap-2 flex-wrap">
-            <span>📅</span>{event.date}
+            <span>📅</span>{event.date?.slice(0, 10) || event.date}
             <span className="text-zinc-700">·</span>
             <span>⏰</span>{event.time}
           </p>
@@ -157,7 +212,9 @@ function PastSlideCard({ event }) {
     <div className="group relative flex-shrink-0 w-60 xs:w-64 sm:w-72 h-72 sm:h-80 rounded-2xl overflow-hidden border border-zinc-800 cursor-pointer">
       <img
         src={event.eventImage}
-        alt={event.name}
+        alt={event.name || "Past Zint Institute event"}
+        loading="lazy"
+        decoding="async"
         className="w-full h-full object-cover grayscale-[60%] group-hover:grayscale-0 transition-all duration-500 group-hover:scale-105"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
@@ -165,7 +222,7 @@ function PastSlideCard({ event }) {
         <span className="text-xs text-zinc-400 bg-white/10 px-2.5 py-1 rounded-full border border-white/10 mb-2 inline-block">Past</span>
         <h3 className="text-white font-semibold text-sm leading-snug mb-1">{event.name}</h3>
         <p className="text-zinc-400 text-xs line-clamp-2 mb-1.5">{event.about}</p>
-        <p className="text-zinc-500 text-xs">📅 {event.date}</p>
+        <p className="text-zinc-500 text-xs">📅 {event.date?.slice(0, 10) || event.date}</p>
         <p className="text-zinc-500 text-xs mt-0.5">📍 {event.place}</p>
       </div>
     </div>
@@ -184,9 +241,16 @@ function EmptyState({ message }) {
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 export default function EventPage() {
+  usePageMeta(
+    "Events",
+    "Upcoming and past events at Zint Computer Education Institute, Gwalior — workshops, seminars, scholarship programs and more."
+  );
+  const { isLoggedIn, token, user } = useAuth();
+
   const [events, setEvents]               = useState([]);
   const [loading, setLoading]             = useState(true);
-  const [registerEvent, setRegisterEvent] = useState(null);
+  const [registerEvent, setRegisterEvent] = useState(null); // logged-in flow
+  const [authPromptEvent, setAuthPromptEvent] = useState(null); // logged-out flow
   const [upSlide, setUpSlide]             = useState(0);
 
   const [search, setSearch]     = useState("");
@@ -204,6 +268,14 @@ export default function EventPage() {
       .catch(() => setEvents([]))
       .finally(() => setLoading(false));
   }, []);
+
+  const handleRegisterClick = (event) => {
+    if (isLoggedIn) {
+      setRegisterEvent(event);
+    } else {
+      setAuthPromptEvent(event);
+    }
+  };
 
   const upList   = events.filter(e => isUpcoming(e.date));
   const pastList = events.filter(e => !isUpcoming(e.date));
@@ -245,7 +317,19 @@ export default function EventPage() {
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
       {registerEvent && (
-        <RegisterModal event={registerEvent} onClose={() => setRegisterEvent(null)} />
+        <RegisterModal
+          event={registerEvent}
+          token={token}
+          prefill={{ name: user?.name, email: user?.email }}
+          onClose={() => setRegisterEvent(null)}
+        />
+      )}
+
+      {authPromptEvent && (
+        <AuthPromptModal
+          eventName={authPromptEvent.name}
+          onClose={() => setAuthPromptEvent(null)}
+        />
       )}
 
       {/* ══ HERO ══ */}
@@ -332,7 +416,7 @@ export default function EventPage() {
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
               {visible.map(event => (
-                <UpcomingCard key={event._id} event={event} onRegister={setRegisterEvent} />
+                <UpcomingCard key={event._id} event={event} onRegister={handleRegisterClick} />
               ))}
             </div>
 
@@ -493,3 +577,5 @@ export default function EventPage() {
     </div>
   );
 }
+
+
