@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaSearch } from "react-icons/fa";
-import { useAuth as useAuthContext } from "../context/AuthContext";
+import { useAuth as useAuthContext } from "../hooks/useAuth";
 import EventImgSlider from "../components/EventImgSlider";
 import eventImg1 from "../assets/zintRojgarImg3.webp";
 import eventImg2 from "../assets/zintRojgarImg2.webp";
 import eventImg3 from "../assets/zintRojgarMission2026.webp";
 import { usePageMeta } from "../hooks/usePageMeta";
+import { toHttps } from "../utils/imgUrl";
 
 const API_URL      = `${import.meta.env.VITE_API_URL}/event/allEvent`;
 const REGISTER_URL = `${import.meta.env.VITE_API_URL}/eventRegistration/add`;
@@ -27,8 +28,14 @@ function parseDateParts(dateStr) {
 // ── Auth helpers ─────────────────────────────────────────────────────────────
 // Uses the real AuthContext (cookie-based, no localStorage)
 function useAuth() {
-  const { user } = useAuthContext();
-  return { isLoggedIn: !!user, token: null, user };
+  const { user, authLoading } = useAuthContext();
+  return { isLoggedIn: !!user, authLoading, user };
+}
+
+function displayName(user) {
+  if (!user) return "";
+  const full = [user.firstName, user.lastName].filter(Boolean).join(" ").trim();
+  return full || user.name || "";
 }
 
 // ── Sign in / Sign up prompt (shown when a logged-out user tries to register) ─
@@ -65,7 +72,7 @@ function AuthPromptModal({ eventName, onClose }) {
 }
 
 // ── Register Modal ────────────────────────────────────────────────────────────
-function RegisterModal({ event, token, prefill, onClose }) {
+function RegisterModal({ event, prefill, onClose }) {
   const [form, setForm]       = useState({
     name: prefill?.name || "",
     email: prefill?.email || "",
@@ -177,7 +184,7 @@ function UpcomingCard({ event, onRegister }) {
     <div className="group bg-zinc-900 border border-zinc-800 hover:border-amber-400/50 rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-amber-400/5 flex flex-col">
       <div className="relative h-44 sm:h-48 overflow-hidden shrink-0">
         <img
-          src={event.eventImage}
+          src={toHttps(event.eventImage)}
           alt={event.name || "Zint Institute event"}
           loading="lazy"
           decoding="async"
@@ -211,7 +218,7 @@ function PastSlideCard({ event }) {
   return (
     <div className="group relative flex-shrink-0 w-60 xs:w-64 sm:w-72 h-72 sm:h-80 rounded-2xl overflow-hidden border border-zinc-800 cursor-pointer">
       <img
-        src={event.eventImage}
+        src={toHttps(event.eventImage)}
         alt={event.name || "Past Zint Institute event"}
         loading="lazy"
         decoding="async"
@@ -239,13 +246,358 @@ function EmptyState({ message }) {
   );
 }
 
+// ── Add Event Review Modal ──────────────────────────────────────────────────
+function AddEventReviewModal({ eventsList, user, onClose, onSuccess }) {
+  const [ratingForm, setRatingForm] = useState({
+    targetName: eventsList?.[0]?.name || "Zint Rojgar Mission 2026",
+    rating: 5,
+    review: "",
+  });
+  const [hoverRating, setHoverRating] = useState(0);
+  const [submitting, setSubmitting]   = useState(false);
+  const [error, setError]             = useState("");
+  const [success, setSuccess]         = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+
+    if (!ratingForm.rating || ratingForm.rating < 1 || ratingForm.rating > 5) {
+      setError("Please select a valid star rating (1-5).");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/rating/addRating`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          targetType: "event",
+          targetName: ratingForm.targetName.trim(),
+          rating: Number(ratingForm.rating),
+          review: ratingForm.review.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.msg || "Failed to submit review");
+
+      setSuccess(data?.msg || "Review submitted successfully! It will be published after admin approval.");
+      setTimeout(() => {
+        onSuccess?.();
+        onClose();
+      }, 2000);
+    } catch (err) {
+      setError(err.message || "Failed to submit review");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="bg-zinc-900 border border-zinc-700 rounded-3xl p-6 sm:p-8 w-full max-w-md relative shadow-2xl">
+        <button onClick={onClose} className="absolute top-4 right-4 text-zinc-400 hover:text-white text-xl leading-none">✕</button>
+
+        <div className="text-center mb-6">
+          <span className="text-3xl">⭐</span>
+          <h3 className="text-white text-xl font-black mt-1">Rate & Review Event</h3>
+          <p className="text-amber-400 text-xs font-semibold">Share your Zint Event Experience</p>
+        </div>
+
+        {success ? (
+          <div className="text-center py-6 px-4 rounded-2xl bg-emerald-950/60 border border-emerald-700/50">
+            <div className="text-3xl mb-2">🎉</div>
+            <p className="text-emerald-300 font-bold text-sm mb-1">{success}</p>
+            <p className="text-zinc-400 text-xs">Your review helps future attendees!</p>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-zinc-400 text-xs font-bold uppercase tracking-wider mb-1.5">Select Event *</label>
+              <select
+                value={ratingForm.targetName}
+                onChange={e => setRatingForm({ ...ratingForm, targetName: e.target.value })}
+                className="w-full bg-zinc-800 border border-zinc-700 focus:border-amber-400 text-white rounded-xl px-4 py-2.5 text-sm outline-none"
+              >
+                {eventsList?.map(ev => (
+                  <option key={ev._id || ev.name} value={ev.name}>{ev.name}</option>
+                ))}
+                <option value="Zint Rojgar Mission 2026">Zint Rojgar Mission 2026</option>
+                <option value="General Event Feedback">General Event Feedback</option>
+              </select>
+            </div>
+
+            <div className="flex flex-col items-center py-2">
+              <p className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Your Rating *</p>
+              <div className="flex gap-2">
+                {[1, 2, 3, 4, 5].map(star => (
+                  <button
+                    key={star}
+                    type="button"
+                    onMouseEnter={() => setHoverRating(star)}
+                    onMouseLeave={() => setHoverRating(0)}
+                    onClick={() => setRatingForm({ ...ratingForm, rating: star })}
+                    className="text-3xl sm:text-4xl transition-transform hover:scale-110 focus:outline-none"
+                    style={{ color: star <= (hoverRating || ratingForm.rating) ? "#F59E0B" : "#3F3F46" }}
+                  >★</button>
+                ))}
+              </div>
+              <span className="text-xs font-bold mt-1 text-amber-400">
+                {["", "1 - Poor", "2 - Fair", "3 - Good", "4 - Very Good", "5 - Excellent"][hoverRating || ratingForm.rating]}
+              </span>
+            </div>
+
+            <div>
+              <div className="flex justify-between items-center mb-1">
+                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400">Verified Account</label>
+                <span className="text-[10px] text-emerald-400 font-semibold">🔒 Logged In</span>
+              </div>
+              <input
+                type="text"
+                readOnly
+                disabled
+                value={`${user?.firstName || user?.name || "Student"} (${user?.email || ""})`}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-zinc-700 text-xs bg-zinc-800 text-zinc-400 cursor-not-allowed font-medium"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">Your Review (Optional)</label>
+              <textarea
+                rows={3}
+                maxLength={500}
+                value={ratingForm.review}
+                onChange={e => setRatingForm({ ...ratingForm, review: e.target.value })}
+                placeholder="How was your experience at the event? What did you enjoy..."
+                className="w-full bg-zinc-800 border border-zinc-700 focus:border-amber-400 text-white rounded-xl px-3.5 py-2.5 text-sm outline-none resize-none"
+              />
+            </div>
+
+            {error && <p className="text-xs font-semibold text-rose-400 bg-rose-950/40 p-2.5 rounded-lg border border-rose-800/50">{error}</p>}
+
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-black font-bold py-3 rounded-xl text-sm transition-all"
+            >
+              {submitting ? "Submitting..." : "Submit Event Review →"}
+            </button>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Event Reviews Section ────────────────────────────────────────────────────
+function EventReviewsSection({ eventsList, isLoggedIn, authLoading, user, onRequireAuth }) {
+  const [reviews, setReviews]             = useState([]);
+  const [ratingStats, setRatingStats]     = useState({ avgRating: 5.0, totalRatings: 0, distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } });
+  const [loadingReviews, setLoadingReviews] = useState(true);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const sliderRef = useRef(null);
+
+  const fetchEventReviews = async () => {
+    setLoadingReviews(true);
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/rating/target/all?targetType=event`).then(r => r.json());
+      if (res?.ratings) {
+        setReviews(res.ratings);
+        setRatingStats({
+          avgRating: res.avgRating || 5.0,
+          totalRatings: res.totalRatings || res.ratings.length,
+          distribution: res.distribution || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+        });
+      } else {
+        setReviews([]);
+      }
+    } catch {
+      setReviews([]);
+    } finally {
+      setLoadingReviews(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchEventReviews();
+  }, []);
+
+  const scrollSlider = (dir) => {
+    if (sliderRef.current) {
+      sliderRef.current.scrollBy({ left: dir * 340, behavior: "smooth" });
+    }
+  };
+
+  const handleRateClick = () => {
+    if (authLoading) return;
+    if (!isLoggedIn) {
+      onRequireAuth();
+      return;
+    }
+    setShowReviewModal(true);
+  };
+
+  return (
+    <section id="event-reviews" className="py-12 sm:py-16 bg-zinc-900/60 border-t border-zinc-800">
+      {showReviewModal && (
+        <AddEventReviewModal
+          eventsList={eventsList}
+          user={user}
+          onClose={() => setShowReviewModal(false)}
+          onSuccess={fetchEventReviews}
+        />
+      )}
+
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+
+        {/* Section Header */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+          <div>
+            <p className="text-amber-400 text-xs tracking-[0.25em] uppercase font-semibold mb-1.5">Attendee Experiences</p>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white">Event Feedback & Reviews</h2>
+            <p className="text-zinc-400 text-xs sm:text-sm mt-1">Real ratings from students and visitors who attended Zint Institute events.</p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleRateClick}
+              className="bg-amber-400 hover:bg-amber-300 text-black font-bold px-5 py-2.5 rounded-xl text-xs sm:text-sm transition-all shadow-md shadow-amber-400/20 flex items-center gap-2"
+            >
+              <span>⭐ Rate & Review Event</span>
+            </button>
+
+            {reviews.length > 0 && (
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={() => scrollSlider(-1)}
+                  className="w-10 h-10 rounded-full border border-zinc-700 hover:border-amber-400 hover:text-amber-400 flex items-center justify-center transition-colors text-white text-base"
+                >←</button>
+                <button
+                  onClick={() => scrollSlider(1)}
+                  className="w-10 h-10 rounded-full bg-zinc-800 hover:bg-amber-400 hover:text-black border border-zinc-700 text-white flex items-center justify-center transition-colors text-base"
+                >→</button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Breakdown Summary */}
+        {ratingStats.totalRatings > 0 && (
+          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 mb-10 flex flex-col md:flex-row items-center gap-8 shadow-xl">
+            <div className="text-center md:border-r border-zinc-800 md:pr-10 shrink-0">
+              <p className="text-5xl font-black text-amber-400">{ratingStats.avgRating}</p>
+              <div className="flex text-amber-400 justify-center my-2 text-2xl sm:text-3xl gap-1">
+                {[...Array(5)].map((_, idx) => (
+                  <span key={idx}>{idx < Math.round(Number(ratingStats.avgRating)) ? "★" : "☆"}</span>
+                ))}
+              </div>
+              <p className="text-xs font-semibold text-zinc-400">{ratingStats.totalRatings} verified event review{ratingStats.totalRatings > 1 ? "s" : ""}</p>
+            </div>
+
+            <div className="flex-1 w-full space-y-2">
+              {[5, 4, 3, 2, 1].map((star) => {
+                const count = ratingStats.distribution[star] || 0;
+                const pct = ratingStats.totalRatings ? Math.round((count / ratingStats.totalRatings) * 100) : 0;
+                return (
+                  <div key={star} className="flex items-center gap-3 text-xs">
+                    <span className="w-8 font-bold text-zinc-300">{star} ★</span>
+                    <div className="flex-1 h-3 rounded-full overflow-hidden bg-zinc-800 border border-zinc-700">
+                      <div className="h-full rounded-full transition-all duration-500 bg-amber-400"
+                        style={{ width: `${pct}%` }} />
+                    </div>
+                    <span className="w-12 text-right text-zinc-400 font-medium">{count} ({pct}%)</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Reviews Cards Horizontal Slider */}
+        {loadingReviews ? (
+          <div className="text-center py-12 text-zinc-500 text-sm">Loading event reviews…</div>
+        ) : reviews.length === 0 ? (
+          <div className="text-center py-14 px-6 rounded-3xl border border-dashed border-zinc-800 bg-zinc-900/50">
+            <span className="text-4xl mb-3 inline-block">💬</span>
+            <p className="text-white font-extrabold text-base mb-1">No event reviews yet</p>
+            <p className="text-zinc-400 text-xs sm:text-sm mb-5">Be the first attendee to rate and review Zint Institute events!</p>
+            <button
+              onClick={handleRateClick}
+              className="bg-amber-400 hover:bg-amber-300 text-black font-bold px-6 py-3 rounded-xl text-sm transition-all"
+            >
+              Write the First Review →
+            </button>
+          </div>
+        ) : (
+          <div
+            ref={sliderRef}
+            className="flex gap-5 overflow-x-auto pb-4 scroll-smooth"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          >
+            {reviews.map((r) => {
+              const starCount = Math.round(r.rating || 5);
+              const initials = (r.studentName || "Z")
+                .split(" ")
+                .map(n => n[0])
+                .join("")
+                .substring(0, 2)
+                .toUpperCase();
+
+              return (
+                <div
+                  key={r._id}
+                  className="flex-shrink-0 w-80 sm:w-96 bg-zinc-900 border border-zinc-800 hover:border-amber-400/40 rounded-3xl p-6 transition-all duration-300 flex flex-col justify-between shadow-lg"
+                >
+                  <div>
+                    <div className="text-4xl font-serif leading-none mb-2 text-amber-400/30">"</div>
+
+                    {/* BIG STARS */}
+                    <div className="flex text-amber-400 text-xl sm:text-2xl gap-1 mb-3">
+                      {[...Array(5)].map((_, idx) => (
+                        <span key={idx}>{idx < starCount ? "★" : "☆"}</span>
+                      ))}
+                    </div>
+
+                    <p className="text-zinc-200 text-sm leading-relaxed italic mb-4">
+                      "{r.review || "Great event organized by Zint Institute! Learned a lot and enjoyed the interactive sessions."}"
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-4 border-t border-zinc-800/80">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-black font-extrabold text-sm flex items-center justify-center shrink-0">
+                        {initials}
+                      </div>
+                      <div>
+                        <p className="text-white font-bold text-xs sm:text-sm">{r.studentName}</p>
+                        <p className="text-amber-400/80 text-[10px] font-semibold">{r.targetName || "Event Attendee"}</p>
+                      </div>
+                    </div>
+                    <span className="text-[11px] text-zinc-500 font-medium">
+                      {r.createdAt ? new Date(r.createdAt).toLocaleDateString("en-IN", { month: "short", year: "numeric" }) : ""}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 export default function EventPage() {
   usePageMeta(
     "Events",
     "Upcoming and past events at Zint Computer Education Institute, Gwalior — workshops, seminars, scholarship programs and more."
   );
-  const { isLoggedIn, token, user } = useAuth();
+  const { isLoggedIn, authLoading, user } = useAuth();
 
   const [events, setEvents]               = useState([]);
   const [loading, setLoading]             = useState(true);
@@ -270,6 +622,7 @@ export default function EventPage() {
   }, []);
 
   const handleRegisterClick = (event) => {
+    if (authLoading) return;
     if (isLoggedIn) {
       setRegisterEvent(event);
     } else {
@@ -319,8 +672,7 @@ export default function EventPage() {
       {registerEvent && (
         <RegisterModal
           event={registerEvent}
-          token={token}
-          prefill={{ name: user?.name, email: user?.email }}
+          prefill={{ name: displayName(user), email: user?.email }}
           onClose={() => setRegisterEvent(null)}
         />
       )}
@@ -456,6 +808,15 @@ export default function EventPage() {
       <div className="mx-4 sm:mx-6 lg:mx-auto lg:max-w-6xl mb-10 sm:mb-16 rounded-3xl overflow-hidden">
         <EventImgSlider />
       </div>
+
+      {/* ══ EVENT REVIEWS ══ */}
+      <EventReviewsSection
+        eventsList={events}
+        isLoggedIn={isLoggedIn}
+        authLoading={authLoading}
+        user={user}
+        onRequireAuth={() => setAuthPromptEvent({ name: "Event Reviews" })}
+      />
 
       {/* ══ PAST EVENTS ══ */}
       <section id="past" className="py-12 sm:py-16 md:py-20 bg-zinc-900/40 border-y border-zinc-800/60">

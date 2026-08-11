@@ -88,7 +88,7 @@ function MentorModal({ editData, onClose, onSaved }) {
       const url    = isEdit ? `${BASE}/UpdateMentor/${editData._id}` : `${BASE}/addmentor`;
       const method = isEdit ? "PUT" : "POST";
 
-      const res  = await fetch(url, { method, body: fd });
+      const res  = await fetch(url, { method, credentials: "include", body: fd });
       const json = await res.json();
 
       if (!res.ok) throw new Error(json.msg || "Request failed");
@@ -250,7 +250,7 @@ export default function AddMentor() {
   // ── Delete — DELETE /deleteMentor/:id ──
   const handleDelete = async () => {
     try {
-      const res  = await fetch(`${BASE}/deleteMentor/${deleteTarget._id}`, { method: "DELETE" });
+      const res  = await fetch(`${BASE}/deleteMentor/${deleteTarget._id}`, { method: "DELETE", credentials: "include" });
       const json = await res.json();
       if (!res.ok) throw new Error(json.msg);
       showToast("Mentor deleted successfully");

@@ -1,23 +1,17 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-
-const API = import.meta.env.VITE_API_URL;
+import { useAuth } from "../hooks/useAuth";
 
 export default function GoogleAuthSuccess() {
   const navigate = useNavigate();
   const { login } = useAuth();
 
   useEffect(() => {
-    // Cookie was already set by the backend redirect.
-    // Just call /user/me to hydrate auth state.
     (async () => {
       try {
-        const res = await fetch(`${API}/user/me`, { credentials: "include" });
-        const data = await res.json();
-        if (data.success) {
-          login(data.data);
-          navigate(data.data.role === "admin" ? "/admin/dashboard" : "/");
+        const profile = await login();
+        if (profile) {
+          navigate(profile.role === "admin" ? "/admin/dashboard" : "/");
         } else {
           navigate("/login?error=google_failed");
         }
@@ -25,7 +19,7 @@ export default function GoogleAuthSuccess() {
         navigate("/login?error=google_failed");
       }
     })();
-  }, []);
+  }, [login, navigate]);
 
   return (
     <div

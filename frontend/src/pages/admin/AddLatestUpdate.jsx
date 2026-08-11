@@ -44,6 +44,7 @@ const AddLatestUpdate = () => {
       setLoading(true);
       const res = await fetch(`${import.meta.env.VITE_API_URL}/updates/addUpdate`, {
         method: "POST",
+        credentials: "include",
         body: formData,
       });
 

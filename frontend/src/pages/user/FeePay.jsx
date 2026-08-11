@@ -1,6 +1,7 @@
-﻿// pages/CoursePricing.jsx
+// pages/CoursePricing.jsx
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -147,6 +148,7 @@ function PlanCard({ title, icon, price, originalPrice, urgency, features, recomm
 export default function CoursePricing() {
   const { id }   = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [mode, setMode]       = useState("Online");
   const [course, setCourse]   = useState(null);
@@ -171,7 +173,16 @@ export default function CoursePricing() {
         const res  = await fetch(`${API}/course/getCourseById/${id}`);
         const data = await res.json();
         if (!res.ok) { setError(data.msg || "Failed to load course."); return; }
-        setCourse(data.course || data);
+        const fetchedCourse = data.course || data;
+        setCourse(fetchedCourse);
+
+        const onl = Number(fetchedCourse?.online_fee ?? 0);
+        const off = Number(fetchedCourse?.fee ?? 0);
+        if (off > 0 && onl === 0) {
+          setMode("Offline");
+        } else {
+          setMode("Online");
+        }
       } catch {
         setError("Network error. Please try again.");
       } finally {
@@ -188,8 +199,7 @@ export default function CoursePricing() {
   // Step 3 → verify → enrollment becomes active
   // Step 4 → dismissed → enrollment stays "pending" (user can Pay Now later)
   const handleBuy = async (selectedMode, price) => {
-    const token = getToken();
-    if (!token) {
+    if (!user) {
       showToast("Please log in to enroll.", "error");
       navigate("/login");
       return;
@@ -203,13 +213,14 @@ export default function CoursePricing() {
       // This also creates a PENDING enrollment on the backend (same as UserDashboard)
       const orderRes = await fetch(`${API}/api/payments/create-order`, {
         method: "POST",
+        credentials: "include",
         headers: {
               "Content-Type": "application/json",
         },
         body: JSON.stringify({
           courseId: id,
           amount:   price,
-          mode:     selectedMode,   // pass mode so backend can tag the enrollment
+          mode:     selectedMode,
         }),
       });
 
@@ -240,6 +251,7 @@ export default function CoursePricing() {
           try {
             const verifyRes = await fetch(`${API}/api/payments/verify`, {
               method: "POST",
+              credentials: "include",
               headers: {
                           "Content-Type": "application/json",
               },
@@ -247,7 +259,7 @@ export default function CoursePricing() {
                 razorpay_order_id:   response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature:  response.razorpay_signature,
-                enrollmentId,        // link payment to the pending enrollment
+                enrollmentId,
               }),
             });
 
@@ -327,8 +339,12 @@ export default function CoursePricing() {
     </div>
   );
 
-  const onlinePrice  = course?.online_fee ?? 0;
-  const offlinePrice = course?.fee ?? 0;
+  const onlinePrice  = Number(course?.online_fee ?? 0);
+  const offlinePrice = Number(course?.fee ?? 0);
+
+  const hasOnline  = onlinePrice > 0;
+  const hasOffline = offlinePrice > 0;
+  const isBoth     = hasOnline && hasOffline;
 
   return (
     <div className="min-h-screen px-4 py-14" style={{ background: THEME.bg }}>
@@ -342,33 +358,35 @@ export default function CoursePricing() {
             </p>
           )}
           <h1 className="text-4xl font-bold mb-2" style={{ color: THEME.text }}>
-            Choose Your Plan
+            {isBoth ? "Choose Your Plan" : `${mode} Enrollment`}
           </h1>
           <p className="text-sm" style={{ color: THEME.textMuted }}>
-            Select the learning mode that suits you best
+            {isBoth ? "Select the learning mode that suits you best" : `This course is offered in ${mode} mode`}
           </p>
         </div>
 
-        {/* ── Toggle ── */}
-        <div className="flex justify-center mb-12">
-          <div className="flex items-center gap-1 p-1.5 rounded-full"
-            style={{ background: "#e5e7eb" }}>
-            {["Online", "Offline"].map(m => (
-              <button
-                key={m}
-                onClick={() => setMode(m)}
-                className="px-10 py-2.5 rounded-full text-sm font-semibold transition-all duration-200"
-                style={{
-                  background: mode === m ? THEME.card : "transparent",
-                  color:      mode === m ? THEME.primary : THEME.textMuted,
-                  boxShadow:  mode === m ? "0 2px 8px rgba(0,0,0,0.08)" : "none",
-                }}
-              >
-                {m}
-              </button>
-            ))}
+        {/* ── Toggle (Only show if both modes exist) ── */}
+        {isBoth && (
+          <div className="flex justify-center mb-12">
+            <div className="flex items-center gap-1 p-1.5 rounded-full"
+              style={{ background: "#e5e7eb" }}>
+              {["Online", "Offline"].map(m => (
+                <button
+                  key={m}
+                  onClick={() => setMode(m)}
+                  className="px-10 py-2.5 rounded-full text-sm font-semibold transition-all duration-200"
+                  style={{
+                    background: mode === m ? THEME.card : "transparent",
+                    color:      mode === m ? THEME.primary : THEME.textMuted,
+                    boxShadow:  mode === m ? "0 2px 8px rgba(0,0,0,0.08)" : "none",
+                  }}
+                >
+                  {m}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* ── Card ── */}
         <div className="max-w-md mx-auto">
@@ -400,39 +418,41 @@ export default function CoursePricing() {
           )}
         </div>
 
-        {/* ── Price comparison strip ── */}
-        <div className="mt-10 bg-white rounded-2xl px-6 py-5 border"
-          style={{ borderColor: THEME.border }}>
-          <p className="text-xs font-bold uppercase tracking-widest mb-4 text-center"
-            style={{ color: THEME.textFaint }}>
-            Price comparison
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4">
-            {[
-              { label: "Online",  price: onlinePrice,  m: "Online",  icon: "🌐" },
-              { label: "Offline", price: offlinePrice, m: "Offline", icon: "🏫" },
-            ].map(item => (
-              <button
-                key={item.label}
-                onClick={() => setMode(item.m)}
-                className="flex-1 flex items-center justify-between px-5 py-4 rounded-xl transition-all duration-200"
-                style={{
-                  background: mode === item.m ? THEME.primaryLight : "#fafafa",
-                  border:     `1.5px solid ${mode === item.m ? THEME.primary : THEME.border}`,
-                }}
-              >
-                <div className="flex items-center gap-2">
-                  <span>{item.icon}</span>
-                  <span className="text-sm font-semibold" style={{ color: THEME.text }}>{item.label}</span>
-                </div>
-                <span className="text-lg font-bold"
-                  style={{ color: mode === item.m ? THEME.primary : THEME.text }}>
-                  ₹ {item.price.toLocaleString("en-IN")}
-                </span>
-              </button>
-            ))}
+        {/* ── Price comparison strip (Only show if both modes exist) ── */}
+        {isBoth && (
+          <div className="mt-10 bg-white rounded-2xl px-6 py-5 border"
+            style={{ borderColor: THEME.border }}>
+            <p className="text-xs font-bold uppercase tracking-widest mb-4 text-center"
+              style={{ color: THEME.textFaint }}>
+              Price comparison
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4">
+              {[
+                { label: "Online",  price: onlinePrice,  m: "Online",  icon: "🌐" },
+                { label: "Offline", price: offlinePrice, m: "Offline", icon: "🏫" },
+              ].map(item => (
+                <button
+                  key={item.label}
+                  onClick={() => setMode(item.m)}
+                  className="flex-1 flex items-center justify-between px-5 py-4 rounded-xl transition-all duration-200"
+                  style={{
+                    background: mode === item.m ? THEME.primaryLight : "#fafafa",
+                    border:     `1.5px solid ${mode === item.m ? THEME.primary : THEME.border}`,
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <span>{item.icon}</span>
+                    <span className="text-sm font-semibold" style={{ color: THEME.text }}>{item.label}</span>
+                  </div>
+                  <span className="text-lg font-bold"
+                    style={{ color: mode === item.m ? THEME.primary : THEME.text }}>
+                    ₹ {item.price.toLocaleString("en-IN")}
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* ── Course meta strip ── */}
         {course && (

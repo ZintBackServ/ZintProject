@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 
 const DP = "#8E1387";
 const PP = "#B11FA8";
@@ -9,10 +9,10 @@ const INTERNSHIP_URL = `${import.meta.env.VITE_API_URL}/internshipRegistration`;
 
 async function safeFetch(url, options = {}) {
   const res = await fetch(url, {
+    credentials: "include",
     ...options,
     headers: {
       ...(options.headers || {}),
-      credentials: "include",
     },
   });
   const raw = await res.text();

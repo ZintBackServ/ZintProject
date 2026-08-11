@@ -1,5 +1,6 @@
 
 import React, { useEffect, useRef, useState } from "react";
+import { toHttps } from "../utils/imgUrl";
 
   const DarkPurple = "#8E1387";
   const PrimaryPurple = "#B11FA8";
@@ -104,7 +105,7 @@ const Mentor = () => {
             <div className="h-full bg-gray-900 rounded-xl p-2 text-white">
               
               <img
-                src={item.profileImage}
+                src={toHttps(item.profileImage)}
                 alt={item.mentorName}
                 className="w-full h-40 sm:h-40 md:h-65 object-full rounded-lg mb-3"
               />

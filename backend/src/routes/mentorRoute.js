@@ -1,19 +1,25 @@
 const express = require("express");
 const router = express.Router();
 const {addMentor, getAllMentor, deleteMentor, getMentorById, UpdateMentor} = require("../controllers/mentorController");
-const upload = require("../middlewares/multerMiddleware")
-router.post("/addmentor",upload.fields([
-    {
-        name:"profileImage",
-        maxCount:1
-    }
-]),addMentor);
+const upload = require("../middlewares/multerMiddleware");
+const authentication = require("../middlewares/authMiddleware");
+const authorization  = require("../middlewares/authorization");
 
-router.get("/allMentor",getAllMentor);
-router.delete("/deleteMentor/:id",deleteMentor);
-router.get("/mentorById/:id",getMentorById);
+// Public: anyone can view mentors
+router.get("/allMentor", getAllMentor);
+router.get("/mentorById/:id", getMentorById);
+
+// Admin only: add, update, delete
+router.post("/addmentor",
+  authentication, authorization("admin"),
+  upload.fields([{ name: "profileImage", maxCount: 1 }]),
+  addMentor
+);
 router.put("/UpdateMentor/:id",
-    upload.fields([{ name: "profileImage", maxCount: 1 }]),
-    UpdateMentor);
+  authentication, authorization("admin"),
+  upload.fields([{ name: "profileImage", maxCount: 1 }]),
+  UpdateMentor
+);
+router.delete("/deleteMentor/:id", authentication, authorization("admin"), deleteMentor);
 
-module.exports = router;
+module.exports = router;

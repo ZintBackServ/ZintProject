@@ -127,15 +127,11 @@ const addPlacedStudent = async (req, res) => {
 const getAllPlacedStudent = async (req, res) => {
     try{
         const placedStudents = await placedStudentModel.find();
-                if(placedStudents.length === 0 ){
-                     return res.status(400).json({msg:"no placed students found"});
-                }
-                return res.status(200).json({
-                     msg:"Placed Students Fetched Successfully",  
-                     totalPlacedStudents: placedStudents.length,
-                     placedStudents:placedStudents,
-                });
-
+        return res.status(200).json({
+             msg: "Placed Students Fetched Successfully",  
+             totalPlacedStudents: placedStudents.length,
+             placedStudents: placedStudents,
+        });
     }catch(error){
         console.log(error);
         return res.status(500).json({msg:"Internal Server Error"});

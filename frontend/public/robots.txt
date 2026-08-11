@@ -7,4 +7,4 @@ Disallow: /user/dashboard
 Disallow: /auth/
 
 # Sitemap location
-Sitemap: https://www.zintinstitute.com/sitemap.xml
+Sitemap: https://zintinstitute.in/sitemap.xml

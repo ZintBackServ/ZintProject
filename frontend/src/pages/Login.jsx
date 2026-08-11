@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../hooks/useAuth";
 import Antigravity from "./Antigravity";
 
 export default function Login() {
@@ -37,22 +37,13 @@ export default function Login() {
         return;
       }
       // Cookie is now set. Fetch /user/me to populate auth state.
-      await login();
-      // Redirect based on role (login() fetches /me and sets user)
+      const profile = await login();
       if (redirect) {
         navigate(redirect);
+      } else if (profile?.role === "admin") {
+        navigate("/admin/dashboard");
       } else {
-        // Re-read role from /me after login
-        const meRes = await fetch(`${import.meta.env.VITE_API_URL}/user/me`, {
-          credentials: "include",
-        });
-        if (meRes.ok) {
-          const me = await meRes.json();
-          if (me.data?.role === "admin") navigate("/admin/dashboard");
-          else navigate("/");
-        } else {
-          navigate("/");
-        }
+        navigate("/");
       }
     } catch {
       setError("Network error. Please try again.");

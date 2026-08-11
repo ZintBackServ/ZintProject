@@ -64,12 +64,12 @@ router.get("/getAllCourse", getAllCourse);
 router.get("/getCourseById/:id", getCourseById);
 
 // ── PUT /updateCourse/:id ── (admin only)
-// accepts: courseImage (optional new image) + courseCurriculum (optional new PDF)
 router.put("/updateCourse/:id",
   authentication, authorization("admin"),
   upload.fields([
-    { name: "courseImage",      maxCount: 1 }, // optional — replace image
-    { name: "courseCurriculum", maxCount: 1 }, // optional — replace PDF
+    { name: "courseImage",       maxCount: 1 }, // optional — replace image
+    { name: "courseCertificate", maxCount: 1 }, // optional — replace certificate
+    { name: "courseCurriculum",  maxCount: 1 }, // optional — replace PDF
   ]),
   updateCourse
 );

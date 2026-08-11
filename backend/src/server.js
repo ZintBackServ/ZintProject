@@ -4,7 +4,7 @@ const express        = require("express");
 const app            = express();
 const cookieParser   = require("cookie-parser");
 const mongoSanitize  = require("express-mongo-sanitize");
-const cors           = require("cors");
+const helmet         = require("helmet");
 const connectDB      = require("./config/db");
 const passport       = require("./config/passport");
 const errorHandler   = require("./middlewares/errorHandler");
@@ -27,6 +27,16 @@ const timeTableRoutes               = require("./routes/timeTableRoute");
 const internshipRegistrationRoutes  = require("./routes/internshipRegistrationRoute");
 const placementRegistrationRoutes   = require("./routes/placementRegistrationRoute");
 const admissionRoutes               = require("./routes/admissionRoute");
+
+const cors           = require("cors");
+
+// ── HTTP Security Headers (Helmet) ───────────────────────────────────────────
+app.use(
+  helmet({
+    contentSecurityPolicy: false, // Let CORS and Cloudinary images work seamlessly
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  })
+);
 
 // ── Webhook: MUST come before body parsers ────────────────────────────────────
 app.use("/api/payments/webhook", express.raw({ type: "application/json" }));
@@ -105,7 +115,11 @@ app.use((_, res) => res.status(404).json({ success: false, message: "Route not f
 app.use(errorHandler);
 
 // ── Connect DB & Start ────────────────────────────────────────────────────────
-connectDB();
+connectDB().then(() => {
+  const userModel = require("./models/userModel");
+  userModel.syncIndexes().catch(err => console.log("User index sync info:", err.message));
+});
+
 app.listen(process.env.PORT, () => {
   console.log(`Server is Running at Port ${process.env.PORT}`);
 });

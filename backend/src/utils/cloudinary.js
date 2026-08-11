@@ -14,15 +14,19 @@ const uploadOnCloudinary = async (localFilePath, resourceType = "auto") => {
 
     const response = await cloudinary.uploader.upload(localFilePath, {
       resource_type: resourceType,
+      secure: true, // always return HTTPS URLs
     });
 
-    console.log("file is uploaded on cloudinary", response.url);
+    // Prefer secure_url (HTTPS); fall back to url only as a last resort
+    const secureUrl = response.secure_url || response.url;
+    console.log("file is uploaded on cloudinary", secureUrl);
 
     if (fs.existsSync(localFilePath)) {
       fs.unlinkSync(localFilePath);
     }
 
-    return response;
+    // Expose secure_url as .url so all existing controller code gets HTTPS automatically
+    return { ...response, url: secureUrl };
   } catch (error) {
     console.log("Cloudinary Error:", error?.message || error);
     if (fs.existsSync(localFilePath)) {

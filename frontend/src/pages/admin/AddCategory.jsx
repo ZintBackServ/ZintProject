@@ -78,6 +78,7 @@ export default function AddCategory() {
         fetch(`${import.meta.env.VITE_API_URL}/category/addCategory`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",
           body: JSON.stringify({ categoryName: cat.categoryName, description: cat.description }),
         }).then(r => r.json().then(d => ({ ok: r.ok, data: d, cat })))
       )

@@ -56,14 +56,11 @@ const addMentor = async (req, res) =>{
 const getAllMentor = async (req, res) => {
     try{
         const mentors = await mentorModel.find();
-                if(mentors.length === 0 ){
-                     return res.status(400).json({msg:"no mentors found"});
-                }
-                return res.status(200).json({
-                     msg:"Mentors Fetched Successfully",  totalMentor: mentors.length,
-                     mentors:mentors,
-                });
-
+        return res.status(200).json({
+             msg: "Mentors Fetched Successfully",  
+             totalMentor: mentors.length,
+             mentors: mentors,
+        });
     }catch(error){
         console.log(error);
         return res.status(500).json({msg:"Internal Server Error"});
@@ -107,7 +104,6 @@ const getMentorById = async (req,res) => {
 
 const UpdateMentor = async (req, res) => {
     try{
-       
         let mentorId = req.params.id;
       
         if(!mongoose.Types.ObjectId.isValid(mentorId)){
@@ -120,42 +116,39 @@ const UpdateMentor = async (req, res) => {
           return res.status(400).json({ msg: "Required fields missing" });
         }
 
-        // Validation
-         if (!isValidName(mentorName)) {
+        if (!isValidName(mentorName)) {
          return res.status(400).json({ msg: "Mentor Name is Missing Or Invalid" });
         }
         if (!isValid(expertise)) {
          return res.status(400).json({ msg: "expertise is Missing Or Invalid" });
         }
    
-        const MentorData = await mentorModel.create({
-        mentorName,
-        expertise,
-        experience,
-        bio,
-       })
+        const updateFields = {
+          mentorName,
+          expertise,
+          experience: experience || "",
+          bio: bio || "",
+        };
 
-        //updatefile
-        if (req.files && req.files.profileImage) {
+        // If new profile image uploaded
+        if (req.files && req.files.profileImage && req.files.profileImage[0]) {
           const profileLocalPath = req.files.profileImage[0].path;
-
           const profileImage = await uploadOnCloudinary(profileLocalPath);
 
           if (!profileImage) {
              return res.status(400).json({ msg: "Profile upload failed" });
           }
 
-          MentorData.profileImage = profileImage.secure_url;
+          updateFields.profileImage = profileImage.url;
         }
 
-   
-        let updateMentor = await userModel.findByIdAndUpdate(mentorId, MentorData, { new: true });
+        let updateMentor = await mentorModel.findByIdAndUpdate(mentorId, updateFields, { new: true });
     
         if(!updateMentor){
-           return res.status(400).json({msg:"mentor not found"});
+           return res.status(404).json({msg:"mentor not found"});
         }
      
-        return res.status(200).json({msg:"user updated successfully", updateMentor});
+        return res.status(200).json({msg:"mentor updated successfully", updateMentor});
     }catch(error){
     console.log(error);
     res.status(500).json({msg:"Internal Server Error"});

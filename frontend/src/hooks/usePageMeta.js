@@ -1,33 +1,49 @@
 /**
- * usePageMeta — sets document.title and meta description on every route.
+ * usePageMeta — sets document.title, meta description, OpenGraph tags, and canonical link on every route.
  * Usage: call at the top of any page component.
  *
- * @param {string} title       — page title (appended with " | Zint Institute")
+ * @param {string} title       — page title (appended with " | Zint Computer Education Institute")
  * @param {string} description — meta description for SEO
  */
 export function usePageMeta(title, description) {
   const fullTitle = title
     ? `${title} | Zint Computer Education Institute`
-    : "Zint Computer Education Institute — ISO 9001:2015 Certified, Gwalior";
+    : "Zint Computer Education Institute - ISO 9001:2015 Certified | Gwalior";
 
   // Update <title>
   document.title = fullTitle;
 
-  // Update or create <meta name="description">
-  let metaDesc = document.querySelector('meta[name="description"]');
-  if (!metaDesc) {
-    metaDesc = document.createElement("meta");
-    metaDesc.setAttribute("name", "description");
-    document.head.appendChild(metaDesc);
-  }
-  if (description) metaDesc.setAttribute("content", description);
+  // Helper to get or create element
+  const setMetaAttr = (selector, createTag, attrName, attrVal, content) => {
+    let el = document.querySelector(selector);
+    if (!el) {
+      el = document.createElement(createTag);
+      el.setAttribute(attrName, attrVal);
+      document.head.appendChild(el);
+    }
+    if (createTag === "link") {
+      el.setAttribute("href", content);
+    } else {
+      el.setAttribute("content", content);
+    }
+  };
 
-  // Update or create <meta property="og:title">
-  let ogTitle = document.querySelector('meta[property="og:title"]');
-  if (!ogTitle) {
-    ogTitle = document.createElement("meta");
-    ogTitle.setAttribute("property", "og:title");
-    document.head.appendChild(ogTitle);
+  // 1. Meta Description
+  if (description) {
+    setMetaAttr('meta[name="description"]', "meta", "name", "description", description);
+    setMetaAttr('meta[property="og:description"]', "meta", "property", "og:description", description);
+    setMetaAttr('meta[name="twitter:description"]', "meta", "name", "twitter:description", description);
   }
-  ogTitle.setAttribute("content", fullTitle);
+
+  // 2. OpenGraph & Twitter Title
+  setMetaAttr('meta[property="og:title"]', "meta", "property", "og:title", fullTitle);
+  setMetaAttr('meta[name="twitter:title"]', "meta", "name", "twitter:title", fullTitle);
+
+  // 3. Canonical Link & OG URL
+  if (typeof window !== "undefined") {
+    const currentUrl = window.location.href;
+    setMetaAttr('link[rel="canonical"]', "link", "rel", "canonical", currentUrl);
+    setMetaAttr('meta[property="og:url"]', "meta", "property", "og:url", currentUrl);
+  }
 }
+

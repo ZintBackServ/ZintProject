@@ -29,7 +29,7 @@ const addCategory = async (req, res) => {
 const getAllCategories = async (req, res) => {
   try {
     const categories = await categoryModel
-      .find({ isActive: true })
+      .find({ isActive: { $ne: false } })
       .populate("courses", "courseName fee mode trending courseImage");
     return res.status(200).json({ msg: "Categories fetched successfully", categories });
   } catch (error) {

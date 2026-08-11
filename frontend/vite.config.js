@@ -4,13 +4,18 @@ import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  oxc: {
+    // Strips console logs, warnings, and debugger statements in production builds
+    // while keeping them fully active on localhost/terminal for debugging.
+    drop: mode === 'production' ? ['console', 'debugger'] : [],
+  },
   plugins: [
     tailwindcss(),
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.png', 'image.png'],
+      includeAssets: ['favicon.png', 'icon-192.png', 'icon-512.png', 'image.png'],
       manifest: {
         name: 'Zint Computer Education Institute',
         short_name: 'Zint Institute',
@@ -21,8 +26,8 @@ export default defineConfig({
         start_url: '/',
         orientation: 'portrait-primary',
         icons: [
-          { src: '/favicon.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
-          { src: '/favicon.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
+          { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+          { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
         ],
       },
       workbox: {
@@ -48,11 +53,45 @@ export default defineConfig({
       },
     }),
   ],
+  optimizeDeps: {
+    // Pre-bundle all react-icons subpackages used in lazy-loaded routes.
+    // Without this, Vite re-optimizes them on first import causing 504 errors.
+    include: [
+      'react-[#md]',
+      'react-icons/md',
+      'react-icons/pi',
+      'react-icons/fi',
+      'react-icons/fa',
+      'react-icons/hi',
+    ],
+  },
   server: {
     port: 5174,
     strictPort: true,
+    proxy: {
+      // Only proxy /user/auth/google (OAuth initiation) and /user/auth/google/callback to Express
+      // These are real backend routes that must hit Passport.js
+      '^/user/auth/google': {
+        target: 'http://localhost:2000',
+        changeOrigin: true,
+      },
+
+      // All other backend API paths — serve index.html for browser navigations (SPA),
+      // proxy to Express for fetch/XHR requests
+      '^/(api|user|course|mentor|placedStudent|event|eventRegistration|rating|notification|category|updates|enquiry|timeTable|internshipRegistration|placementRegistration|admission)': {
+        target: 'http://localhost:2000',
+        changeOrigin: true,
+        bypass(req) {
+          if (req.headers.accept?.includes('text/html')) {
+            return '/index.html'; // React SPA handles all HTML navigations
+          }
+        },
+      },
+    },
   },
   build: {
+    // Disable module preloading links to avoid browser preloaded warning logs in inspect
+    modulePreload: false,
     // Target modern browsers — eliminates legacy JS polyfill overhead (~20 KiB)
     target: 'esnext',
     rollupOptions: {
@@ -72,4 +111,4 @@ export default defineConfig({
       },
     },
   },
-})
+}))

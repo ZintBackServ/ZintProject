@@ -1,4 +1,4 @@
-﻿// pages/admin/PlacedStudentAdminDashboard.jsx
+// pages/admin/PlacedStudentAdminDashboard.jsx
 // API routes from placedStudentRoute.js:
 //   POST   /addPlacedStudent           (multipart — profileImage, logoImage)
 //   GET    /allPlacedStudent
@@ -7,7 +7,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 
-const BASE       = `${import.meta.env.VITE_API_URL}/PlacedStudent`;
+const BASE = `${import.meta.env.VITE_API_URL}/placedStudent`;
 
 // ── Toast ────────────────────────────────────────────────────────────────────
 function Toast({ message, type, onClose }) {
@@ -106,7 +106,7 @@ function AddStudentModal({ onClose, onAdded, showToast }) {
       fd.append("profileImage", profileFile);           // required in model
       if (logoFile) fd.append("logoImage", logoFile);  // optional in model
 
-      const res  = await fetch(`${BASE}/addPlacedStudent`, { method: "POST", headers: authHeader(), body: fd });
+      const res  = await fetch(`${BASE}/addPlacedStudent`, { method: "POST", credentials: "include", body: fd });
       const json = await res.json();
       if (!res.ok) throw new Error(json.msg || "Failed to add student");
       showToast("Student added successfully 🎉", "success");
@@ -245,7 +245,7 @@ export default function PlacedStudentAdminDashboard() {
   const fetchStudents = useCallback(async () => {
     setLoading(true);
     try {
-      const res  = await fetch(`${BASE}/allPlacedStudent`, { headers: authHeader() });
+      const res  = await fetch(`${BASE}/allPlacedStudent`, { credentials: "include" });
       const json = await res.json();
       if (!res.ok) throw new Error(json.msg);
       setStudents(json.placedStudents || []);
@@ -259,7 +259,7 @@ export default function PlacedStudentAdminDashboard() {
   const handleDelete = async () => {
     setDeleteLoading(true);
     try {
-      const res  = await fetch(`${BASE}/deletePlacedStudent/${deleteTarget._id}`, { method: "DELETE", headers: authHeader() });
+      const res  = await fetch(`${BASE}/deletePlacedStudent/${deleteTarget._id}`, { method: "DELETE", credentials: "include" });
       const json = await res.json();
       if (!res.ok) throw new Error(json.msg);
       showToast("Student removed successfully");
@@ -274,7 +274,7 @@ export default function PlacedStudentAdminDashboard() {
     if (!findId.trim()) return;
     setFindError(""); setFoundStudent(null); setFindLoading(true);
     try {
-      const res  = await fetch(`${BASE}/getPlacedStudentById/${findId.trim()}`, { headers: authHeader() });
+      const res  = await fetch(`${BASE}/getPlacedStudentById/${findId.trim()}`, { credentials: "include" });
       const json = await res.json();
       if (!res.ok) throw new Error(json.msg || "Not found");
       setFoundStudent(json.placedStudent);

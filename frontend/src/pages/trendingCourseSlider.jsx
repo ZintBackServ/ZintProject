@@ -2,6 +2,7 @@ import { useContext, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { DataContext } from "../context/DataContext";
 import SpecularButton from "../components/SpecularButton";
+import { toHttps } from "../utils/imgUrl";
 
 
   const DarkPurple = "#8E1387";
@@ -99,6 +100,32 @@ export default function CourseSlider() {
           />
         ))}
       </div>
+
+      {/* ── View All Courses Button ── */}
+      <div className="flex justify-center mt-8">
+        <button
+          onClick={() => navigate("/courses")}
+          className="group inline-flex items-center gap-2 px-7 py-3 rounded-full font-bold text-sm transition-all duration-300"
+          style={{
+            background: "linear-gradient(135deg, #8E1387, #B026B5)",
+            color: "#fff",
+            boxShadow: "0 4px 20px rgba(176,38,181,0.30)",
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.transform = "translateY(-2px)";
+            e.currentTarget.style.boxShadow = "0 8px 28px rgba(176,38,181,0.45)";
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.transform = "translateY(0)";
+            e.currentTarget.style.boxShadow = "0 4px 20px rgba(176,38,181,0.30)";
+          }}
+        >
+          View All Courses
+          <svg className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
     </section>
   );
 }
@@ -135,7 +162,7 @@ function CourseCard({ course, onKnowMore }) {
       {/* ── Course Image ── */}
       <div className="relative w-full h-52 overflow-hidden">
         <img
-          src={course.courseImage}
+          src={toHttps(course.courseImage)}
           alt={course.courseName}
           className="w-full h-full object-full transition-transform duration-500"
           style={{ transform: hovered ? "scale(1.05)" : "scale(1)" }}
@@ -143,9 +170,9 @@ function CourseCard({ course, onKnowMore }) {
         />
 
         {/* Purple trending badge */}
-        <h1 className="absolute style={{color:DarkPurple}} top-3 left-3 text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-md">
+        {/* <h1 className="absolute style={{color:DarkPurple}} top-3 left-3 text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-md">
           ⚡ Trending
-        </h1>
+        </h1> */}
 
         {/* subtle gradient overlay */}
         <div className="absolute inset-0"

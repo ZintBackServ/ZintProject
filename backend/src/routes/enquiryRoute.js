@@ -8,10 +8,18 @@ const {
   deleteEnquiry,
 } = require("../controllers/enquiryController");
 
-router.post("/addEnquiry", addEnquiry);
-router.get("/allEnquiries", getAllEnquiries);
-router.get("/enquiryById/:id", getEnquiryById);
-router.put("/markEnquiryContacted/:id", markEnquiryContacted);
-router.delete("/deleteEnquiry/:id", deleteEnquiry);
+const authentication = require("../middlewares/authMiddleware");
+const authorization  = require("../middlewares/authorization");
 
-module.exports = router;
+const { formLimiter } = require("../middlewares/rateLimiter");
+
+// Public — anyone can submit an enquiry (rate-limited)
+router.post("/addEnquiry", formLimiter, addEnquiry);
+
+// Admin only — view, manage, delete enquiries
+router.get("/allEnquiries",               authentication, authorization("admin"), getAllEnquiries);
+router.get("/enquiryById/:id",            authentication, authorization("admin"), getEnquiryById);
+router.put("/markEnquiryContacted/:id",   authentication, authorization("admin"), markEnquiryContacted);
+router.delete("/deleteEnquiry/:id",       authentication, authorization("admin"), deleteEnquiry);
+
+module.exports = router;

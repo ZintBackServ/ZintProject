@@ -6,6 +6,10 @@ import { BrowserRouter } from 'react-router-dom'
 import { AuthProvider } from "./context/AuthContext"
 import { GoogleOAuthProvider } from "@react-oauth/google"
 import ErrorBoundary from "./components/ErrorBoundary"
+import { registerSW } from 'virtual:pwa-register'
+
+// Register PWA service worker immediately for auto-updates and install prompt
+registerSW({ immediate: true })
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

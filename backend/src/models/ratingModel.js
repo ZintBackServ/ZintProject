@@ -14,6 +14,11 @@ const ratingSchema = new mongoose.Schema(
       trim: true,
     },
 
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+
     studentName: {
       type: String,
       required: true,
@@ -41,10 +46,10 @@ const ratingSchema = new mongoose.Schema(
       maxlength: 500,
     },
 
-    // admin can show/hide a review
+    // admin can show/hide a review — hidden (false) by default until admin approves
     isVisible: {
       type: Boolean,
-      default: true,
+      default: false,
     },
   },
   { timestamps: true }

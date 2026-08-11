@@ -30,7 +30,7 @@ export default function LatestUpdatesSection() {
   const BLUE = "#53BFEA";
   const GREEN = "#45B51D";
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-pink-50 via-white to-purple-50 py-16 px-6">
+    <section id="latest-updates" className="relative overflow-hidden bg-gradient-to-br from-pink-50 via-white to-purple-50 py-16 px-6">
       {/* Background Blobs */}
       <div className="absolute top-0 left-0 w-72 h-72 bg-pink-300/20 rounded-full blur-3xl"></div>
       <div className="absolute bottom-0 right-0 w-80 h-80 bg-pink-400/20 rounded-full blur-3xl"></div>

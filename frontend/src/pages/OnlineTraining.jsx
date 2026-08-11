@@ -1,4 +1,5 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
+import { useAuth } from "../hooks/useAuth";
 import {
   FiMonitor, FiHome, FiTool, FiBriefcase, FiCalendar,
   FiBookOpen, FiSearch, FiPlay, FiLoader, FiInbox, FiLogIn, FiUserPlus,
@@ -46,6 +47,8 @@ async function safeFetch(url) {
 }
 
 export default function OnlineClassesTimetable() {
+  const { user, authLoading } = useAuth();
+  const isLoggedIn = !!user;
   const [activeTab, setActiveTab] = useState("Online Training");
   const [search, setSearch]       = useState("");
   const [entries, setEntries]     = useState(10);
@@ -56,6 +59,11 @@ export default function OnlineClassesTimetable() {
   // Re-checked on every render so the UI updates right after sign in/out.
 
   useEffect(() => {
+    // Only fetch if auth has resolved AND user is logged in
+    if (authLoading || !isLoggedIn) {
+      setLoading(false);
+      return;
+    }
     const fetchTimetable = async () => {
       setLoading(true);
       setError(null);
@@ -64,7 +72,6 @@ export default function OnlineClassesTimetable() {
         const result = await safeFetch(url);
         setData(result?.data || []);
       } catch (err) {
-        console.log(err);
         setError(err.message || "Failed to load timetable.");
         setData([]);
       } finally {
@@ -72,7 +79,7 @@ export default function OnlineClassesTimetable() {
       }
     };
     fetchTimetable();
-  }, [activeTab]);
+  }, [activeTab, isLoggedIn, authLoading]);
 
   const filtered = data.filter(
     (r) =>

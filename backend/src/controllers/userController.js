@@ -13,11 +13,12 @@ const {
 const mongoose = require("mongoose");
 
 // ── Cookie config ────────────────────────────────────────────────────────────
+const IS_PROD = process.env.NODE_ENV === "production";
 const COOKIE_OPTIONS = {
-  httpOnly: true,                                   // JS cannot read it → XSS-safe
-  secure:   process.env.NODE_ENV === "production",  // HTTPS only in prod
-  sameSite: "lax",
-  maxAge:   24 * 60 * 60 * 1000,                    // 24 h in ms
+  httpOnly: true,                    // JS cannot read it → XSS-safe
+  secure:   IS_PROD,                 // HTTPS only in prod
+  sameSite: "lax",                   // works same-origin; in dev, Vite proxy makes it same-origin
+  maxAge:   24 * 60 * 60 * 1000,    // 24 h in ms
 };
 
 // ── Helper: generate JWT + set httpOnly cookie ───────────────────────────────
@@ -268,7 +269,11 @@ const loginUser = async (req, res) => {
 // 5. Logout — clears the httpOnly cookie
 // ────────────────────────────────────────────────────────────────────────────
 const logoutUser = (req, res) => {
-  res.clearCookie("token", { httpOnly: true, sameSite: "lax" });
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure:   IS_PROD,
+    sameSite: "lax",
+  });
   return res.status(200).json({ success: true, msg: "Logged out successfully." });
 };
 

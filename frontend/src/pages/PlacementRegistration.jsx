@@ -4,6 +4,7 @@ import { DataContext } from "../context/DataContext";
 import placementImg from "../assets/placementImg2.webp"
 import SampleCertificateImg from "../assets/SampleCertificate.webp"
 
+
 /* ═══════════════════════════════════════════
    ZINT COLOR SYSTEM
    #B026B5  Purple  — primary brand / CTA
@@ -288,6 +289,34 @@ function SampleCertificate(){
 
 // Bottom CTA
 
+function BottomCTA({ onEnroll }) {
+  return (
+    <section className="relative overflow-hidden py-20" style={{ background: "#111827" }}>
+      <div className="absolute -top-32 -right-32 w-[500px] h-[500px] rounded-full pointer-events-none opacity-[0.08]"
+        style={{ background: "radial-gradient(circle, #B026B5, transparent 70%)" }} />
+      <div className="absolute bottom-0 left-0 w-80 h-80 rounded-full pointer-events-none opacity-[0.06]"
+        style={{ background: "radial-gradient(circle, #38BDF8, transparent 70%)" }} />
+
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center relative z-10">
+        <span className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full mb-6 border"
+          style={{ background: "rgba(176,38,181,0.15)", color: "#B026B5", borderColor: "rgba(176,38,181,0.35)" }}>
+          🚀 Limited Seats Available
+        </span>
+        <h2 className="text-3xl md:text-4xl font-extrabold mb-4 text-white">
+          Ready to Launch Your IT Career?
+        </h2>
+        <p className="text-sm md:text-base mb-8 max-w-xl mx-auto" style={{ color: "#9ca3af" }}>
+          Join thousands of students who secured top placements with Zint. Register today and take the first step towards your dream job.
+        </p>
+        <div className="flex flex-wrap gap-4 justify-center">
+          <PurpleBtn onClick={onEnroll} label="Enroll Now →" />
+          <SkyBtn label="Talk to a Counsellor" />
+        </div>
+      </div>
+    </section>
+  );
+}
+
 const REGISTER_URL = `${import.meta.env.VITE_API_URL}/placementRegistration/addPlacementRegistration`;
 const PROFILE_URL  = `${import.meta.env.VITE_API_URL}/user/me`;
 
@@ -324,6 +353,7 @@ function EnrollModal({ onClose }) {
 
   useEffect(() => {
     (async () => {
+      const token = localStorage.getItem("token");
           if (!token) { setProfileLoading(false); return; }
       try {
         const res = await safeFetch(PROFILE_URL);

@@ -9,8 +9,13 @@ import NotificationPopup from "./components/Notification";
 import ScrollToTop from "./components/ScrollToTop";
 import Loading from "./components/Loading";
 
-// ── Eagerly loaded (above-fold, always needed) ─────────────────────────────
+// ── Eagerly loaded (above-fold / shared with Home page) ─────────────────────
 import Home from "./pages/Home";
+import ContactUS from "./components/ContactUS";
+import MagicBento from "./pages/MagicBento";
+import Antigravity from "./pages/Antigravity";
+import VideoLectures from "./components/VideoLectures";
+import PlacedStudent from "./components/PlacedStudentSlider";
 
 // ── Lazy-loaded routes (split into separate JS chunks) ─────────────────────
 const Courses              = lazy(() => import("./pages/Courses"));
@@ -23,18 +28,19 @@ const Internship           = lazy(() => import("./pages/Internship"));
 const Blog                 = lazy(() => import("./pages/Blog"));
 const OnlineTraining       = lazy(() => import("./pages/OnlineTraining"));
 const PlacementRegistration = lazy(() => import("./pages/PlacementRegistration"));
-const MagicBento           = lazy(() => import("./pages/MagicBento"));
 const GoogleAuthSuccess    = lazy(() => import("./pages/Googleauthsuccess"));
-const Antigravity          = lazy(() => import("./pages/Antigravity"));
 
 // ── Components used as routes ──────────────────────────────────────────────
-const Admission      = lazy(() => import("./components/Admission"));
-const PrivacyPolicy  = lazy(() => import("./components/PrivacyPolicy"));
-const RefundPolicy   = lazy(() => import("./components/RefundPolicy"));
-const TermsConditions = lazy(() => import("./components/TermsConditions"));
-const ContactUS      = lazy(() => import("./components/ContactUS"));
-const Careers        = lazy(() => import("./components/Careers"));
-const PlacedStudent  = lazy(() => import("./components/PlacedStudentSlider"));
+const Admission         = lazy(() => import("./components/Admission"));
+const PrivacyPolicy     = lazy(() => import("./components/PrivacyPolicy"));
+const RefundPolicy      = lazy(() => import("./components/RefundPolicy"));
+const TermsConditions   = lazy(() => import("./components/TermsConditions"));
+const Careers           = lazy(() => import("./components/Careers"));
+const ApplyCertificate  = lazy(() => import("./pages/ApplyCertificate"));
+const OnlineTest        = lazy(() => import("./pages/OnlineTest"));
+const Services          = lazy(() => import("./pages/Services"));
+const Webinar           = lazy(() => import("./pages/Webinar"));
+const Workshop          = lazy(() => import("./pages/Workshop"));
 
 // ── Protected / admin ──────────────────────────────────────────────────────
 const AdminDashboard       = lazy(() => import("./pages/admin/AdminDashboard"));
@@ -64,7 +70,6 @@ function App() {
           <Route path="/contact"             element={<ContactUS />} />
           <Route path="/careers"             element={<Careers />} />
           <Route path="/login"               element={<Login />} />
-          <Route path="/Login"               element={<Login />} />
           <Route path="/signup"              element={<SignUp />} />
           <Route path="/courses/:id"         element={<CourseDetail />} />
           <Route path="/courses/:id/fee"     element={<FeePay />} />
@@ -72,11 +77,17 @@ function App() {
           <Route path="/Blog"                element={<Blog />} />
           <Route path="/Internship"          element={<Internship />} />
           <Route path="/PlacedStudent"       element={<PlacedStudent />} />
-          <Route path="/OnlineAdmission"     element={<Admission />} />
-          <Route path="/PlacementRegistration" element={<PlacementRegistration />} />
-          <Route path="/auth/google/success" element={<GoogleAuthSuccess />} />
-          <Route path="/magic-bento"         element={<MagicBento />} />
-          <Route path="/antigravity"         element={<Antigravity />} />
+          <Route path="/OnlineAdmission"       element={<Admission />} />
+          <Route path="/PlacementRegistration"  element={<PlacementRegistration />} />
+          <Route path="/auth/google/success"    element={<GoogleAuthSuccess />} />
+          <Route path="/magic-bento"            element={<MagicBento />} />
+          <Route path="/antigravity"            element={<Antigravity />} />
+          <Route path="/video-lectures"         element={<VideoLectures />} />
+          <Route path="/ApplyCertificate"       element={<ApplyCertificate />} />
+          <Route path="/OnlineTest"             element={<OnlineTest />} />
+          <Route path="/Services"               element={<Services />} />
+          <Route path="/Webinar"                element={<Webinar />} />
+          <Route path="/Workshop"               element={<Workshop />} />
 
           {/* Logged in users only */}
           <Route path="/user/dashboard" element={

@@ -8,11 +8,6 @@ const EVENT_URL        = `${import.meta.env.VITE_API_URL}/event`;
 const MENTOR_URL       = `${import.meta.env.VITE_API_URL}/mentor`;
 const REGISTRATION_URL = `${import.meta.env.VITE_API_URL}/eventRegistration`;
 
-// NOTE: adjust this if your admin token is stored differently (e.g. AuthContext, cookie auth).
-function getToken() {
-  return "";
-}
-
 function formatDate(iso) {
   if (!iso) return "—";
   return new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
@@ -26,8 +21,14 @@ function formatDateTime(iso) {
 }
 
 // ── Safe fetch helper — avoids "Unexpected end of JSON input" crashes ─────────
-async function safeFetch(url, options) {
-  const res = await fetch(url, options);
+async function safeFetch(url, options = {}) {
+  const res = await fetch(url, {
+    credentials: "include",
+    ...options,
+    headers: {
+      ...(options.headers || {}),
+    },
+  });
   const raw = await res.text();
   let data = null;
   try { data = raw ? JSON.parse(raw) : null; } catch { /* not JSON */ }
@@ -599,9 +600,7 @@ function RegistrationsTab() {
     setLoading(true);
     setError(null);
     try {
-      const data = await safeFetch(`${REGISTRATION_URL}/all`, {
-        credentials: "include",
-      });
+      const data = await safeFetch(`${REGISTRATION_URL}/all`);
       const list = data?.registrations || [];
       // newest first, in case the backend sort order ever changes
       list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));

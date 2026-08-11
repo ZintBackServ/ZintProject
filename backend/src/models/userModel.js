@@ -77,6 +77,11 @@ const userSchema = new mongoose.Schema(
       default: null,
       select: false,
     },
+    // Block user from submitting reviews
+    isReviewBlocked: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

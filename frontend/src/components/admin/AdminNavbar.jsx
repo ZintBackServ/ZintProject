@@ -1,7 +1,7 @@
 // components/admin/AdminNavbar.jsx
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../hooks/useAuth";
 
 function AdminNavbar({ onToggleSidebar }) {
   const { logout } = useAuth();
@@ -112,7 +112,7 @@ export default AdminNavbar;
 // // components/admin/AdminNavbar.jsx
 // import { useState } from "react";
 // import { useNavigate, Link } from "react-router-dom";
-// import { useAuth } from "../../context/AuthContext";
+// import { useAuth } from "../../hooks/useAuth";
 
 // function AdminNavbar({ onToggleSidebar }) {
 //   const { logout } = useAuth();

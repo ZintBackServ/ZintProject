@@ -8,11 +8,13 @@ import CourseSlider from "./trendingCourseSlider";
 import PlacedStudentsSlider from "../components/PlacedStudentSlider";
 import Location from "../components/Location";
 import Reviews from "../components/Reviews";
-import ContactUs from "../components/ContactUS";
+import ContactUS from "../components/ContactUS";
 import Mentor from "./Mentor";
 import MagicBento, { MagicBentoWrapper } from "./MagicBento";
 import Antigravity from "./Antigravity";
 import { usePageMeta } from "../hooks/usePageMeta";
+import VideoLectures from "../components/VideoLectures";
+
 
 const DarkPurple = "#8E1387";
 const PrimaryPurple = "#B11FA8";
@@ -101,6 +103,7 @@ function Home() {
       <LatestUpdates />
       <CourseSlider />
       <PlacedStudentsSlider />
+      <VideoLectures />
 
 
       {/* HERO + SIDEBAR */}
@@ -283,7 +286,7 @@ function Home() {
       <Reviews />
       <Mentor />
       <Location />
-      <ContactUs />
+      <ContactUS />
     </div>
   );
 }

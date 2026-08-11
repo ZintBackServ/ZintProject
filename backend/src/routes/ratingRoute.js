@@ -6,19 +6,28 @@ const {
   getRatingsByTarget,
   getRatingStats,
   toggleVisibility,
+  toggleUserBlock,
   deleteRating,
   deleteAllRatingsByTarget,
 } = require("../controllers/ratingController");
 
+const authentication = require("../middlewares/authMiddleware");
+const authorization  = require("../middlewares/authorization");
+
+const { formLimiter } = require("../middlewares/rateLimiter");
+
+// ── AUTHENTICATED USER ROUTES ──────────────────────────────────────────────────
+router.post("/addRating", authentication, formLimiter, addRating);
+
 // ── PUBLIC ROUTES ─────────────────────────────────────────────────────────────
-router.post("/addRating", addRating);
-router.get("/target/:targetName", getRatingsByTarget); // param name now matches controller
+router.get("/target/:targetName", getRatingsByTarget);
 
 // ── ADMIN ROUTES ──────────────────────────────────────────────────────────────
-router.get("/stats", getRatingStats);
-router.get("/all", getAllRatings);
-router.patch("/visibility/:id", toggleVisibility);
-router.delete("/delete/:id", deleteRating);
-router.delete("/target/:targetName", deleteAllRatingsByTarget);
+router.get("/stats",                  authentication, authorization("admin"), getRatingStats);
+router.get("/all",                    authentication, authorization("admin"), getAllRatings);
+router.patch("/visibility/:id",       authentication, authorization("admin"), toggleVisibility);
+router.patch("/block-user/:userId",   authentication, authorization("admin"), toggleUserBlock);
+router.delete("/delete/:id",          authentication, authorization("admin"), deleteRating);
+router.delete("/target/:targetName",  authentication, authorization("admin"), deleteAllRatingsByTarget);
 
-module.exports = router;
+module.exports = router;

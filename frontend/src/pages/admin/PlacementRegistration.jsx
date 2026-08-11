@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 
 const PP = "#B026B5";
 const BL = "#38BDF8";
@@ -9,10 +9,10 @@ const PLACEMENT_URL = `${import.meta.env.VITE_API_URL}/placementRegistration`;
 
 async function safeFetch(url, options = {}) {
   const res = await fetch(url, {
+    credentials: "include",
     ...options,
     headers: {
       ...(options.headers || {}),
-      credentials: "include",
     },
   });
   const raw = await res.text();

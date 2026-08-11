@@ -12,8 +12,10 @@ const optionalAuth   = require("../middlewares/optionalAuth");
 const authentication = require("../middlewares/authMiddleware");
 const authorization  = require("../middlewares/authorization");
 
-// ── Public — works for both guests and logged-in users ──
-router.post("/addInternshipRegistration", optionalAuth, addInternshipRegistration);
+const { formLimiter } = require("../middlewares/rateLimiter");
+
+// ── Public — works for both guests and logged-in users (rate-limited) ──
+router.post("/addInternshipRegistration", formLimiter, optionalAuth, addInternshipRegistration);
 
 // ── Admin only ──
 router.get("/allInternshipRegistrations", authentication, authorization("admin"), getAllInternshipRegistrations);

@@ -32,12 +32,16 @@ const createOrder = async (req, res) => {
       return res.status(404).json({ success: false, message: "Course not found." });
     }
 
-    // Determine price based on mode selected by user
-    const amount = mode === "online" ? course.online_fee : course.fee;
+    // Determine price based on mode selected by user (case-insensitive check with fallback)
+    const normalizedMode = (mode || "").toString().toLowerCase();
+    const amount = normalizedMode === "online"
+      ? (course.online_fee ?? course.fee)
+      : (course.fee ?? course.online_fee);
+
     if (!amount || amount <= 0) {
       return res.status(400).json({
         success: false,
-        message: "This course has no fee. Use the free enrollment endpoint.",
+        message: "This course has no fee set for the selected mode.",
       });
     }
 
@@ -103,10 +107,13 @@ const createOrder = async (req, res) => {
     });
   } catch (error) {
     if (res.headersSent) return;
+    console.error("createOrder error:", error);
     logger.error("createOrder error:", error);
-    return res.status(500).json({
+    const errMsg = error?.error?.description || error?.message || "Failed to process payment order.";
+    const statusCode = error?.statusCode || error?.status || 400;
+    return res.status(statusCode).json({
       success: false,
-      message: error?.error?.description || error.message,
+      message: errMsg,
     });
   }
 };

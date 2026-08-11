@@ -1,16 +1,17 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 
 const reviews = [
   {
-    id: 1, name: "Shanmuk Reddy", initials: "SR", rating: 4.5,
+    id: 1, name: "Shivam Savita", initials: "SS", rating: 4.5,
     course: "Real-Time Expert", date: "2 days ago",
-    text: "I had an opportunity to learn multicloud DevOps under the guidance of Veera Sir and it was a great experience. His teaching style is clear and practical, making complex cloud concepts easy to understand.",
+    text: "I had an opportunity to learn multicloud DevOps under the guidance of Abhishek Sir and it was a great experience. His teaching style is clear and practical, making complex cloud concepts easy to understand.",
     gradient: "linear-gradient(135deg,#f472b6,#e879f9)",
   },
   {
-    id: 2, name: "V Sai Krishna Teja", initials: "VK", rating: 5,
+    id: 2, name: " Rishi Chauhan", initials: "RV", rating: 5,
     course: "Real-Time Expert", date: "1 week ago",
-    text: "I completed a data science course where Omkar Sir was my trainer. His teaching was excellent, focusing on real-world company problems, and I gained practical experience through internships.",
+    text: "I completed a data science course where Rohit Sir was my trainer. His teaching was excellent, focusing on real-world company problems, and I gained practical experience through internships.",
     gradient: "linear-gradient(135deg,#c026d3,#a855f7)",
   },
   {
@@ -20,7 +21,7 @@ const reviews = [
     gradient: "linear-gradient(135deg,#ec4899,#f43f5e)",
   },
   {
-    id: 4, name: "Ravi Shankar", initials: "RS", rating: 4,
+    id: 4, name: "Anuj Dubey", initials: "AD", rating: 4,
     course: "Java Backend", date: "5 days ago",
     text: "Good teaching staff especially the Java faculty. The hands-on projects really helped me understand core concepts deeply. Highly recommend for anyone looking to upskill in backend development.",
     gradient: "linear-gradient(135deg,#d946ef,#c026d3)",
@@ -32,7 +33,7 @@ const reviews = [
     gradient: "linear-gradient(135deg,#f472b6,#c026d3)",
   },
   {
-    id: 6, name: "Karthik Naidu", initials: "KN", rating: 4.5,
+    id: 6, name: "Satyam Purohit", initials: "SP", rating: 4.5,
     course: "DevOps & Cloud", date: "1 month ago",
     text: "The DevOps course exceeded my expectations. Practical labs on AWS, Docker, and Kubernetes were top-notch. The trainer's industry experience really shows in the quality of content delivered.",
     gradient: "linear-gradient(135deg,#e879f9,#a855f7)",
@@ -114,6 +115,7 @@ function ReviewCard({ review }) {
 }
 
 export default function ReviewSlider() {
+  const navigate = useNavigate();
   const [current, setCurrent] = useState(0);
   const [perPage, setPerPage] = useState(3);
   const vpRef = useRef(null);
@@ -287,12 +289,14 @@ export default function ReviewSlider() {
           <p style={{ fontSize: 13, color: "#9d4edd", marginBottom: 12 }}>
             Join <strong style={{ color: "#2d1b30" }}>5,000+</strong> students who transformed their careers
           </p>
-          <button style={{
-            padding: "12px 32px",
-            background: "linear-gradient(135deg,#c026d3,#a855f7)",
-            color: "#fff", border: "none", borderRadius: 12,
-            fontSize: 14, fontWeight: 600, cursor: "pointer",
-          }}>
+          <button
+            onClick={() => navigate("/courses")}
+            style={{
+              padding: "12px 32px",
+              background: "linear-gradient(135deg,#c026d3,#a855f7)",
+              color: "#fff", border: "none", borderRadius: 12,
+              fontSize: 14, fontWeight: 600, cursor: "pointer",
+            }}>
             Start learning today
           </button>
         </div>

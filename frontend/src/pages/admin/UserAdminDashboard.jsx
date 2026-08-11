@@ -1,4 +1,4 @@
-﻿// pages/admin/UserAdminDashboard.jsx
+// pages/admin/UserAdminDashboard.jsx
 // API routes from userRoute.js:
 //   GET  /allUsers          (admin only)
 //   GET  /getUserById/:id   (admin only)
@@ -49,7 +49,7 @@ function UpdateModal({ user, onClose, onUpdated, showToast }) {
     try {
       // PUT /UpdateUser/:id
       const res  = await fetch(`${BASE}/UpdateUser/${user._id}`, {
-        method: "PUT", headers: authHeader(), body: JSON.stringify(form),
+        method: "PUT", credentials: "include", headers: authHeader(), body: JSON.stringify(form),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(Array.isArray(json.msg) ? json.msg.join(", ") : json.msg);
@@ -172,7 +172,7 @@ export default function UserAdminDashboard() {
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
-      const res  = await fetch(`${BASE}/allUsers`, { headers: authHeader() });
+      const res  = await fetch(`${BASE}/allUsers`, { credentials: "include", headers: authHeader() });
       const json = await res.json();
       if (!res.ok) throw new Error(json.msg);
       setUsers(json.data || []);
@@ -186,7 +186,7 @@ export default function UserAdminDashboard() {
   const handleDelete = async () => {
     setDeleteLoading(true);
     try {
-      const res  = await fetch(`${BASE}/deleteUser/${deleteTarget._id}`, { method: "DELETE", headers: authHeader() });
+      const res  = await fetch(`${BASE}/deleteUser/${deleteTarget._id}`, { method: "DELETE", credentials: "include", headers: authHeader() });
       const json = await res.json();
       if (!res.ok) throw new Error(json.msg);
       showToast("User deleted successfully");
@@ -201,7 +201,7 @@ export default function UserAdminDashboard() {
     if (!findId.trim()) return;
     setFindError(""); setFoundUser(null); setFindLoading(true);
     try {
-      const res  = await fetch(`${BASE}/getUserById/${findId.trim()}`, { headers: authHeader() });
+      const res  = await fetch(`${BASE}/getUserById/${findId.trim()}`, { credentials: "include", headers: authHeader() });
       const json = await res.json();
       if (!res.ok) throw new Error(json.msg || "User not found");
       setFoundUser(json.data);

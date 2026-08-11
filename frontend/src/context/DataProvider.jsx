@@ -8,9 +8,16 @@ const DataProvider = ({ children }) => {
 
   const fetchData = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/course/getAllCourse`);
-      const result = await res.json();
-      setData({ courses: result.courses || [] });
+      const [courseRes, catRes] = await Promise.all([
+        fetch(`${import.meta.env.VITE_API_URL}/course/getAllCourse`),
+        fetch(`${import.meta.env.VITE_API_URL}/category/getAllCategories`),
+      ]);
+      const courseResult = await courseRes.json();
+      const catResult    = await catRes.json();
+      setData({
+        courses:    courseResult.courses || [],
+        categories: catResult.categories || [],
+      });
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {

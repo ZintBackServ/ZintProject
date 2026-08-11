@@ -1,39 +1,51 @@
-// context/AuthContext.jsx
-import { createContext, useContext, useState, useEffect } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { SessionContext } from "./sessionContext";
 
 const API = import.meta.env.VITE_API_URL;
-const AuthContext = createContext();
+
+async function fetchCurrentUser() {
+  const res = await fetch(`${API}/user/me`, { credentials: "include" });
+  if (!res.ok) return null;
+
+  const data = await res.json();
+  return data.success ? data.data : null;
+}
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);   // { userId, role, firstName, ... }
+  const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
 
-  // On app load — call /user/me to restore session from httpOnly cookie
   useEffect(() => {
+    let active = true;
+
     (async () => {
       try {
-        const res = await fetch(`${API}/user/me`, {
-          credentials: "include",   // send cookie
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.success) setUser(data.data);
-        }
+        const profile = await fetchCurrentUser();
+        if (active) setUser(profile);
       } catch {
-        // no session
+        if (active) setUser(null);
       } finally {
-        setAuthLoading(false);
+        if (active) setAuthLoading(false);
       }
     })();
+
+    return () => {
+      active = false;
+    };
   }, []);
 
-  // Called after login/OTP — server already set the cookie
-  const login = (userData) => {
-    setUser(userData);
-  };
+  const login = useCallback(async (userData) => {
+    if (userData) {
+      setUser(userData);
+      return userData;
+    }
 
-  // Calls backend to clear cookie, then clears state
-  const logout = async () => {
+    const profile = await fetchCurrentUser();
+    setUser(profile);
+    return profile;
+  }, []);
+
+  const logout = useCallback(async () => {
     try {
       await fetch(`${API}/user/logout`, {
         method: "POST",
@@ -43,15 +55,16 @@ export function AuthProvider({ children }) {
       // ignore network errors
     }
     setUser(null);
-  };
+  }, []);
+
+  const value = useMemo(
+    () => ({ user, login, logout, authLoading }),
+    [user, login, logout, authLoading]
+  );
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, authLoading }}>
+    <SessionContext.Provider value={value}>
       {children}
-    </AuthContext.Provider>
+    </SessionContext.Provider>
   );
-}
-
-export function useAuth() {
-  return useContext(AuthContext);
 }

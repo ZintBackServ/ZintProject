@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 
 const ENQUIRY_URL = `${import.meta.env.VITE_API_URL}/enquiry`;
 
-async function safeFetch(url, options) {
-  const res = await fetch(url, options);
+async function safeFetch(url, options = {}) {
+  const res = await fetch(url, { credentials: "include", ...options });
   const raw = await res.text();
   let data = null;
   try { data = raw ? JSON.parse(raw) : null; } catch { /* not JSON */ }
@@ -12,103 +13,112 @@ async function safeFetch(url, options) {
 }
 
 function formatDate(iso) {
+  if (!iso) return "—";
   return new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 }
 function formatTime(iso) {
+  if (!iso) return "—";
   return new Date(iso).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
 }
 
-// ── Stat Card ─────────────────────────────────────────────────────────────────
-function StatCard({ label, value, icon, color }) {
+/* ── Stat Card Component ── */
+function StatCard({ label, value, icon, color, bg, border }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 sm:p-5 flex items-center gap-3 sm:gap-4">
-      <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center text-lg sm:text-xl shrink-0 ${color}`}>{icon}</div>
-      <div className="min-w-0">
-        <p className="text-zinc-400 text-[10px] sm:text-xs uppercase tracking-widest mb-0.5 truncate">{label}</p>
-        <p className="text-white text-xl sm:text-2xl font-black">{value}</p>
+    <div className={`relative overflow-hidden rounded-2xl border ${border} ${bg} p-4 sm:p-5 transition hover:shadow-lg hover:-translate-y-0.5 duration-200`}>
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-2xl sm:text-3xl">{icon}</span>
+        <span className={`text-2xl sm:text-3xl font-extrabold ${color}`}>{value}</span>
       </div>
+      <p className={`text-xs sm:text-sm font-semibold ${color}`}>{label}</p>
     </div>
   );
 }
 
-// ── Detail Modal ──────────────────────────────────────────────────────────────
+/* ── Detail Modal ── */
 function EnquiryDetailModal({ enquiry, onClose, onMarkContacted, onDelete, marking, deleting }) {
   return (
     <div
-      className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-[1000] p-0 sm:p-4"
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
       onClick={onClose}
     >
       <div
-        className="bg-zinc-900 border border-zinc-800 w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl max-h-[90vh] flex flex-col"
+        className="bg-white rounded-3xl border border-gray-100 shadow-2xl w-full max-w-lg overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-zinc-800 shrink-0">
-          <h3 className="text-white font-bold text-base sm:text-lg">Enquiry Details</h3>
+        {/* Modal Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-lg">
+              {(enquiry.fullName || enquiry.name || "?").charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <h3 className="text-gray-900 font-bold text-base sm:text-lg">{enquiry.fullName || enquiry.name}</h3>
+              <p className="text-gray-400 text-xs">{formatDate(enquiry.createdAt)} at {formatTime(enquiry.createdAt)}</p>
+            </div>
+          </div>
           <button
             onClick={onClose}
-            aria-label="Close"
-            className="text-zinc-500 hover:text-white text-2xl leading-none w-8 h-8 flex items-center justify-center rounded-full hover:bg-zinc-800 transition-colors"
+            className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 flex items-center justify-center text-lg transition"
           >
-            ×
+            ✕
           </button>
         </div>
 
-        <div className="px-5 sm:px-6 py-5 overflow-y-auto flex flex-col gap-4">
+        {/* Modal Content */}
+        <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-white font-semibold text-base">{enquiry.fullName}</p>
-              <p className="text-zinc-500 text-xs">{formatDate(enquiry.createdAt)} · {formatTime(enquiry.createdAt)}</p>
-            </div>
-            <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${
-              enquiry.isContacted ? "bg-green-500/10 text-green-400" : "bg-amber-400/10 text-amber-400"
+            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Status</span>
+            <span className={`text-xs font-extrabold px-3 py-1 rounded-full ${
+              enquiry.isContacted ? "bg-emerald-100 text-emerald-700 border border-emerald-200" : "bg-amber-100 text-amber-700 border border-amber-200"
             }`}>
-              {enquiry.isContacted ? "CONTACTED" : "PENDING"}
+              {enquiry.isContacted ? "✓ Contacted" : "⏳ Pending Follow-up"}
             </span>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 text-sm">
-            <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-3">
-              <p className="text-zinc-500 text-[10px] uppercase tracking-wide mb-1">Email</p>
-              <p className="text-white text-xs break-all">{enquiry.email}</p>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-3.5">
+              <p className="text-gray-400 text-[10px] uppercase tracking-wider font-bold mb-1">📧 Email</p>
+              <p className="text-gray-900 text-xs font-semibold break-all">{enquiry.email || "—"}</p>
             </div>
-            <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-3">
-              <p className="text-zinc-500 text-[10px] uppercase tracking-wide mb-1">Mobile</p>
-              <p className="text-white text-xs">{enquiry.mobile}</p>
+            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-3.5">
+              <p className="text-gray-400 text-[10px] uppercase tracking-wider font-bold mb-1">📞 Mobile</p>
+              <p className="text-gray-900 text-xs font-semibold">{enquiry.mobile || enquiry.phone || "—"}</p>
             </div>
-            <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-3">
-              <p className="text-zinc-500 text-[10px] uppercase tracking-wide mb-1">Course</p>
-              <p className="text-white text-xs">{enquiry.course?.courseName || "—"}</p>
+            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-3.5">
+              <p className="text-gray-400 text-[10px] uppercase tracking-wider font-bold mb-1">📚 Course</p>
+              <p className="text-indigo-600 text-xs font-semibold">{enquiry.course?.courseName || enquiry.course || "General Enquiry"}</p>
             </div>
-            <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-3">
-              <p className="text-zinc-500 text-[10px] uppercase tracking-wide mb-1">Mode</p>
-              <p className="text-white text-xs">{enquiry.mode}</p>
+            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-3.5">
+              <p className="text-gray-400 text-[10px] uppercase tracking-wider font-bold mb-1">💻 Mode</p>
+              <p className="text-gray-900 text-xs font-semibold">{enquiry.mode || "Online / Offline"}</p>
             </div>
           </div>
 
           {enquiry.message && (
-            <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-3">
-              <p className="text-zinc-500 text-[10px] uppercase tracking-wide mb-1">Message</p>
-              <p className="text-zinc-300 text-sm leading-relaxed">{enquiry.message}</p>
+            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4">
+              <p className="text-gray-400 text-[10px] uppercase tracking-wider font-bold mb-1.5">💬 Message / Query</p>
+              <p className="text-gray-700 text-xs sm:text-sm leading-relaxed whitespace-pre-line">{enquiry.message}</p>
             </div>
           )}
         </div>
 
-        <div className="px-5 sm:px-6 py-4 border-t border-zinc-800 shrink-0 flex gap-3">
+        {/* Modal Actions */}
+        <div className="p-4 bg-gray-50 border-t border-gray-100 flex gap-3">
           {!enquiry.isContacted && (
             <button
               onClick={() => onMarkContacted(enquiry._id)}
               disabled={marking === enquiry._id}
-              className="flex-1 bg-amber-400 text-black font-bold py-2.5 rounded-xl hover:bg-amber-300 transition-colors disabled:opacity-50 text-sm"
+              className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl transition disabled:opacity-50 text-xs sm:text-sm shadow-sm"
             >
-              {marking === enquiry._id ? "Updating..." : "Mark Contacted"}
+              {marking === enquiry._id ? "Updating..." : "✓ Mark as Contacted"}
             </button>
           )}
           <button
             onClick={() => onDelete(enquiry._id)}
             disabled={deleting === enquiry._id}
-            className={`${enquiry.isContacted ? "flex-1" : ""} bg-red-500/10 text-red-400 font-bold py-2.5 px-4 rounded-xl hover:bg-red-500/20 transition-colors disabled:opacity-50 text-sm`}
+            className={`${enquiry.isContacted ? "flex-1" : ""} bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 font-bold py-2.5 px-4 rounded-xl transition disabled:opacity-50 text-xs sm:text-sm`}
           >
-            {deleting === enquiry._id ? "Deleting..." : "Delete"}
+            {deleting === enquiry._id ? "Deleting..." : "🗑️ Delete Enquiry"}
           </button>
         </div>
       </div>
@@ -116,21 +126,21 @@ function EnquiryDetailModal({ enquiry, onClose, onMarkContacted, onDelete, marki
   );
 }
 
-// ── Main Admin Enquiry Page ────────────────────────────────────────────────────
+/* ── Main Admin Enquiry Page ── */
 export default function AdminEnquiries() {
-  const [enquiries, setEnquiries] = useState([]);
-  const [loading, setLoading]     = useState(true);
-  const [searchQ, setSearchQ]     = useState("");
-  const [statusFilter, setStatusFilter] = useState("all"); // all | pending | contacted
-  const [selected, setSelected]   = useState(null);
-  const [marking, setMarking]     = useState(null);
-  const [deleting, setDeleting]   = useState(null);
-  const [toast, setToast]         = useState(null);
+  const [enquiries, setEnquiries]       = useState([]);
+  const [loading, setLoading]           = useState(true);
+  const [searchQ, setSearchQ]           = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [selected, setSelected]         = useState(null);
+  const [marking, setMarking]           = useState(null);
+  const [deleting, setDeleting]         = useState(null);
+  const [toast, setToast]               = useState(null);
 
   const loadEnquiries = async () => {
     try {
       const data = await safeFetch(`${ENQUIRY_URL}/allEnquiries`);
-      setEnquiries(data?.data || []);
+      setEnquiries(data?.data || data?.enquiries || []);
     } catch (err) {
       console.log(err);
       setEnquiries([]);
@@ -143,16 +153,16 @@ export default function AdminEnquiries() {
 
   const showToast = (text, type = "success") => {
     setToast({ text, type });
-    setTimeout(() => setToast(null), 2500);
+    setTimeout(() => setToast(null), 3000);
   };
 
   const handleMarkContacted = async (id) => {
     setMarking(id);
     try {
-      const data = await safeFetch(`${ENQUIRY_URL}/markEnquiryContacted/${id}`, { method: "PUT" });
+      await safeFetch(`${ENQUIRY_URL}/markEnquiryContacted/${id}`, { method: "PUT" });
       setEnquiries(prev => prev.map(e => (e._id === id ? { ...e, isContacted: true } : e)));
       setSelected(prev => (prev?._id === id ? { ...prev, isContacted: true } : prev));
-      showToast("Marked as contacted.");
+      showToast("Marked as contacted! 🎉");
     } catch (err) {
       showToast(err.message || "Failed to update.", "error");
     } finally {
@@ -181,165 +191,209 @@ export default function AdminEnquiries() {
       statusFilter === "contacted" ? e.isContacted :
       !e.isContacted;
     const q = searchQ.toLowerCase();
-    const matchSearch = !q ||
-      e.fullName.toLowerCase().includes(q) ||
-      e.email.toLowerCase().includes(q) ||
-      e.mobile.includes(q) ||
-      e.course?.courseName?.toLowerCase().includes(q);
+    const name = (e.fullName || e.name || "").toLowerCase();
+    const email = (e.email || "").toLowerCase();
+    const mobile = (e.mobile || e.phone || "").toLowerCase();
+    const course = (e.course?.courseName || e.course || "").toLowerCase();
+    const matchSearch = !q || name.includes(q) || email.includes(q) || mobile.includes(q) || course.includes(q);
     return matchStatus && matchSearch;
   });
 
   const total     = enquiries.length;
   const pending   = enquiries.filter(e => !e.isContacted).length;
   const contacted = enquiries.filter(e => e.isContacted).length;
-  const thisMonth = enquiries.filter(e => new Date(e.createdAt).getMonth() === new Date().getMonth()).length;
+  const thisMonth = enquiries.filter(e => e.createdAt && new Date(e.createdAt).getMonth() === new Date().getMonth()).length;
 
   if (loading) return (
-    <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center">
       <div className="text-center">
-        <div className="w-10 h-10 rounded-full border-2 border-amber-400 border-t-transparent animate-spin mx-auto mb-3" />
-        <p className="text-zinc-500 text-sm">Loading enquiries...</p>
+        <div className="w-10 h-10 rounded-full border-4 border-indigo-500 border-t-transparent animate-spin mx-auto mb-3" />
+        <p className="text-gray-500 text-sm font-medium">Loading enquiries...</p>
       </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
-      {/* ── Top Nav ── */}
-      <div className="bg-zinc-900 border-b border-zinc-800 sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-amber-400 flex items-center justify-center text-black font-black text-sm shrink-0">E</div>
-            <p className="text-white font-bold text-xs sm:text-sm">Enquiries</p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100 pb-16">
+      {/* ── Toast ── */}
+      {toast && (
+        <div className={`fixed top-5 right-5 z-[100] px-5 py-3 rounded-2xl shadow-xl text-white text-sm font-bold flex items-center gap-2 animate-in fade-in slide-in-from-top-4 duration-200 ${
+          toast.type === "error" ? "bg-rose-600" : "bg-emerald-600"
+        }`}>
+          <span>{toast.type === "error" ? "✕" : "✓"}</span>
+          {toast.text}
+        </div>
+      )}
+
+      {/* ── HEADER ── */}
+      <div className="bg-white border-b border-gray-200 px-4 sm:px-6 md:px-8 py-5 mb-6 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <span className="text-xs font-bold text-indigo-500 uppercase tracking-widest">Admin Dashboard</span>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">💬 Student Enquiries</h1>
+            <p className="text-xs sm:text-sm text-gray-400 mt-0.5">Manage and respond to lead queries from potential students</p>
           </div>
+          <button
+            onClick={loadEnquiries}
+            className="inline-flex items-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold px-4 py-2.5 rounded-xl transition self-start sm:self-auto"
+          >
+            🔄 Refresh List
+          </button>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <div className="px-4 sm:px-6 md:px-8 space-y-6">
 
         {/* ── STATS ── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
-          <StatCard label="Total Enquiries" value={total}     icon="📩" color="bg-amber-400/10 text-amber-400" />
-          <StatCard label="Pending"         value={pending}   icon="⏳" color="bg-orange-500/10 text-orange-400" />
-          <StatCard label="Contacted"       value={contacted} icon="✅" color="bg-green-500/10 text-green-400" />
-          <StatCard label="This Month"      value={thisMonth} icon="📈" color="bg-blue-500/10 text-blue-400" />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <StatCard label="Total Enquiries" value={total}     icon="📩" color="text-indigo-700" bg="bg-indigo-50" border="border-indigo-100" />
+          <StatCard label="Pending"         value={pending}   icon="⏳" color="text-amber-700"  bg="bg-amber-50"  border="border-amber-100" />
+          <StatCard label="Contacted"       value={contacted} icon="✅" color="text-emerald-700 font-bold" bg="bg-emerald-50" border="border-emerald-100" />
+          <StatCard label="This Month"      value={thisMonth} icon="📈" color="text-sky-700"     bg="bg-sky-50"     border="border-sky-100" />
         </div>
 
-        {/* ── Filter bar ── */}
-        <div className="flex flex-col sm:flex-row gap-3 mb-6">
-          <div className="flex items-center gap-2 flex-1 bg-zinc-900 border border-zinc-700 focus-within:border-amber-400 rounded-xl px-4 py-2.5 transition-colors">
-            <svg className="w-4 h-4 text-zinc-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z" />
-            </svg>
+        {/* ── SEARCH & FILTER BAR ── */}
+        <div className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
             <input
               type="text"
               value={searchQ}
               onChange={e => setSearchQ(e.target.value)}
-              placeholder="Search by name, email, mobile or course..."
-              className="flex-1 bg-transparent text-white text-sm outline-none placeholder-zinc-600 min-w-0"
+              placeholder="Search by name, email, phone or course..."
+              className="w-full pl-10 pr-9 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition bg-slate-50/50"
             />
-            {searchQ && <button onClick={() => setSearchQ("")} className="text-zinc-500 hover:text-white text-xl shrink-0">×</button>}
+            {searchQ && (
+              <button onClick={() => setSearchQ("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-sm">
+                ✕
+              </button>
+            )}
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {[
-              { key: "all", label: "All" },
-              { key: "pending", label: "Pending" },
-              { key: "contacted", label: "Contacted" },
+              { key: "all", label: "All Enquiries", count: total },
+              { key: "pending", label: "⏳ Pending", count: pending },
+              { key: "contacted", label: "✅ Contacted", count: contacted },
             ].map(f => (
               <button
                 key={f.key}
                 onClick={() => setStatusFilter(f.key)}
-                className={`shrink-0 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
-                  statusFilter === f.key ? "bg-amber-400 text-black" : "bg-zinc-900 border border-zinc-700 text-zinc-400 hover:border-zinc-500"
+                className={`px-4 py-2.5 rounded-xl text-xs font-semibold border transition flex items-center gap-1.5 ${
+                  statusFilter === f.key
+                    ? "bg-indigo-600 text-white border-indigo-600 shadow-sm"
+                    : "bg-white text-gray-600 border-gray-200 hover:border-indigo-300"
                 }`}
               >
-                {f.label}
+                <span>{f.label}</span>
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${statusFilter === f.key ? "bg-white/20 text-white" : "bg-gray-100 text-gray-500"}`}>
+                  {f.count}
+                </span>
               </button>
             ))}
           </div>
         </div>
 
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base sm:text-lg font-bold">
-            Enquiries <span className="text-zinc-500 font-normal text-sm ml-1">({filtered.length})</span>
-          </h2>
-        </div>
+        {/* ── TABLE CARD ── */}
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h2 className="font-bold text-gray-900 text-sm sm:text-base">
+              Enquiries List <span className="text-gray-400 font-normal text-xs ml-1">({filtered.length})</span>
+            </h2>
+          </div>
 
-        {/* ── Table ── */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden overflow-x-auto">
-          <table className="w-full text-sm min-w-[700px]">
-            <thead>
-              <tr className="border-b border-zinc-800">
-                {["Name", "Contact", "Course", "Mode", "Status", "Received", ""].map(h => (
-                  <th key={h} className="text-left px-4 py-3 text-zinc-400 font-semibold text-xs uppercase tracking-wide whitespace-nowrap">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(e => (
-                <tr
-                  key={e._id}
-                  className="border-b border-zinc-800/50 last:border-0 hover:bg-zinc-800/30 transition-colors cursor-pointer"
-                  onClick={() => setSelected(e)}
-                >
-                  <td className="px-4 py-3">
-                    <p className="font-semibold text-white">{e.fullName}</p>
-                  </td>
-                  <td className="px-4 py-3 text-zinc-400 text-xs">
-                    <p>{e.email}</p>
-                    <p>{e.mobile}</p>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="bg-amber-400/10 text-amber-400 text-xs px-2.5 py-1 rounded-full font-medium whitespace-nowrap">
-                      {e.course?.courseName || "—"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-zinc-400 text-xs whitespace-nowrap">{e.mode}</td>
-                  <td className="px-4 py-3">
-                    <span className={`text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap ${
-                      e.isContacted ? "bg-green-500/10 text-green-400" : "bg-amber-400/10 text-amber-400"
-                    }`}>
-                      {e.isContacted ? "CONTACTED" : "PENDING"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-zinc-500 text-xs whitespace-nowrap">
-                    {formatDate(e.createdAt)}<br />{formatTime(e.createdAt)}
-                  </td>
-                  <td className="px-4 py-3" onClick={(ev) => ev.stopPropagation()}>
-                    <div className="flex items-center gap-2">
-                      {!e.isContacted && (
-                        <button
-                          onClick={() => handleMarkContacted(e._id)}
-                          disabled={marking === e._id}
-                          className="text-amber-400 hover:text-amber-300 disabled:opacity-40 text-xs font-semibold transition-colors whitespace-nowrap"
-                        >
-                          {marking === e._id ? "..." : "Mark Done"}
-                        </button>
-                      )}
-                      <button
-                        onClick={() => handleDelete(e._id)}
-                        disabled={deleting === e._id}
-                        className="text-red-500 hover:text-red-400 disabled:opacity-40 text-xs font-semibold transition-colors"
-                      >
-                        {deleting === e._id ? "..." : "Delete"}
-                      </button>
-                    </div>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[700px]">
+              <thead>
+                <tr className="bg-gray-50/80 border-b border-gray-100">
+                  {["Name", "Contact Info", "Course Interested", "Mode", "Status", "Date", "Actions"].map(h => (
+                    <th key={h} className="text-left px-5 py-3 text-gray-400 font-bold text-[11px] uppercase tracking-wider whitespace-nowrap">{h}</th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {filtered.map(e => (
+                  <tr
+                    key={e._id}
+                    className="hover:bg-indigo-50/30 transition-colors cursor-pointer"
+                    onClick={() => setSelected(e)}
+                  >
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 font-bold text-sm flex items-center justify-center shrink-0">
+                          {(e.fullName || e.name || "?").charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-900">{e.fullName || e.name}</p>
+                          <p className="text-[11px] text-gray-400">ID: {e._id?.substring(0, 8)}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-5 py-4 text-xs text-gray-600">
+                      <p className="font-medium text-gray-900">{e.email || "—"}</p>
+                      <p className="text-gray-400 mt-0.5">{e.mobile || e.phone || "—"}</p>
+                    </td>
+                    <td className="px-5 py-4">
+                      <span className="inline-block bg-violet-50 text-violet-700 border border-violet-100 text-xs px-2.5 py-1 rounded-full font-semibold whitespace-nowrap">
+                        {e.course?.courseName || e.course || "General"}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4 text-xs text-gray-600 whitespace-nowrap font-medium">{e.mode || "—"}</td>
+                    <td className="px-5 py-4 whitespace-nowrap">
+                      <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-full whitespace-nowrap ${
+                        e.isContacted ? "bg-emerald-100 text-emerald-700 border border-emerald-200" : "bg-amber-100 text-amber-700 border border-amber-200"
+                      }`}>
+                        {e.isContacted ? "✓ Contacted" : "⏳ Pending"}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4 text-xs text-gray-400 whitespace-nowrap">
+                      {formatDate(e.createdAt)}<br />
+                      <span className="text-[10px] text-gray-300">{formatTime(e.createdAt)}</span>
+                    </td>
+                    <td className="px-5 py-4 whitespace-nowrap" onClick={(ev) => ev.stopPropagation()}>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setSelected(e)}
+                          className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg transition font-semibold"
+                        >
+                          View
+                        </button>
+                        {!e.isContacted && (
+                          <button
+                            onClick={() => handleMarkContacted(e._id)}
+                            disabled={marking === e._id}
+                            className="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-lg transition font-semibold disabled:opacity-50"
+                          >
+                            {marking === e._id ? "..." : "Done"}
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleDelete(e._id)}
+                          disabled={deleting === e._id}
+                          className="text-xs bg-rose-50 hover:bg-rose-100 text-rose-600 px-3 py-1.5 rounded-lg transition font-semibold disabled:opacity-50"
+                        >
+                          {deleting === e._id ? "..." : "Delete"}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
           {filtered.length === 0 && (
-            <div className="text-center py-16 text-zinc-600">
-              <p className="text-4xl mb-3">📭</p>
-              <p className="text-sm">No enquiries found</p>
+            <div className="text-center py-16 text-gray-400">
+              <p className="text-5xl mb-3">📭</p>
+              <p className="font-semibold text-gray-700 text-sm">No enquiries found</p>
+              <p className="text-xs text-gray-400 mt-1">Try clearing your search query or status filter</p>
             </div>
           )}
         </div>
+
       </div>
 
+      {/* Detail Modal */}
       {selected && (
         <EnquiryDetailModal
           enquiry={selected}
@@ -349,16 +403,6 @@ export default function AdminEnquiries() {
           marking={marking}
           deleting={deleting}
         />
-      )}
-
-      {toast && (
-        <div
-          className={`fixed bottom-4 left-1/2 -translate-x-1/2 px-4 py-2.5 rounded-xl text-sm font-semibold shadow-lg z-[1100] ${
-            toast.type === "error" ? "bg-red-500 text-white" : "bg-green-500 text-black"
-          }`}
-        >
-          {toast.text}
-        </div>
       )}
     </div>
   );

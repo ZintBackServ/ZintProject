@@ -8,20 +8,25 @@ const {
     getEventByName,
 } = require("../controllers/eventController");
 
-const upload = require("../middlewares/multerMiddleware")
+const upload = require("../middlewares/multerMiddleware");
+const authentication = require("../middlewares/authMiddleware");
+const authorization  = require("../middlewares/authorization");
 
-router.post("/addEvent",upload.fields([
-    {
-        name:"eventImage",
-        maxCount:1
-    }
-]),addEvent);
-
+// Public: anyone can view events
 router.get("/allEvent", getAllEvent);
-router.get("/event/name/:name", getEventByName);
-router.delete("/deleteEvent/:id", deleteEvent);
-router.put("/updateEvent/:id",
+router.get("/name/:name", getEventByName);
+
+// Admin only: add, update, delete
+router.post("/addEvent",
+    authentication, authorization("admin"),
     upload.fields([{ name: "eventImage", maxCount: 1 }]),
-    updateEvent);
+    addEvent
+);
+router.put("/updateEvent/:id",
+    authentication, authorization("admin"),
+    upload.fields([{ name: "eventImage", maxCount: 1 }]),
+    updateEvent
+);
+router.delete("/deleteEvent/:id", authentication, authorization("admin"), deleteEvent);
 
 module.exports = router;
