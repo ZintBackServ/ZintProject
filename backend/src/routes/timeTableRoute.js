@@ -6,7 +6,7 @@ const {
   getTimetableById,
   updateTimetable,
   deleteTimetable,
-} = require("../controllers/timetableController");
+} = require("../controllers/timeTableController");
 
 const authentication = require("../middlewares/authMiddleware");
 const authorization  = require("../middlewares/authorization");
