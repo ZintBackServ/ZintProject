@@ -20,6 +20,7 @@ import AddCategory from "./AddCategory";
 import EditCourse  from "./EditCourse";
 import InternshipRegistration from "./InternshipRegistration";
 import PlacementRegistration from "./PlacementRegistration";
+import CurriculumDownloads from "./CurriculumDownloads";
 
 function AdminDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -54,6 +55,7 @@ function AdminDashboard() {
             <Route path="/AddLatestUpdate"   element={<AddLatestUpdate/>} />
             <Route path="/AddCategory" element={<AddCategory />} />
             <Route path="/Enquiries" element={<Enquiries />} />
+            <Route path="/CurriculumDownloads" element={<CurriculumDownloads />} />
             <Route path="/TimeTable" element={<TimeTable />} />
             <Route path="/InternshipRegistration" element={<InternshipRegistration />} />
             <Route path="/PlacementRegistration" element={<PlacementRegistration />} />

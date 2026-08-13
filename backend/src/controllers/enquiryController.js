@@ -1,6 +1,8 @@
+// ── NOTE: This controller handles both General Enquiry Registration and Curriculum Download Registration ──
 const mongoose = require("mongoose");
 const enquiryModel = require("../models/enquiryModel");
 const courseModel  = require("../models/courseModel");
+const { sendCurriculumEmail } = require("../utils/sendEmail");
 
 // ── POST /addEnquiry ──────────────────────────────────────────────
 const addEnquiry = async (req, res) => {
@@ -28,6 +30,16 @@ const addEnquiry = async (req, res) => {
       mode: mode.trim(),
       message: message?.trim(),
     });
+
+    // Send curriculum PDF via Gmail if this is a curriculum download request
+    if (mode.trim().toLowerCase() === "curriculum download") {
+      sendCurriculumEmail(
+        email.trim(),
+        fullName.trim(),
+        courseExists.courseName,
+        courseExists.courseCurriculum
+      ).catch((err) => console.error("Async curriculum email error:", err));
+    }
 
     const populated = await enquiry.populate("course", "courseName");
 

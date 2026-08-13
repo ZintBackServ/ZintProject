@@ -16,7 +16,11 @@ const {
   UpdateUser,
   deleteUser,
   getMyProfile,
+  forgotPassword,
+  verifyResetOTP,
+  resetPassword,
 } = require("../controllers/userController");
+
 
 const authentication = require("../middlewares/authMiddleware");
 const authorization  = require("../middlewares/authorization");
@@ -46,6 +50,12 @@ router.post("/logout",      logoutUser);
 // OTP Routes
 router.post("/verify-otp",  otpLimiter, verifyOTP);
 router.post("/resend-otp",  otpLimiter, resendOTP);
+
+// Forgot Password Routes
+router.post("/forgot-password",     otpLimiter, forgotPassword);
+router.post("/verify-reset-otp",    otpLimiter, verifyResetOTP);
+router.post("/reset-password",      authLimiter, resetPassword);
+
 
 // ── Google OAuth Routes ───────────────────────────────────────────────────────
 // Step 1: Redirect user to Google login page

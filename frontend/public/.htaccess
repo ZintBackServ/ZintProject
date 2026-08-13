@@ -6,7 +6,32 @@
   RewriteCond %{HTTPS} off
   RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-  # SPA Fallback Routing
+  # ── Proxy API routes to Node.js backend ──────────────────────────────────────
+  # IMPORTANT: mod_proxy + mod_proxy_http must both be enabled on the host.
+  # If your host doesn't support mod_proxy (most shared cPanel hosts),
+  # you MUST host the backend on a subdomain (e.g. api.zintinstitute.in)
+  # and set VITE_API_URL=https://api.zintinstitute.in before the production build.
+  <IfModule mod_proxy.c>
+    # Tell Apache to pass the original Host header to Node.js
+    ProxyPreserveHost On
+
+    # Tell Node.js it's running behind an HTTPS reverse proxy
+    # (fixes cookie sameSite=none and FRONTEND_URL detection)
+    RequestHeader set X-Forwarded-Proto "https"
+    RequestHeader set X-Forwarded-Port "443"
+
+    # ── Google OAuth MUST be proxied FIRST (before the SPA fallback) ──────────
+    # Without this, Apache serves index.html for /user/auth/google and
+    # React Router throws "No routes matched location /user/auth/google".
+    RewriteCond %{REQUEST_URI} ^/user/auth/google [NC]
+    RewriteRule ^(.*)$ http://127.0.0.1:2000/$1 [P,L]
+
+    # ── All other backend API paths ───────────────────────────────────────────
+    RewriteCond %{REQUEST_URI} ^/(user|course|mentor|placedStudent|event|eventRegistration|api|rating|notification|category|updates|enquiry|timeTable|internshipRegistration|placementRegistration|admission)(/|$) [NC]
+    RewriteRule ^(.*)$ http://127.0.0.1:2000/$1 [P,L]
+  </IfModule>
+
+  # SPA Fallback Routing (React — must come AFTER API proxy rules above)
   RewriteRule ^index\.html$ - [L]
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d

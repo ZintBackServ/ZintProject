@@ -1,3 +1,4 @@
+// ── NOTE: This model is used for both General Enquiry Registration and Curriculum Download Registration (mode: "Curriculum Download") ──
 const mongoose = require("mongoose");
 
 const enquirySchema = new mongoose.Schema(

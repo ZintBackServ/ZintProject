@@ -338,7 +338,15 @@ export default function AdminEnquiries() {
                         {e.course?.courseName || e.course || "General"}
                       </span>
                     </td>
-                    <td className="px-5 py-4 text-xs text-gray-600 whitespace-nowrap font-medium">{e.mode || "—"}</td>
+                    <td className="px-5 py-4 text-xs whitespace-nowrap font-medium">
+                      {e.mode?.toLowerCase() === "curriculum download" ? (
+                        <span className="inline-block bg-purple-100 text-purple-800 border border-purple-200 text-[11px] px-2.5 py-0.5 rounded-full font-bold">
+                          📄 Curriculum Download
+                        </span>
+                      ) : (
+                        <span className="text-gray-600">{e.mode || "—"}</span>
+                      )}
+                    </td>
                     <td className="px-5 py-4 whitespace-nowrap">
                       <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-full whitespace-nowrap ${
                         e.isContacted ? "bg-emerald-100 text-emerald-700 border border-emerald-200" : "bg-amber-100 text-amber-700 border border-amber-200"

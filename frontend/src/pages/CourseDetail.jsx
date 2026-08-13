@@ -286,6 +286,119 @@ function AddReviewModal({ courseName, ratingForm, setRatingForm, onSubmit, onClo
   );
 }
 
+/* ── Curriculum Download Lead Modal ── */
+function CurriculumDownloadModal({
+  courseName,
+  curriculumForm,
+  setCurriculumForm,
+  onSubmit,
+  onClose,
+  submitting,
+  error,
+  success,
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+      <div className="bg-white w-full max-w-md rounded-2xl p-6 shadow-2xl relative border border-gray-100">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center font-bold text-sm transition"
+        >
+          ✕
+        </button>
+
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-12 h-12 rounded-xl bg-pink-100 flex items-center justify-center text-2xl text-pink-600">
+            📄
+          </div>
+          <div>
+            <h3 className="font-extrabold text-lg text-gray-900 leading-tight">Download Curriculum</h3>
+            <p className="text-xs text-gray-500">{courseName}</p>
+          </div>
+        </div>
+
+        <p className="text-xs text-gray-600 mb-4 leading-relaxed">
+          Please enter your details below to download the complete syllabus & course structure for <strong className="text-pink-600">{courseName}</strong>.
+        </p>
+
+        {success ? (
+          <div className="text-center py-6 px-4 rounded-xl bg-emerald-50 border border-emerald-200">
+            <div className="text-3xl mb-2">🎉</div>
+            <p className="text-emerald-800 font-bold text-sm mb-1">{success}</p>
+            <p className="text-emerald-600 text-xs">Your curriculum PDF is downloading automatically.</p>
+          </div>
+        ) : (
+          <form onSubmit={onSubmit} className="space-y-3.5">
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">
+                Full Name *
+              </label>
+              <input
+                type="text"
+                required
+                value={curriculumForm.fullName}
+                onChange={(e) => setCurriculumForm({ ...curriculumForm, fullName: e.target.value })}
+                placeholder="e.g. Rahul Sharma"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-pink-500 bg-gray-50 text-gray-900"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">
+                Email Address *
+              </label>
+              <input
+                type="email"
+                required
+                value={curriculumForm.email}
+                onChange={(e) => setCurriculumForm({ ...curriculumForm, email: e.target.value })}
+                placeholder="e.g. rahul@example.com"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-pink-500 bg-gray-50 text-gray-900"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">
+                WhatsApp Mobile Number *
+              </label>
+              <input
+                type="tel"
+                required
+                value={curriculumForm.mobile}
+                onChange={(e) => setCurriculumForm({ ...curriculumForm, mobile: e.target.value })}
+                placeholder="e.g. +91 9876543210"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-pink-500 bg-gray-50 text-gray-900"
+              />
+            </div>
+
+            {error && (
+              <p className="text-xs font-semibold text-rose-600 bg-rose-50 p-2.5 rounded-lg border border-rose-100">
+                {error}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full font-bold py-3 rounded-xl text-sm text-white transition-all duration-200 flex items-center justify-center gap-2"
+              style={{ background: PRIMARY, boxShadow: `0 8px 24px ${PRIMARY}44` }}
+            >
+              {submitting ? (
+                <>
+                  <FiLoader className="animate-spin" /> Submitting & Downloading...
+                </>
+              ) : (
+                "Submit & Download PDF 📥"
+              )}
+            </button>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
 /* ─────────────────────────────────────────────
    MAIN COMPONENT
 ───────────────────────────────────────────────── */
@@ -310,16 +423,29 @@ export default function CourseDetail() {
   const [ratingError, setRatingError]           = useState("");
   const [ratingSuccess, setRatingSuccess]       = useState("");
 
+  // ── Curriculum Lead Form Modal State ──
+  const [showCurriculumModal, setShowCurriculumModal] = useState(false);
+  const [curriculumForm, setCurriculumForm]           = useState({ fullName: "", email: "", mobile: "" });
+  const [submittingCurriculum, setSubmittingCurriculum] = useState(false);
+  const [curriculumError, setCurriculumError]         = useState("");
+  const [curriculumSuccess, setCurriculumSuccess]     = useState("");
+
   // Resolve course before any effects that depend on it.
   const course = data?.courses?.find(c => String(c._id) === String(id));
 
-  // Populate user data into rating form when logged in
+  // Populate user data into rating & curriculum form when logged in
   useEffect(() => {
     if (user) {
       setRatingForm(prev => ({
         ...prev,
         studentName: user.name || prev.studentName,
         studentEmail: user.email || prev.studentEmail,
+      }));
+      setCurriculumForm(prev => ({
+        ...prev,
+        fullName: user.firstName ? `${user.firstName} ${user.lastName || ""}`.trim() : (user.name || prev.fullName),
+        email: user.email || prev.email,
+        mobile: user.contactNo || prev.mobile,
       }));
     }
   }, [user]);
@@ -442,22 +568,66 @@ export default function CourseDetail() {
     navigate(`/courses/${id}/fee`);
   };
 
-  // ── DOWNLOAD CURRICULUM handler — logged-in users only ──
+  // ── DOWNLOAD CURRICULUM handler — opens lead popup (no login required) ──
   const handleDownloadClick = () => {
-    if (!course.courseCurriculum) {
+    if (!course?.courseCurriculum) {
       alert("Curriculum not available for this course yet.");
       return;
     }
-    if (!isLoggedIn) {
-      setAuthGate({
-        title: "Login Required",
-        message: "Please sign in or create an account to download the course curriculum.",
-      });
+    setCurriculumError("");
+    setCurriculumSuccess("");
+    setShowCurriculumModal(true);
+  };
+
+  const handleCurriculumSubmit = async (e) => {
+    e.preventDefault();
+    setCurriculumError("");
+    setCurriculumSuccess("");
+
+    if (!curriculumForm.fullName.trim() || !curriculumForm.email.trim() || !curriculumForm.mobile.trim()) {
+      setCurriculumError("Please fill in all fields (Name, Email, WhatsApp Mobile Number).");
       return;
     }
-    setDownloading(true);
-    blobDownload(course.courseCurriculum, `${course.courseName}_Curriculum.pdf`)
-      .finally(() => setDownloading(false));
+
+    setSubmittingCurriculum(true);
+    try {
+      const ENQUIRY_URL = `${import.meta.env.VITE_API_URL}/enquiry`;
+      await safeFetch(`${ENQUIRY_URL}/addEnquiry`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fullName: curriculumForm.fullName.trim(),
+          email: curriculumForm.email.trim(),
+          mobile: curriculumForm.mobile.trim(),
+          course: course._id,
+          mode: "Curriculum Download",
+          message: `Curriculum downloaded for ${course.courseName}`,
+        }),
+      });
+
+      setCurriculumSuccess("Thank you! PDF sent to your Email & downloading now...");
+
+      // Trigger PDF download
+      setDownloading(true);
+      await blobDownload(course.courseCurriculum, `${course.courseName}_Curriculum.pdf`);
+
+      setTimeout(() => {
+        setShowCurriculumModal(false);
+        setCurriculumSuccess("");
+      }, 1500);
+    } catch (err) {
+      console.error("Curriculum submission error:", err);
+      // Fallback: try direct download if API call fails
+      try {
+        await blobDownload(course.courseCurriculum, `${course.courseName}_Curriculum.pdf`);
+        setShowCurriculumModal(false);
+      } catch {
+        setCurriculumError(err.message || "Failed to process request. Please try again.");
+      }
+    } finally {
+      setSubmittingCurriculum(false);
+      setDownloading(false);
+    }
   };
 
   // ── Loading / not-found guards (kept AFTER all hooks so hook order stays stable) ──
@@ -519,6 +689,18 @@ export default function CourseDetail() {
           submitting={submittingRating}
           error={ratingError}
           success={ratingSuccess}
+        />
+      )}
+      {showCurriculumModal && (
+        <CurriculumDownloadModal
+          courseName={course.courseName}
+          curriculumForm={curriculumForm}
+          setCurriculumForm={setCurriculumForm}
+          onSubmit={handleCurriculumSubmit}
+          onClose={() => { setShowCurriculumModal(false); setCurriculumError(""); setCurriculumSuccess(""); }}
+          submitting={submittingCurriculum}
+          error={curriculumError}
+          success={curriculumSuccess}
         />
       )}
 

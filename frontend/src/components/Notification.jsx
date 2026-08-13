@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { toHttps } from "../utils/api";
 
 /**
  * Base URL of the backend API.
@@ -189,7 +190,7 @@ export default function NotificationPopup() {
           {current.image && (
             <div className="w-full h-100 overflow-hidden bg-gray-100">
               <img
-                src={current.image}
+                src={toHttps(current.image)}
                 alt={current.title || "Notification"}
                 loading="lazy"
                 decoding="async"

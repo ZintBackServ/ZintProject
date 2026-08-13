@@ -5,7 +5,6 @@ const logger = require("../utils/logger");
 const authentication = async (req, res, next) => {
   try {
     // Read token from httpOnly cookie first, fall back to Authorization header
-    // for backward compatibility during migration
     let token = req.cookies?.token;
 
     if (!token) {
@@ -21,9 +20,21 @@ const authentication = async (req, res, next) => {
 
     const decodedToken = jwt.verify(token, process.env.JWT_SECRET_KEY);
 
-    const user = await userModel.findById(decodedToken.userId);
+    // Fetch user AND sessionToken (select: false requires explicit inclusion)
+    const user = await userModel.findById(decodedToken.userId).select("+sessionToken");
     if (!user) {
       return res.status(401).json({ success: false, msg: "User not found." });
+    }
+
+    // ── Single-session check ──────────────────────────────────────────────────
+    // If the token's sessionToken doesn't match what's in DB, this device was
+    // logged out by a newer login on another device.
+    if (user.sessionToken && decodedToken.sessionToken !== user.sessionToken) {
+      return res.status(401).json({
+        success: false,
+        msg: "Your account was logged in from another device. Please log in again.",
+        code: "SESSION_SUPERSEDED",
+      });
     }
 
     req.userId   = decodedToken.userId;
@@ -41,3 +52,4 @@ const authentication = async (req, res, next) => {
 };
 
 module.exports = authentication;
+

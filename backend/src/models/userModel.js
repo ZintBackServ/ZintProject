@@ -82,6 +82,33 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+
+    // Single-session enforcement — rotated on every login/Google OAuth
+    // Stored in JWT payload; authMiddleware rejects any token whose
+    // sessionToken doesn't match the value in MongoDB.
+    sessionToken: {
+      type: String,
+      default: null,
+      select: false,    // never leaked in normal queries
+    },
+
+    // Forgot Password — reset OTP + short-lived token
+    resetOtp: {
+      type: String,
+      select: false,
+    },
+    resetOtpExpiry: {
+      type: Date,
+      select: false,
+    },
+    resetToken: {
+      type: String,
+      select: false,
+    },
+    resetTokenExpiry: {
+      type: Date,
+      select: false,
+    },
   },
   { timestamps: true }
 );

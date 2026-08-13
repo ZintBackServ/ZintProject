@@ -3,7 +3,8 @@ const bcrypt    = require("bcrypt");
 const jwt       = require("jsonwebtoken");
 const crypto    = require("crypto");
 const logger    = require("../utils/logger");
-const { sendOTPEmail } = require("../utils/sendEmail");
+const { sendOTPEmail, sendPasswordResetEmail } = require("../utils/sendEmail");
+
 const {
   isValid,
   validators,
@@ -14,23 +15,45 @@ const mongoose = require("mongoose");
 
 // ── Cookie config ────────────────────────────────────────────────────────────
 const IS_PROD = process.env.NODE_ENV === "production";
+
+function cookieSameSite() {
+  if (!IS_PROD) return "lax";
+
+  const apiOrigin = process.env.API_PUBLIC_URL || process.env.API_URL;
+  const frontend = process.env.frontendurl || process.env.FRONTEND_URL;
+  if (!apiOrigin || !frontend) return "lax";
+
+  try {
+    return new URL(apiOrigin).origin !== new URL(frontend).origin ? "none" : "lax";
+  } catch {
+    return "lax";
+  }
+}
+
 const COOKIE_OPTIONS = {
-  httpOnly: true,                    // JS cannot read it → XSS-safe
-  secure:   IS_PROD,                 // HTTPS only in prod
-  sameSite: "lax",                   // works same-origin; in dev, Vite proxy makes it same-origin
-  maxAge:   24 * 60 * 60 * 1000,    // 24 h in ms
+  httpOnly: true,
+  secure:   IS_PROD,
+  sameSite: cookieSameSite(),
+  maxAge:   24 * 60 * 60 * 1000,
 };
 
 // ── Helper: generate JWT + set httpOnly cookie ───────────────────────────────
-const generateToken = (user) =>
+// sessionToken is embedded in the JWT so authMiddleware can compare it
+// against the value stored in MongoDB — if they differ, the session is stale.
+const generateToken = (user, sessionToken) =>
   jwt.sign(
-    { userId: user._id, role: user.role },
+    { userId: user._id, role: user.role, sessionToken },
     process.env.JWT_SECRET_KEY,
-    { expiresIn: "24h" }                             // FIX: was "24hr" (non-standard)
+    { expiresIn: "24h" }
   );
 
-const setTokenCookie = (res, user) => {
-  const token = generateToken(user);
+// Generates a fresh sessionToken, persists it to DB, mints JWT, sets cookie.
+// Every call invalidates all previous sessions for that user.
+const setTokenCookie = async (res, user) => {
+  const sessionToken = crypto.randomBytes(32).toString("hex");
+  // Save to DB (select: false field — need direct update)
+  await userModel.findByIdAndUpdate(user._id, { sessionToken });
+  const token = generateToken(user, sessionToken);
   res.cookie("token", token, COOKIE_OPTIONS);
   return token;
 };
@@ -182,8 +205,8 @@ const verifyOTP = async (req, res) => {
     user.otpLockedUntil  = null;
     await user.save();
 
-    // Set httpOnly cookie
-    setTokenCookie(res, user);
+    // Set httpOnly cookie (also rotates sessionToken → invalidates other devices)
+    await setTokenCookie(res, user);
 
     return res.status(200).json({ success: true, msg: "Email verified successfully." });
   } catch (error) {
@@ -257,7 +280,7 @@ const loginUser = async (req, res) => {
       return res.status(401).json({ success: false, msg: "Incorrect Password" });
     }
 
-    setTokenCookie(res, user);
+    await setTokenCookie(res, user);
     return res.status(200).json({ success: true, msg: "Login Successful" });
   } catch (error) {
     logger.error("loginUser error:", error);
@@ -268,11 +291,24 @@ const loginUser = async (req, res) => {
 // ────────────────────────────────────────────────────────────────────────────
 // 5. Logout — clears the httpOnly cookie
 // ────────────────────────────────────────────────────────────────────────────
-const logoutUser = (req, res) => {
+const logoutUser = async (req, res) => {
+  try {
+    // Clear the sessionToken in DB so the cookie is dead even if someone kept it
+    const token = req.cookies?.token;
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+        if (decoded?.userId) {
+          await userModel.findByIdAndUpdate(decoded.userId, { sessionToken: null });
+        }
+      } catch (_) { /* token already invalid — fine */ }
+    }
+  } catch (_) { /* ignore */ }
+
   res.clearCookie("token", {
     httpOnly: true,
     secure:   IS_PROD,
-    sameSite: "lax",
+    sameSite: cookieSameSite(),
   });
   return res.status(200).json({ success: true, msg: "Logged out successfully." });
 };
@@ -286,7 +322,7 @@ const googleAuthCallback = async (req, res) => {
     const user = req.user;
     if (!user) return res.redirect(`${process.env.FRONTEND_URL}/login?error=google_failed`);
 
-    setTokenCookie(res, user);
+    await setTokenCookie(res, user);
     // Redirect without token in URL — frontend reads /user/me instead
     return res.redirect(`${process.env.FRONTEND_URL}/auth/google/success`);
   } catch (error) {
@@ -436,6 +472,127 @@ const getMyProfile = async (req, res) => {
   }
 };
 
+// ────────────────────────────────────────────────────────────────────────────
+// FORGOT PASSWORD — Step 1: Send reset OTP to email
+// ────────────────────────────────────────────────────────────────────────────
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ success: false, msg: "Email is required." });
+
+    const cleanEmail = email.toLowerCase().trim();
+    const user = await userModel.findOne({ email: cleanEmail });
+
+    if (!user) {
+      return res.status(404).json({ success: false, msg: "No user found with this email address. Please check your email or sign up." });
+    }
+
+    if (user.authProvider === "google") {
+      return res.status(400).json({ success: false, msg: "This account uses Google Sign-In. Please click 'Continue with Google'." });
+    }
+
+    const otp       = generateOTP();
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    user.resetOtp         = otp;
+    user.resetOtpExpiry   = otpExpiry;
+    user.resetToken       = undefined;
+    user.resetTokenExpiry = undefined;
+    await user.save();
+
+    await sendPasswordResetEmail(user.email, otp);
+
+    return res.status(200).json({ success: true, msg: "OTP sent to your email!" });
+  } catch (error) {
+    logger.error("forgotPassword error:", error);
+    return res.status(500).json({ success: false, msg: error.message || "Failed to send OTP email." });
+  }
+};
+
+// ────────────────────────────────────────────────────────────────────────────
+// FORGOT PASSWORD — Step 2: Verify OTP, issue reset token
+// ────────────────────────────────────────────────────────────────────────────
+const verifyResetOTP = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) return res.status(400).json({ success: false, msg: "Email and OTP are required." });
+
+    const user = await userModel
+      .findOne({ email: email.toLowerCase().trim() })
+      .select("+resetOtp +resetOtpExpiry +resetToken +resetTokenExpiry");
+
+    if (!user) return res.status(404).json({ success: false, msg: "User not found." });
+    if (!user.resetOtp || !user.resetOtpExpiry) {
+      return res.status(400).json({ success: false, msg: "No OTP found. Please request a new one." });
+    }
+    if (new Date() > user.resetOtpExpiry) {
+      return res.status(400).json({ success: false, msg: "OTP has expired. Please request a new one." });
+    }
+    if (user.resetOtp !== otp) {
+      return res.status(400).json({ success: false, msg: "Invalid OTP. Please try again." });
+    }
+
+    // OTP valid — generate a short-lived reset token (15 minutes)
+    const resetToken       = crypto.randomBytes(32).toString("hex");
+    const resetTokenExpiry = new Date(Date.now() + 15 * 60 * 1000);
+
+    user.resetOtp         = undefined;
+    user.resetOtpExpiry   = undefined;
+    user.resetToken       = resetToken;
+    user.resetTokenExpiry = resetTokenExpiry;
+    await user.save();
+
+    return res.status(200).json({ success: true, msg: "OTP verified.", resetToken });
+  } catch (error) {
+    logger.error("verifyResetOTP error:", error);
+    return res.status(500).json({ success: false, msg: "Internal Server Error" });
+  }
+};
+
+// ────────────────────────────────────────────────────────────────────────────
+// FORGOT PASSWORD — Step 3: Reset password with token
+// ────────────────────────────────────────────────────────────────────────────
+const resetPassword = async (req, res) => {
+  try {
+    const { resetToken, newPassword } = req.body;
+    if (!resetToken || !newPassword) {
+      return res.status(400).json({ success: false, msg: "Reset token and new password are required." });
+    }
+
+    if (!isValidPassword(newPassword)) {
+      return res.status(400).json({
+        success: false,
+        msg: "Password must be 8–20 characters with uppercase, lowercase, number & special character.",
+      });
+    }
+
+
+    // Find user by reset token
+
+    const matchedUser = await userModel
+      .findOne({ resetToken })
+      .select("+password +resetToken +resetTokenExpiry");
+
+    if (!matchedUser) {
+      return res.status(400).json({ success: false, msg: "Invalid or expired reset token." });
+    }
+    if (new Date() > matchedUser.resetTokenExpiry) {
+      return res.status(400).json({ success: false, msg: "Reset token has expired. Please start over." });
+    }
+
+    matchedUser.password          = await bcrypt.hash(newPassword, 10);
+    matchedUser.resetToken        = undefined;
+    matchedUser.resetTokenExpiry  = undefined;
+    await matchedUser.save();
+
+    return res.status(200).json({ success: true, msg: "Password reset successful. You can now sign in." });
+  } catch (error) {
+    logger.error("resetPassword error:", error);
+    return res.status(500).json({ success: false, msg: "Internal Server Error" });
+  }
+};
+
+
 module.exports = {
   signUpUser,
   loginUser,
@@ -449,4 +606,7 @@ module.exports = {
   UpdateUser,
   deleteUser,
   getMyProfile,
+  forgotPassword,
+  verifyResetOTP,
+  resetPassword,
 };

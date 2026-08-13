@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { googleAuthUrl } from "../utils/api";
 
 // ── Brand colors ─────────────────────────────────
 const DarkPurple    = "#8E1387";
@@ -113,29 +114,28 @@ function RegistrationStep({ onSuccess }) {
 
   const [formData, setFormData] = useState({
     firstName: "", lastName: "", email: "", contactNo: "",
-    address: "", city: "", state: "", password: "", confirmPassword: "",
+    password: "", confirmPassword: "",
   });
+
   const [errors, setErrors]         = useState({});
   const [serverError, setServerError] = useState("");
   const [loading, setLoading]       = useState(false);
 
   const validate = () => {
     const e = {};
-    const { firstName, lastName, email, contactNo, address, city, state, password, confirmPassword } = formData;
+    const { firstName, lastName, email, contactNo, password, confirmPassword } = formData;
     if (firstName.trim().length < 2)          e.firstName        = "At least 2 characters required";
     else if (!/^[a-zA-Z ]+$/.test(firstName)) e.firstName        = "Only letters allowed";
     if (!lastName.trim())                      e.lastName         = "Last name is required";
     else if (!/^[a-zA-Z ]+$/.test(lastName))  e.lastName         = "Only letters allowed";
     if (!/^\S+@\S+\.\S+$/.test(email))        e.email            = "Invalid email address";
     if (!/^(?:\+91)?[6-9]\d{9}$/.test(contactNo)) e.contactNo   = "Invalid Indian phone number";
-    if (!address.trim())                       e.address          = "Address is required";
-    if (!city.trim())                          e.city             = "City is required";
-    if (!state.trim())                         e.state            = "State is required";
     if (!/^(?=.{8,20}$)(?!.*\s)(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/.test(password))
       e.password = "8–20 chars with uppercase, lowercase, number & special character";
     if (password !== confirmPassword)          e.confirmPassword  = "Passwords do not match";
     return e;
   };
+
 
   // Single stable handler — never recreated
   const handleChange = useCallback((e) => {
@@ -201,7 +201,7 @@ function RegistrationStep({ onSuccess }) {
         {/* Google */}
         <button
           type="button"
-          onClick={() => { window.location.href = `${import.meta.env.VITE_API_URL}/user/auth/google`; }}
+          onClick={() => { window.location.href = googleAuthUrl(); }}
           style={{
             width: "100%", display: "flex", alignItems: "center", justifyContent: "center",
             gap: 10, padding: "10px 16px", borderRadius: 10, fontSize: 14, fontWeight: 500,
@@ -248,13 +248,37 @@ function RegistrationStep({ onSuccess }) {
             </div>
 
             <Field label="Email Address" name="email"     type="email" placeholder="rahul@example.com"  value={formData.email}     onChange={handleChange} error={errors.email} />
-            <Field label="Phone Number"  name="contactNo" type="tel"   placeholder="+91 98765 43210"    value={formData.contactNo} onChange={handleChange} error={errors.contactNo} />
-            <Field label="Address"       name="address"               placeholder="123, MG Road"        value={formData.address}   onChange={handleChange} error={errors.address} />
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              <Field label="City"  name="city"  placeholder="Gwalior"           value={formData.city}  onChange={handleChange} error={errors.city} />
-              <Field label="State" name="state" placeholder="Madhya Pradesh"    value={formData.state} onChange={handleChange} error={errors.state} />
+            {/* OTP hint: email */}
+            <div style={{
+              display: "flex", alignItems: "flex-start", gap: 7,
+              padding: "8px 12px", borderRadius: 8,
+              background: "#f0f9ff", border: "1px solid #bae6fd",
+              marginTop: -6,
+            }}>
+              <svg width={14} height={14} fill="#0ea5e9" viewBox="0 0 20 20" style={{ flexShrink: 0, marginTop: 1 }}>
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+              <p style={{ fontSize: 12, color: "#0369a1", margin: 0, lineHeight: 1.5 }}>
+                Please enter your <strong>correct email</strong> — we will send an <strong>OTP</strong> to this email for verification.
+              </p>
             </div>
+
+            <Field label="Phone Number"  name="contactNo" type="tel"   placeholder="+91 98765 43210"    value={formData.contactNo} onChange={handleChange} error={errors.contactNo} />
+            {/* OTP hint: phone */}
+            <div style={{
+              display: "flex", alignItems: "flex-start", gap: 7,
+              padding: "8px 12px", borderRadius: 8,
+              background: "#fdf4ff", border: "1px solid #e9d5ff",
+              marginTop: -6,
+            }}>
+              <svg width={14} height={14} fill="#a855f7" viewBox="0 0 20 20" style={{ flexShrink: 0, marginTop: 1 }}>
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+              <p style={{ fontSize: 12, color: "#7e22ce", margin: 0, lineHeight: 1.5 }}>
+                Please enter your <strong>correct mobile number</strong> — we may send an <strong>OTP</strong> to this number for verification.
+              </p>
+            </div>
+
 
             <PasswordField label="Password"         name="password"        placeholder="••••••••" value={formData.password}        onChange={handleChange} error={errors.password} />
             <PasswordField label="Confirm Password" name="confirmPassword" placeholder="••••••••" value={formData.confirmPassword} onChange={handleChange} error={errors.confirmPassword} />

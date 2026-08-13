@@ -1,3 +1,4 @@
+// ── NOTE: These routes serve both General Enquiry Registration and Curriculum Download Registration (mode: "Curriculum Download") ──
 const express = require("express");
 const router  = express.Router();
 const {

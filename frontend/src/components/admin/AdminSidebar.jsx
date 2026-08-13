@@ -16,6 +16,7 @@ const links = [
   { path: "/admin/dashboard/AddCategory",             label: "Add Category" },
   { path: "/admin/dashboard/AddLatestUpdate",         label: "Add Latest Update" },
   { path: "/admin/dashboard/Enquiries",               label: "Enquiries" },
+  { path: "/admin/dashboard/CurriculumDownloads",     label: "📄 Curriculum Downloads" },
   { path: "/admin/dashboard/TimeTable",               label: "Time Table" },
   { path: "/admin/dashboard/InternshipRegistration",  label: "Internship Registrations" },
   { path: "/admin/dashboard/PlacementRegistration",  label: "Placement Registration" },

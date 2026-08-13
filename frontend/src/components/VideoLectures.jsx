@@ -4,28 +4,28 @@ import { FiPlayCircle, FiClock, FiTv, FiVideo } from "react-icons/fi";
 const DEFAULT_LECTURES = [
   {
     id: "1",
-    title: "C Programming & Logic Building Masterclass",
-    category: "Programming",
-    duration: "45 Mins",
-    embedUrl: "https://www.youtube-nocookie.com/embed/KBdCZZ1aH38?si=ZQLGTlOqnYOT_FAT",
-    description: "Learn fundamental programming concepts, loops, memory management, and problem-solving with C.",
-  },
-  {
-    id: "2",
-    title: "Learn - Full Stack Web Development",
+    title: "Learn - Full Stack Development",
     category: "Web Development",
-    duration: "60 Mins",
+    duration: "6 Mins",
     embedUrl: "https://www.youtube-nocookie.com/embed/KBdCZZ1aH38?si=ZQLGTlOqnYOT_FAT",
     description: "Step-by-step introduction to modern frontend & backend architectures with practical examples.",
   },
   {
-    id: "3",
-    title: "Artificial Intelligence & Python Workshop",
+    id: "2",
+    title: "Learn Python from Scratch",
     category: "AI & Data Science",
-    duration: "50 Mins",
-    embedUrl: "https://www.youtube-nocookie.com/embed/KBdCZZ1aH38?si=ZQLGTlOqnYOT_FAT",
+    duration: "3 Mins",
+    embedUrl: "https://www.youtube-nocookie.com/embed/WRk-luEy_TA?si=3dgqJ7PDz05kVDna",
     description: "Discover real-world applications of AI, Machine Learning, and prompt engineering in industry.",
   },
+  {
+    id: "3",
+    title: "Learn SQL | from basic to advance",
+    category: "Language",
+    duration: "5 Mins",
+    embedUrl: "https://www.youtube-nocookie.com/embed/P0AXehrnNNM?si=KgvhUrwhYNyD5paQ",
+    description: "Learn fundamental programming concepts, loops, memory management, and problem-solving with C.",
+  }
 ];
 
 function VideoLectures({ lectures = DEFAULT_LECTURES }) {

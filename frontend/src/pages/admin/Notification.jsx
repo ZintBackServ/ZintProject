@@ -1,4 +1,5 @@
-﻿import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
+import { toHttps } from "../../utils/api";
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -366,7 +367,7 @@ export default function AdminNotifications() {
                   {/* Image thumbnail */}
                   <div className="flex-shrink-0 w-14 h-14 rounded-xl overflow-hidden bg-gray-100 border border-gray-200">
                     {n.image ? (
-                      <img src={n.image} alt={n.title} className="w-full h-full object-cover" />
+                      <img src={toHttps(n.image)} alt={n.title} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-2xl">
                         {n.type === "course" ? "📚" : n.type === "event" ? "📅" : "📢"}

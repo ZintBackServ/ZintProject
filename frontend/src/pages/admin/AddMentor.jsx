@@ -1,5 +1,6 @@
 
 import { useState, useEffect, useRef } from "react";
+import { toHttps } from "../../utils/imgUrl";
 
 const BASE = `${import.meta.env.VITE_API_URL}/mentor`;
 
@@ -181,7 +182,7 @@ function MentorCard({ mentor, onEdit, onDelete }) {
         <div className="flex items-start gap-4">
           <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 border-2 border-gray-100">
             {mentor.profileImage
-              ? <img src={mentor.profileImage} alt={mentor.mentorName} className="w-full h-full object-cover" />
+              ? <img src={toHttps(mentor.profileImage)} alt={mentor.mentorName} className="w-full h-full object-cover" />
               : (
                 <div className="w-full h-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white font-bold text-xl">
                   {mentor.mentorName?.charAt(0).toUpperCase()}

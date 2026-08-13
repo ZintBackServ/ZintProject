@@ -3,6 +3,7 @@ import {
   Calendar, Clock, MapPin, Plus, X, Pencil, Trash2, Users, Search,
   ImageIcon, Mail, Phone, GraduationCap, ClipboardList, LayoutGrid,
 } from "lucide-react";
+import { toHttps } from "../../utils/imgUrl";
 
 const EVENT_URL        = `${import.meta.env.VITE_API_URL}/event`;
 const MENTOR_URL       = `${import.meta.env.VITE_API_URL}/mentor`;
@@ -344,7 +345,7 @@ function EventCard({ event, onEdit, onDelete, deleting }) {
   return (
     <div className="flex flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition-shadow hover:shadow-md sm:flex-row">
       <img
-        src={event.eventImage}
+        src={toHttps(event.eventImage)}
         alt={event.name}
         className="h-40 w-full shrink-0 object-cover sm:h-auto sm:w-40"
       />

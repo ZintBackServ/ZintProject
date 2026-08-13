@@ -6,6 +6,7 @@
 //   GET    /getPlacedStudentById/:id
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { toHttps } from "../../utils/imgUrl";
 
 const BASE = `${import.meta.env.VITE_API_URL}/placedStudent`;
 
@@ -174,7 +175,7 @@ function StudentCard({ student, onDelete }) {
       <div className="p-5">
         <div className="flex items-center gap-4 mb-3">
           <img
-            src={student.profileImage}
+            src={toHttps(student.profileImage)}
             alt={student.name}
             className="w-14 h-14 rounded-2xl object-cover border-2 border-gray-100 shrink-0"
             onError={e => { e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(student.name)}&background=059669&color=fff&bold=true`; }}
@@ -192,7 +193,7 @@ function StudentCard({ student, onDelete }) {
             <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2">
               {student.logoImage ? (
                 <img
-                  src={student.logoImage}
+                  src={toHttps(student.logoImage)}
                   alt={`${student.company} logo`}
                   className="w-5 h-5 rounded object-contain shrink-0"
                   onError={e => { e.target.style.display = "none"; }}
@@ -389,7 +390,7 @@ export default function PlacedStudentAdminDashboard() {
           {foundStudent && (
             <div className="mt-4 flex items-center gap-4 bg-emerald-50 border border-emerald-100 rounded-2xl p-4">
               <img
-                src={foundStudent.profileImage} alt={foundStudent.name}
+                src={toHttps(foundStudent.profileImage)} alt={foundStudent.name}
                 className="w-14 h-14 rounded-xl object-cover border-2 border-emerald-200 shrink-0"
                 onError={e => { e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(foundStudent.name)}&background=10b981&color=fff`; }}
               />
@@ -400,7 +401,7 @@ export default function PlacedStudentAdminDashboard() {
                   {foundStudent.company && (
                     <span className="flex items-center gap-1 text-xs text-gray-500">
                       {foundStudent.logoImage && (
-                        <img src={foundStudent.logoImage} alt="" className="w-4 h-4 object-contain rounded" onError={e => { e.target.style.display = "none"; }} />
+                        <img src={toHttps(foundStudent.logoImage)} alt="" className="w-4 h-4 object-contain rounded" onError={e => { e.target.style.display = "none"; }} />
                       )}
                       🏢 {foundStudent.company}
                     </span>

@@ -54,10 +54,11 @@ const SHORTCUT_GROUPS = [
     color: "border-emerald-200 bg-emerald-50/60",
     headerColor: "text-emerald-700",
     items: [
-      { label: "Enquiries",        icon: "💬", path: "/admin/dashboard/Enquiries",      bg: "bg-cyan-600 hover:bg-cyan-700" },
-      { label: "Ratings & Reviews",icon: "⭐", path: "/admin/dashboard/Rating",         bg: "bg-yellow-500 hover:bg-yellow-600" },
-      { label: "Notifications",    icon: "🔔", path: "/admin/dashboard/Notification",   bg: "bg-purple-600 hover:bg-purple-700" },
-      { label: "Time Table",       icon: "🗓️", path: "/admin/dashboard/TimeTable",      bg: "bg-slate-600 hover:bg-slate-700" },
+      { label: "Enquiries",            icon: "💬", path: "/admin/dashboard/Enquiries",           bg: "bg-cyan-600 hover:bg-cyan-700" },
+      { label: "Curriculum Downloads", icon: "📄", path: "/admin/dashboard/CurriculumDownloads", bg: "bg-purple-600 hover:bg-purple-700" },
+      { label: "Ratings & Reviews",    icon: "⭐", path: "/admin/dashboard/Rating",              bg: "bg-yellow-500 hover:bg-yellow-600" },
+      { label: "Notifications",        icon: "🔔", path: "/admin/dashboard/Notification",        bg: "bg-purple-600 hover:bg-purple-700" },
+      { label: "Time Table",           icon: "🗓️", path: "/admin/dashboard/TimeTable",           bg: "bg-slate-600 hover:bg-slate-700" },
     ],
   },
 ];
@@ -312,8 +313,43 @@ function DashboardHome() {
             )}
           </div>
 
-          {/* Right Column: Recent Enquiries & Ratings */}
+          {/* Right Column: Recent Curriculum Downloads, Enquiries & Ratings */}
           <div className="space-y-6">
+
+            {/* Recent Curriculum Downloads */}
+            <div className="bg-white rounded-3xl border border-purple-100 shadow-sm overflow-hidden">
+              <SectionHeader title="📄 Latest Curriculum Downloads" to="/admin/dashboard/CurriculumDownloads" linkLabel="View All" />
+              {enquiries.filter(e => e.mode?.toLowerCase() === "curriculum download").length === 0 ? (
+                <div className="py-8 text-center text-gray-400 text-xs">No curriculum downloads recorded yet</div>
+              ) : (
+                <div className="divide-y divide-gray-50">
+                  {enquiries
+                    .filter(e => e.mode?.toLowerCase() === "curriculum download")
+                    .slice(0, 3)
+                    .map((eq) => (
+                      <div key={eq._id} className="flex items-start gap-3 px-4 py-3 hover:bg-purple-50/20 transition">
+                        <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-700 font-bold text-xs flex items-center justify-center flex-shrink-0">
+                          {(eq.fullName || eq.name || "?").charAt(0).toUpperCase()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-bold text-gray-900">{eq.fullName || eq.name}</p>
+                          <p className="text-[11px] text-purple-700 font-semibold truncate">
+                            {eq.course?.courseName || eq.course || "Course Curriculum"}
+                          </p>
+                          <p className="text-[10px] text-gray-400 truncate">📱 {eq.mobile || eq.phone || eq.email}</p>
+                        </div>
+                        <span
+                          className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
+                            eq.isContacted ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
+                          }`}
+                        >
+                          {eq.isContacted ? "Contacted" : "Pending"}
+                        </span>
+                      </div>
+                    ))}
+                </div>
+              )}
+            </div>
 
             {/* Recent Enquiries */}
             <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
