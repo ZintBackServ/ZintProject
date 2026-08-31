@@ -8,10 +8,32 @@ const logger      = require("../utils/logger");
 // @access Private (logged-in users)
 const applyAdmission = async (req, res) => {
   try {
-    const { courseId } = req.body;
+    const {
+      courseId,
+      courseMode,
+      studentName,
+      fatherName,
+      email: inputEmail,
+      mobileNumber,
+      fatherMobile,
+      category,
+      gender,
+      address,
+      dob,
+      totalFee,
+      batchTime,
+      batchStartTime,
+      batchEndTime,
+      courseDuration,
+      photo,
+      paymentScreenshot,
+      transactionId,
+      utrNumber,
+    } = req.body;
+
     const userId = req.user._id;
-    const name   = `${req.user.firstName} ${req.user.lastName || ""}`.trim();
-    const email  = req.user.email;
+    const name   = studentName || `${req.user.firstName} ${req.user.lastName || ""}`.trim();
+    const email  = inputEmail || req.user.email;
 
     if (!courseId || !mongoose.Types.ObjectId.isValid(courseId)) {
       return res.status(400).json({ success: false, msg: "Valid courseId is required." });
@@ -20,18 +42,40 @@ const applyAdmission = async (req, res) => {
     const course = await courseModel.findById(courseId);
     if (!course) return res.status(404).json({ success: false, msg: "Course not found." });
 
-    // Unique index on (userId, courseId) prevents duplicates
-    const admission = await Admission.create({ userId, name, email, courseId });
+    const admission = await Admission.create({
+      userId,
+      studentName: name,
+      name,
+      fatherName,
+      email,
+      mobileNumber,
+      fatherMobile,
+      category,
+      gender,
+      address,
+      dob,
+      courseId,
+      courseMode: courseMode || "Online",
+      totalFee: totalFee !== undefined ? Number(totalFee) : (course.fee || 0),
+      batchTime,
+      batchStartTime,
+      batchEndTime,
+      courseDuration: courseDuration || (course.duration ? `${course.duration} Months` : ""),
+      photo,
+      paymentScreenshot,
+      transactionId,
+      utrNumber,
+    });
 
     return res.status(201).json({
       success: true,
-      msg: "Admission application submitted successfully.",
+      msg: "Online admission application submitted successfully.",
       data: admission,
     });
   } catch (error) {
     logger.error("applyAdmission error:", error);
     if (error.code === 11000) {
-      return res.status(409).json({ success: false, msg: "You have already applied for this course." });
+      return res.status(409).json({ success: false, msg: "You have already submitted an admission for this course." });
     }
     return res.status(500).json({ success: false, msg: "Internal Server Error" });
   }

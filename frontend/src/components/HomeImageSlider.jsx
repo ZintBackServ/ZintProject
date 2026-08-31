@@ -60,6 +60,8 @@ function AutoSlider() {
       <img
         src={images[current].src}
         alt={images[current].alt}
+        width="1200"
+        height="480"
         className="w-full sm:h-90 md:h-120 object-center transition-all duration-500"
         loading={current === 0 ? "eager" : "lazy"}
         fetchPriority={current === 0 ? "high" : "auto"}

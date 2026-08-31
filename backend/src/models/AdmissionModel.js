@@ -2,7 +2,6 @@ const mongoose = require("mongoose");
 
 const AdmissionSchema = new mongoose.Schema(
   {
-    // FIX: added userId so every admission is tied to a registered user
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -10,19 +9,63 @@ const AdmissionSchema = new mongoose.Schema(
       index: true,
     },
 
-    name: {
+    studentName: {
       type: String,
       required: true,
       trim: true,
       index: true,
     },
 
-    email:{
+    name: {
+      type: String,
+      trim: true,
+    },
+
+    fatherName: {
+      type: String,
+      trim: true,
+    },
+
+    email: {
       type: String,
       required: true,
       trim: true,
       index: true,
-      lower:true,
+      lowercase: true,
+    },
+
+    mobileNumber: {
+      type: String,
+      trim: true,
+    },
+
+    fatherMobile: {
+      type: String,
+      trim: true,
+    },
+
+    category: {
+      type: String,
+      trim: true,
+      enum: ["General", "OBC", "SC", "ST", "EWS", "Other"],
+      default: "General",
+    },
+
+    gender: {
+      type: String,
+      trim: true,
+      enum: ["Male", "Female", "Other"],
+      default: "Male",
+    },
+
+    address: {
+      type: String,
+      trim: true,
+    },
+
+    dob: {
+      type: String,
+      trim: true,
     },
 
     courseId: {
@@ -32,14 +75,65 @@ const AdmissionSchema = new mongoose.Schema(
       index: true,
     },
 
-    // FIX: track admission status so admins can approve/reject
+    courseMode: {
+      type: String,
+      trim: true,
+      enum: ["Online", "Offline"],
+      default: "Online",
+    },
+
+    totalFee: {
+      type: Number,
+      default: 0,
+    },
+
+    batchTime: {
+      type: String,
+      trim: true,
+    },
+
+    batchStartTime: {
+      type: String,
+      trim: true,
+    },
+
+    batchEndTime: {
+      type: String,
+      trim: true,
+    },
+
+    courseDuration: {
+      type: String,
+      trim: true,
+    },
+
+    photo: {
+      type: String,
+      trim: true,
+    },
+
+    paymentScreenshot: {
+      type: String,
+      trim: true,
+    },
+
+    transactionId: {
+      type: String,
+      trim: true,
+    },
+
+    utrNumber: {
+      type: String,
+      trim: true,
+    },
+
     status: {
       type: String,
       enum: ["pending", "completed", "on hold"],
       default: "pending",
     },
   },
-  { timestamps: true } // FIX: was "timestaps" (typo)
+  { timestamps: true }
 );
 
 // FIX: prevent a user from applying to the same course twice

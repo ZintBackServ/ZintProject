@@ -8,6 +8,7 @@ import eventImg2 from "../assets/zintRojgarImg2.webp";
 import eventImg3 from "../assets/zintRojgarMission2026.webp";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { toHttps } from "../utils/imgUrl";
+import StaggeredText from "../components/StaggeredText";
 
 const API_URL      = `${import.meta.env.VITE_API_URL}/event/allEvent`;
 const REGISTER_URL = `${import.meta.env.VITE_API_URL}/eventRegistration/add`;
@@ -50,20 +51,20 @@ function AuthPromptModal({ eventName, onClose }) {
           className="absolute top-4 right-4 text-zinc-500 hover:text-white text-2xl leading-none transition-colors"
         >×</button>
 
-        <div className="w-14 h-14 rounded-full bg-amber-400/10 border border-amber-400/30 flex items-center justify-center text-2xl mx-auto mb-4">🔒</div>
+        <div className="w-14 h-14 rounded-full bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-2xl mx-auto mb-4">🔒</div>
         <h3 className="text-white text-lg font-bold mb-2">Sign in to register</h3>
         <p className="text-zinc-400 text-sm mb-6 leading-relaxed">
-          You need an account to register for <span className="text-amber-400 font-semibold">{eventName}</span>.
+          You need an account to register for <span className="text-[#53BFEA] font-semibold">{eventName}</span>.
         </p>
 
         <div className="flex flex-col gap-2.5">
           <button
             onClick={() => navigate("/login", { state: { redirectTo: "/events" } })}
-            className="w-full bg-amber-400 hover:bg-amber-300 text-black font-bold py-2.5 rounded-xl text-sm transition-colors"
+            className="w-full bg-gradient-to-r from-[#8E1387] to-[#B11FA8] hover:opacity-95 text-white font-bold py-2.5 rounded-xl text-sm transition-all shadow-md shadow-purple-900/20 cursor-pointer"
           >Sign In</button>
           <button
             onClick={() => navigate("/signup", { state: { redirectTo: "/events" } })}
-            className="w-full border border-zinc-700 hover:border-amber-400 hover:text-amber-400 text-white font-semibold py-2.5 rounded-xl text-sm transition-colors"
+            className="w-full border border-zinc-700 hover:border-purple-400 hover:text-purple-300 text-white font-semibold py-2.5 rounded-xl text-sm transition-colors cursor-pointer"
           >Create Account</button>
         </div>
       </div>
@@ -130,21 +131,21 @@ function RegisterModal({ event, prefill, onClose }) {
 
         {done ? (
           <div className="text-center py-6">
-            <div className="w-16 h-16 rounded-full bg-amber-400/10 border border-amber-400/30 flex items-center justify-center text-3xl mx-auto mb-4">✓</div>
-            <h3 className="text-amber-400 text-xl font-bold mb-2">Registered!</h3>
+            <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-3xl mx-auto mb-4 text-emerald-400">✓</div>
+            <h3 className="text-emerald-400 text-xl font-bold mb-2">Registered!</h3>
             <p className="text-zinc-400 text-sm leading-relaxed">
               See you at <span className="text-white font-semibold">{event.name}</span>.<br />
               Confirmation sent to your email.
             </p>
             <button
               onClick={onClose}
-              className="mt-5 bg-amber-400 hover:bg-amber-300 text-black font-bold px-6 py-2.5 rounded-full text-sm transition-colors"
+              className="mt-5 bg-gradient-to-r from-[#8E1387] to-[#B11FA8] text-white font-bold px-6 py-2.5 rounded-full text-sm transition-all shadow-md shadow-purple-900/20 cursor-pointer"
             >Done</button>
           </div>
         ) : (
           <>
             <h3 className="text-white text-lg font-bold mb-0.5">Register for Event</h3>
-            <p className="text-amber-400 text-sm mb-5 font-medium">{event.name} · {event.date?.slice(0, 10) || event.date}</p>
+            <p className="text-[#53BFEA] text-sm mb-5 font-medium">{event.name} · {event.date?.slice(0, 10) || event.date}</p>
 
             {[
               { key:"name",  label:"Full Name *",     type:"text",  ph:"Your full name" },
@@ -159,7 +160,7 @@ function RegisterModal({ event, prefill, onClose }) {
                   value={form[key]}
                   onChange={e => setForm({ ...form, [key]: e.target.value })}
                   placeholder={ph}
-                  className="w-full bg-zinc-800 border border-zinc-700 focus:border-amber-400 text-white rounded-xl px-4 py-2.5 text-sm outline-none transition-colors placeholder-zinc-600"
+                  className="w-full bg-zinc-800 border border-zinc-700 focus:border-purple-500 text-white rounded-xl px-4 py-2.5 text-sm outline-none transition-colors placeholder-zinc-600"
                 />
               </div>
             ))}
@@ -169,7 +170,7 @@ function RegisterModal({ event, prefill, onClose }) {
             <button
               onClick={handleSubmit}
               disabled={loading}
-              className="w-full bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-black font-bold py-3 rounded-xl text-sm transition-colors mt-1"
+              className="w-full bg-gradient-to-r from-[#8E1387] to-[#B11FA8] hover:opacity-95 disabled:opacity-50 text-white font-bold py-3 rounded-xl text-sm transition-all shadow-lg shadow-purple-900/30 mt-1 cursor-pointer"
             >{loading ? "Submitting..." : "Confirm Registration →"}</button>
           </>
         )}
@@ -181,7 +182,7 @@ function RegisterModal({ event, prefill, onClose }) {
 // ── Upcoming Card ─────────────────────────────────────────────────────────────
 function UpcomingCard({ event, onRegister }) {
   return (
-    <div className="group bg-zinc-900 border border-zinc-800 hover:border-amber-400/50 rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-amber-400/5 flex flex-col">
+    <div className="group bg-zinc-900 border border-zinc-800 hover:border-purple-500/50 rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-purple-900/20 flex flex-col">
       <div className="relative h-44 sm:h-48 overflow-hidden shrink-0">
         <img
           src={toHttps(event.eventImage)}
@@ -191,7 +192,7 @@ function UpcomingCard({ event, onRegister }) {
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-zinc-900/90 to-transparent" />
-        <span className="absolute top-3 left-3 bg-amber-400 text-black text-xs font-bold px-3 py-1 rounded-full">UPCOMING</span>
+        <span className="absolute top-3 left-3 bg-gradient-to-r from-[#8E1387] to-[#B11FA8] text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">UPCOMING</span>
       </div>
       <div className="p-4 flex flex-col flex-1">
         <h3 className="text-white font-semibold text-base leading-snug mb-1.5">{event.name}</h3>
@@ -206,7 +207,7 @@ function UpcomingCard({ event, onRegister }) {
         </div>
         <button
           onClick={() => onRegister(event)}
-          className="w-full border border-amber-400 text-amber-400 hover:bg-amber-400 hover:text-black font-semibold py-2 rounded-xl text-sm transition-all duration-200"
+          className="w-full border border-purple-500 text-purple-300 hover:bg-[#B11FA8] hover:text-white hover:border-[#B11FA8] font-semibold py-2 rounded-xl text-sm transition-all duration-200 cursor-pointer"
         >Register Now</button>
       </div>
     </div>
@@ -373,7 +374,7 @@ function AddEventReviewModal({ eventsList, user, onClose, onSuccess }) {
                 value={ratingForm.review}
                 onChange={e => setRatingForm({ ...ratingForm, review: e.target.value })}
                 placeholder="How was your experience at the event? What did you enjoy..."
-                className="w-full bg-zinc-800 border border-zinc-700 focus:border-amber-400 text-white rounded-xl px-3.5 py-2.5 text-sm outline-none resize-none"
+                className="w-full bg-zinc-800 border border-zinc-700 focus:border-purple-500 text-white rounded-xl px-3.5 py-2.5 text-sm outline-none resize-none"
               />
             </div>
 
@@ -382,7 +383,7 @@ function AddEventReviewModal({ eventsList, user, onClose, onSuccess }) {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-black font-bold py-3 rounded-xl text-sm transition-all"
+              className="w-full bg-gradient-to-r from-[#8E1387] to-[#B11FA8] hover:opacity-95 disabled:opacity-50 text-white font-bold py-3 rounded-xl text-sm transition-all shadow-lg shadow-purple-900/30 cursor-pointer"
             >
               {submitting ? "Submitting..." : "Submit Event Review →"}
             </button>
@@ -457,7 +458,7 @@ function EventReviewsSection({ eventsList, isLoggedIn, authLoading, user, onRequ
         {/* Section Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
           <div>
-            <p className="text-amber-400 text-xs tracking-[0.25em] uppercase font-semibold mb-1.5">Attendee Experiences</p>
+            <p className="text-[#53BFEA] text-xs tracking-[0.25em] uppercase font-semibold mb-1.5">Attendee Experiences</p>
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-white">Event Feedback & Reviews</h2>
             <p className="text-zinc-400 text-xs sm:text-sm mt-1">Real ratings from students and visitors who attended Zint Institute events.</p>
           </div>
@@ -465,7 +466,7 @@ function EventReviewsSection({ eventsList, isLoggedIn, authLoading, user, onRequ
           <div className="flex items-center gap-3">
             <button
               onClick={handleRateClick}
-              className="bg-amber-400 hover:bg-amber-300 text-black font-bold px-5 py-2.5 rounded-xl text-xs sm:text-sm transition-all shadow-md shadow-amber-400/20 flex items-center gap-2"
+              className="bg-gradient-to-r from-[#8E1387] to-[#B11FA8] hover:opacity-95 text-white font-bold px-5 py-2.5 rounded-xl text-xs sm:text-sm transition-all shadow-lg shadow-purple-900/30 flex items-center gap-2 cursor-pointer"
             >
               <span>⭐ Rate & Review Event</span>
             </button>
@@ -474,11 +475,11 @@ function EventReviewsSection({ eventsList, isLoggedIn, authLoading, user, onRequ
               <div className="flex items-center gap-2 shrink-0">
                 <button
                   onClick={() => scrollSlider(-1)}
-                  className="w-10 h-10 rounded-full border border-zinc-700 hover:border-amber-400 hover:text-amber-400 flex items-center justify-center transition-colors text-white text-base"
+                  className="w-10 h-10 rounded-full border border-zinc-700 hover:border-purple-400 hover:text-purple-300 flex items-center justify-center transition-colors text-white text-base cursor-pointer"
                 >←</button>
                 <button
                   onClick={() => scrollSlider(1)}
-                  className="w-10 h-10 rounded-full bg-zinc-800 hover:bg-amber-400 hover:text-black border border-zinc-700 text-white flex items-center justify-center transition-colors text-base"
+                  className="w-10 h-10 rounded-full bg-zinc-800 hover:bg-[#B11FA8] hover:text-white border border-zinc-700 text-white flex items-center justify-center transition-colors text-base cursor-pointer"
                 >→</button>
               </div>
             )}
@@ -489,8 +490,8 @@ function EventReviewsSection({ eventsList, isLoggedIn, authLoading, user, onRequ
         {ratingStats.totalRatings > 0 && (
           <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 mb-10 flex flex-col md:flex-row items-center gap-8 shadow-xl">
             <div className="text-center md:border-r border-zinc-800 md:pr-10 shrink-0">
-              <p className="text-5xl font-black text-amber-400">{ratingStats.avgRating}</p>
-              <div className="flex text-amber-400 justify-center my-2 text-2xl sm:text-3xl gap-1">
+              <p className="text-5xl font-black text-[#53BFEA]">{ratingStats.avgRating}</p>
+              <div className="flex text-purple-400 justify-center my-2 text-2xl sm:text-3xl gap-1">
                 {[...Array(5)].map((_, idx) => (
                   <span key={idx}>{idx < Math.round(Number(ratingStats.avgRating)) ? "★" : "☆"}</span>
                 ))}
@@ -506,7 +507,7 @@ function EventReviewsSection({ eventsList, isLoggedIn, authLoading, user, onRequ
                   <div key={star} className="flex items-center gap-3 text-xs">
                     <span className="w-8 font-bold text-zinc-300">{star} ★</span>
                     <div className="flex-1 h-3 rounded-full overflow-hidden bg-zinc-800 border border-zinc-700">
-                      <div className="h-full rounded-full transition-all duration-500 bg-amber-400"
+                      <div className="h-full rounded-full transition-all duration-500 bg-gradient-to-r from-[#8E1387] to-[#B11FA8]"
                         style={{ width: `${pct}%` }} />
                     </div>
                     <span className="w-12 text-right text-zinc-400 font-medium">{count} ({pct}%)</span>
@@ -527,7 +528,7 @@ function EventReviewsSection({ eventsList, isLoggedIn, authLoading, user, onRequ
             <p className="text-zinc-400 text-xs sm:text-sm mb-5">Be the first attendee to rate and review Zint Institute events!</p>
             <button
               onClick={handleRateClick}
-              className="bg-amber-400 hover:bg-amber-300 text-black font-bold px-6 py-3 rounded-xl text-sm transition-all"
+              className="bg-gradient-to-r from-[#8E1387] to-[#B11FA8] hover:opacity-95 text-white font-bold px-6 py-3 rounded-xl text-sm transition-all shadow-lg shadow-purple-900/30 cursor-pointer"
             >
               Write the First Review →
             </button>
@@ -550,13 +551,13 @@ function EventReviewsSection({ eventsList, isLoggedIn, authLoading, user, onRequ
               return (
                 <div
                   key={r._id}
-                  className="flex-shrink-0 w-80 sm:w-96 bg-zinc-900 border border-zinc-800 hover:border-amber-400/40 rounded-3xl p-6 transition-all duration-300 flex flex-col justify-between shadow-lg"
+                  className="flex-shrink-0 w-80 sm:w-96 bg-zinc-900 border border-zinc-800 hover:border-purple-500/40 rounded-3xl p-6 transition-all duration-300 flex flex-col justify-between shadow-lg"
                 >
                   <div>
-                    <div className="text-4xl font-serif leading-none mb-2 text-amber-400/30">"</div>
+                    <div className="text-4xl font-serif leading-none mb-2 text-purple-400/30">"</div>
 
                     {/* BIG STARS */}
-                    <div className="flex text-amber-400 text-xl sm:text-2xl gap-1 mb-3">
+                    <div className="flex text-purple-400 text-xl sm:text-2xl gap-1 mb-3">
                       {[...Array(5)].map((_, idx) => (
                         <span key={idx}>{idx < starCount ? "★" : "☆"}</span>
                       ))}
@@ -569,12 +570,12 @@ function EventReviewsSection({ eventsList, isLoggedIn, authLoading, user, onRequ
 
                   <div className="flex items-center justify-between pt-4 border-t border-zinc-800/80">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-black font-extrabold text-sm flex items-center justify-center shrink-0">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#8E1387] to-[#B11FA8] text-white font-extrabold text-sm flex items-center justify-center shrink-0 shadow-md">
                         {initials}
                       </div>
                       <div>
                         <p className="text-white font-bold text-xs sm:text-sm">{r.studentName}</p>
-                        <p className="text-amber-400/80 text-[10px] font-semibold">{r.targetName || "Event Attendee"}</p>
+                        <p className="text-[#53BFEA] text-[10px] font-semibold">{r.targetName || "Event Attendee"}</p>
                       </div>
                     </div>
                     <span className="text-[11px] text-zinc-500 font-medium">
@@ -693,30 +694,30 @@ export default function EventPage() {
         {/* nav */}
         <div className="absolute top-4 sm:top-6 left-4 sm:left-6 right-4 sm:right-6 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-            <span className="text-amber-400 text-xs font-bold tracking-[0.2em] uppercase">Zint Institute</span>
+            <div className="w-2 h-2 rounded-full bg-[#53BFEA] animate-pulse" />
+            <span className="text-[#53BFEA] text-xs font-bold tracking-[0.2em] uppercase">Zint Institute</span>
           </div>
           <button
             onClick={() => document.getElementById("upcoming").scrollIntoView({ behavior:"smooth" })}
-            className="hidden sm:block border border-white/20 hover:border-amber-400 hover:text-amber-400 text-white/70 text-xs px-4 py-2 rounded-full transition-colors"
+            className="hidden sm:block border border-white/20 hover:border-purple-400 hover:text-purple-300 text-white/70 text-xs px-4 py-2 rounded-full transition-colors cursor-pointer"
           >View Events</button>
         </div>
 
         <div className="absolute inset-0 flex flex-col items-center justify-center md:justify-start  text-center px-4 sm:px-6">
-          <p className="text-amber-400 text-xs tracking-[0.25em] sm:tracking-[0.35em] uppercase font-semibold mt-5 mb-3 sm:mb-5">
+          <p className="text-[#53BFEA] text-xs tracking-[0.25em] sm:tracking-[0.35em] uppercase font-semibold mt-5 mb-3 sm:mb-5">
             Where moments become memories
           </p>
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-5 sm:mb-6 leading-tight ">
-            ZINT ROJGAR MISSION - 10 JAN. 2026
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black mb-5 sm:mb-6 leading-tight tracking-tight text-white drop-shadow-lg">
+            <StaggeredText text="ZINT ROJGAR MISSION - 10 JAN. 2026" staggerDelay={0.03} />
           </h1>
           <div className="flex flex-col xs:flex-row flex-wrap gap-3 justify-center w-full max-w-xs xs:max-w-none">
             <button
               onClick={() => document.getElementById("upcoming").scrollIntoView({ behavior:"smooth" })}
-              className="bg-amber-400 hover:bg-amber-300 text-black font-bold px-6 sm:px-8 py-3 sm:py-3.5 rounded-full text-sm transition-colors shadow-lg shadow-amber-400/20 animate-pulse"
+              className="bg-gradient-to-r from-[#8E1387] via-[#B11FA8] to-[#53BFEA] text-white font-bold px-6 sm:px-8 py-3 sm:py-3.5 rounded-full text-sm transition-all shadow-lg shadow-purple-900/30 animate-pulse cursor-pointer"
             >Upcoming Events ↓</button>
             <button
               onClick={() => document.getElementById("past").scrollIntoView({ behavior:"smooth" })}
-              className="border border-white/25 hover:border-white/60 text-white px-6 sm:px-8 py-3 sm:py-3.5 rounded-full text-sm transition-colors"
+              className="border border-white/25 hover:border-white/60 text-white px-6 sm:px-8 py-3 sm:py-3.5 rounded-full text-sm transition-colors cursor-pointer"
             >Past Events</button>
           </div>
         </div>
@@ -731,7 +732,7 @@ export default function EventPage() {
             { num:"10k+",               label:"Attendees" },
           ].map(({ num, label }) => (
             <div key={label} className="text-center px-2">
-              <p className="text-lg sm:text-2xl md:text-3xl font-black text-amber-400">{num}</p>
+              <p className="text-lg sm:text-2xl md:text-3xl font-black text-[#53BFEA]">{num}</p>
               <p className="text-zinc-500 text-xs sm:text-sm mt-0.5">{label}</p>
             </div>
           ))}
@@ -742,7 +743,7 @@ export default function EventPage() {
       <section id="upcoming" className="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-16 md:py-20">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8 sm:mb-10">
           <div>
-            <p className="text-amber-400 text-xs tracking-[0.25em] uppercase font-semibold mb-2">Don't miss out</p>
+            <p className="text-[#53BFEA] text-xs tracking-[0.25em] uppercase font-semibold mb-2">Don't miss out</p>
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-black">Upcoming Events</h2>
           </div>
           {totalPages > 1 && (
@@ -750,13 +751,13 @@ export default function EventPage() {
               <button
                 onClick={() => setUpSlide(s => Math.max(0, s - 1))}
                 disabled={upSlide === 0}
-                className="w-10 h-10 rounded-full border border-zinc-700 hover:border-zinc-400 disabled:opacity-25 flex items-center justify-center transition-colors"
+                className="w-10 h-10 rounded-full border border-zinc-700 hover:border-zinc-400 disabled:opacity-25 flex items-center justify-center transition-colors cursor-pointer"
               >←</button>
               <span className="text-zinc-500 text-sm">{upSlide + 1} / {totalPages}</span>
               <button
                 onClick={() => setUpSlide(s => Math.min(totalPages - 1, s + 1))}
                 disabled={upSlide === totalPages - 1}
-                className="w-10 h-10 rounded-full bg-amber-400 hover:bg-amber-300 disabled:opacity-25 text-black flex items-center justify-center transition-colors"
+                className="w-10 h-10 rounded-full bg-gradient-to-r from-[#8E1387] to-[#B11FA8] text-white hover:opacity-95 disabled:opacity-25 flex items-center justify-center transition-all shadow-md cursor-pointer"
               >→</button>
             </div>
           )}
@@ -778,7 +779,7 @@ export default function EventPage() {
                   <button
                     key={i}
                     onClick={() => setUpSlide(i)}
-                    className={`h-2 rounded-full transition-all duration-300 ${i === upSlide ? "w-7 bg-amber-400" : "w-2 bg-zinc-700 hover:bg-zinc-500"}`}
+                    className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${i === upSlide ? "w-7 bg-[#B11FA8]" : "w-2 bg-zinc-700 hover:bg-zinc-500"}`}
                   />
                 ))}
               </div>
@@ -789,7 +790,7 @@ export default function EventPage() {
 
       {/* ══ MEMORIES BANNER ══ */}
       <div className="text-center py-10 sm:py-12 px-4">
-        <p className="text-orange-500 uppercase tracking-[4px] text-xs sm:text-sm font-semibold">
+        <p className="text-[#53BFEA] uppercase tracking-[4px] text-xs sm:text-sm font-semibold">
           Zint Rojgar Mission 2026
         </p>
         <h2 className="text-2xl sm:text-3xl md:text-5xl font-extrabold text-white mt-3 leading-tight">
@@ -825,17 +826,17 @@ export default function EventPage() {
           {/* header */}
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6 sm:mb-8">
             <div>
-              <p className="text-amber-400 text-xs tracking-[0.25em] uppercase font-semibold mb-2">Relive the memories</p>
+              <p className="text-[#53BFEA] text-xs tracking-[0.25em] uppercase font-semibold mb-2">Relive the memories</p>
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-black">Previous Events</h2>
             </div>
             <div className="flex items-center gap-3 shrink-0">
               <button
                 onClick={() => scrollPast(-1)}
-                className="w-10 h-10 rounded-full border border-zinc-700 hover:border-zinc-400 flex items-center justify-center transition-colors"
+                className="w-10 h-10 rounded-full border border-zinc-700 hover:border-zinc-400 flex items-center justify-center transition-colors cursor-pointer"
               >←</button>
               <button
                 onClick={() => scrollPast(1)}
-                className="w-10 h-10 rounded-full bg-amber-400 hover:bg-amber-300 text-black flex items-center justify-center transition-colors"
+                className="w-10 h-10 rounded-full bg-gradient-to-r from-[#8E1387] to-[#B11FA8] text-white flex items-center justify-center transition-all shadow-md cursor-pointer"
               >→</button>
             </div>
           </div>
@@ -845,7 +846,7 @@ export default function EventPage() {
 
             {/* text search */}
             <div className="flex flex-col sm:flex-row gap-3">
-              <div className="flex items-center gap-2 flex-1 bg-zinc-900 border border-zinc-700 focus-within:border-amber-400 rounded-xl px-4 py-2.5 transition-colors">
+              <div className="flex items-center gap-2 flex-1 bg-zinc-900 border border-zinc-700 focus-within:border-purple-500 rounded-xl px-4 py-2.5 transition-colors">
                 <FaSearch className="h-4 w-4 shrink-0 text-zinc-500" />
                 <input
                   type="text"
@@ -855,7 +856,7 @@ export default function EventPage() {
                   className="flex-1 bg-transparent text-white text-sm outline-none placeholder-zinc-600 min-w-0"
                 />
                 {search && (
-                  <button onClick={() => setSearch("")} className="text-zinc-500 hover:text-white text-xl leading-none shrink-0">×</button>
+                  <button onClick={() => setSearch("")} className="text-zinc-500 hover:text-white text-xl leading-none shrink-0 cursor-pointer">×</button>
                 )}
               </div>
               <div className="flex gap-2 shrink-0 overflow-x-auto">
@@ -863,7 +864,7 @@ export default function EventPage() {
                   <button
                     key={f}
                     onClick={() => setSearchBy(f)}
-                    className={`px-3 sm:px-4 py-2.5 rounded-xl text-sm font-semibold transition-all capitalize whitespace-nowrap ${searchBy === f ? "bg-amber-400 text-black" : "bg-zinc-900 border border-zinc-700 text-zinc-400 hover:border-zinc-500"}`}
+                    className={`px-3 sm:px-4 py-2.5 rounded-xl text-sm font-semibold transition-all capitalize whitespace-nowrap cursor-pointer ${searchBy === f ? "bg-gradient-to-r from-[#8E1387] to-[#B11FA8] text-white" : "bg-zinc-900 border border-zinc-700 text-zinc-400 hover:border-zinc-500"}`}
                   >{f}</button>
                 ))}
               </div>
@@ -879,7 +880,7 @@ export default function EventPage() {
                   onChange={e => setYearFilter(e.target.value)}
                   placeholder="2026"
                   min="2000" max="2099"
-                  className="w-20 sm:w-24 bg-zinc-800 border border-zinc-600 focus:border-amber-400 text-white rounded-lg px-3 py-1.5 text-sm outline-none transition-colors placeholder-zinc-600"
+                  className="w-20 sm:w-24 bg-zinc-800 border border-zinc-600 focus:border-purple-500 text-white rounded-lg px-3 py-1.5 text-sm outline-none transition-colors placeholder-zinc-600"
                 />
               </div>
               <div className="w-px h-5 bg-zinc-700 hidden sm:block" />
@@ -888,7 +889,7 @@ export default function EventPage() {
                 <select
                   value={monthFilter}
                   onChange={e => setMonthFilter(e.target.value)}
-                  className="bg-zinc-800 border border-zinc-600 focus:border-amber-400 text-white rounded-lg px-2 sm:px-3 py-1.5 text-sm outline-none transition-colors"
+                  className="bg-zinc-800 border border-zinc-600 focus:border-purple-500 text-white rounded-lg px-2 sm:px-3 py-1.5 text-sm outline-none transition-colors"
                 >
                   {MONTHS.map(m => <option key={m}>{m}</option>)}
                 </select>
@@ -896,10 +897,10 @@ export default function EventPage() {
               <button
                 onClick={clearDateFilter}
                 disabled={!hasDateFilter}
-                className="ml-auto bg-[#8B1A1A] hover:bg-red-800 disabled:opacity-30 text-white font-semibold px-4 sm:px-5 py-1.5 rounded-full text-sm transition-colors whitespace-nowrap"
+                className="ml-auto bg-[#8B1A1A] hover:bg-red-800 disabled:opacity-30 text-white font-semibold px-4 sm:px-5 py-1.5 rounded-full text-sm transition-colors whitespace-nowrap cursor-pointer"
               >{hasDateFilter ? "Clear" : "Search"}</button>
               {hasDateFilter && (
-                <span className="text-amber-400 text-xs w-full sm:w-auto">
+                <span className="text-[#53BFEA] text-xs w-full sm:w-auto">
                   Filtering: {yearFilter && `Year ${yearFilter}`}{yearFilter && monthFilter !== "All" && " · "}{monthFilter !== "All" && monthFilter}
                 </span>
               )}
@@ -932,8 +933,8 @@ export default function EventPage() {
 
       {/* ══ FOOTER ══ */}
       <footer className="border-t border-zinc-800 py-6 sm:py-8 text-center text-zinc-600 text-sm px-4">
-        <p className="text-amber-400/60 font-semibold mb-1 tracking-widest text-xs uppercase">EventSphere</p>
-        © 2025 EventSphere. All rights reserved.
+        <p className="text-[#53BFEA] font-semibold mb-1 tracking-widest text-xs uppercase">Zint Institute Events</p>
+        © 2026 Zint Institute. All rights reserved.
       </footer>
     </div>
   );

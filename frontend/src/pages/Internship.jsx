@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { usePageMeta } from "../hooks/usePageMeta";
+import SampleCertificateImg from "../assets/SampleCertificate.webp";
 
 // ── Brand Colors ───────────────────────────────────
 const DP  = "#8E1387";
@@ -244,8 +245,6 @@ export default function ZInstituteInternship() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
-
         @keyframes zp-fadeDown { from{opacity:0;transform:translateY(-14px)} to{opacity:1;transform:translateY(0)} }
         @keyframes zp-float    { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
         @keyframes zp-pulse    { 0%,100%{box-shadow:0 0 0 0 ${PP}55} 50%{box-shadow:0 0 0 10px ${PP}00} }
@@ -681,6 +680,60 @@ export default function ZInstituteInternship() {
                 </p>
               </div>
             )}
+          </div>
+        </section>
+
+        {/* ── CERTIFICATE SECTION ── */}
+        <section style={{ background: "#fcf8fd", padding: "64px 24px" }} className="relative overflow-hidden border-t border-purple-100">
+          <div style={{ maxWidth: 960, margin: "0 auto", textAlign: "center" }}>
+            <Reveal>
+              <span className="zpill" style={{ background: `${PPL}`, color: PP, border: `1px solid ${PP}33`, marginBottom: 16 }}>
+                🏅 Proof of Completion
+              </span>
+              <h2 style={{ fontSize: "clamp(26px,4vw,38px)", fontWeight: 800, color: "#111827", marginBottom: 12 }}>
+                Earn Your Certificate
+              </h2>
+              <p style={{ fontSize: 15, color: "#6b7280", maxWidth: 560, margin: "0 auto 36px", lineHeight: 1.6 }}>
+                Every student who completes the internship walks away with an industry-recognized certificate — proof of the skills you've built.
+              </p>
+
+              <div style={{ maxWidth: 640, margin: "0 auto", position: "relative" }} className="group">
+                <div style={{
+                  borderRadius: 24,
+                  overflow: "hidden",
+                  boxShadow: "0 20px 50px rgba(176,38,181,0.18)",
+                  border: `1px solid ${PP}30`,
+                  background: "#fff",
+                  position: "relative"
+                }}>
+                  <div style={{ height: 4, background: `linear-gradient(90deg, ${PP}, ${BL})` }} />
+                  <img
+                    src={SampleCertificateImg}
+                    alt="Zint Internship Sample Certificate"
+                    style={{ width: "100%", height: "auto", display: "block" }}
+                  />
+                  <div style={{
+                    position: "absolute",
+                    bottom: 16,
+                    left: 16,
+                    right: 16,
+                    borderRadius: 16,
+                    padding: "12px 18px",
+                    background: "rgba(17,24,39,0.85)",
+                    backdropFilter: "blur(8px)",
+                    border: "1px solid rgba(34,197,94,0.3)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    color: "#fff",
+                    fontSize: 13,
+                    fontWeight: 600
+                  }}>
+                    <span style={{ color: GR, fontSize: 16 }}>✓</span> Verified &amp; shareable — add it straight to your LinkedIn profile
+                  </div>
+                </div>
+              </div>
+            </Reveal>
           </div>
         </section>
 

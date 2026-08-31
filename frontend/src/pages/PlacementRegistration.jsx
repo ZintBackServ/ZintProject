@@ -18,7 +18,7 @@ const STATS = [
   { value: "5000+", label: "Students Placed",  color: "#B026B5" },
   { value: "98%",    label: "Placement Rate",    color: "#38BDF8" },
   { value: "500+",   label: "Hiring Partners",   color: "#22C55E" },
-  { value: "₹9.5 LPA", label: "Avg. Package",      color: "#B026B5" },
+  { value: "₹3.6 LPA", label: "Avg. Package",      color: "#B026B5" },
 ];
 
 const PERKS = [
@@ -60,7 +60,6 @@ export default function PlacementPage() {
       <StatsStrip />
       <PerksSection />
       <PlacedStudent/>
-      <SampleCertificate/>
       <BottomCTA onEnroll={() => setEnrollOpen(true)} />
       {enrollOpen && <EnrollModal onClose={() => setEnrollOpen(false)} />}
     </div>

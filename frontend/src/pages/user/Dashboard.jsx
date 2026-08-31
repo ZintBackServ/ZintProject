@@ -2,7 +2,7 @@
 // Upgraded UI, User Info Banner at Top, Sidebar without "Browse & Enroll" (redirects to /OnlineAdmission).
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 
 const API = import.meta.env.VITE_API_URL;
@@ -182,8 +182,79 @@ function CourseCard({ enrollment, onProgress, onCancel, onPayNow }) {
   );
 }
 
+// ─── Admission Application Card Component ─────────────────────────────────────
+function AdmissionCard({ admission }) {
+  const statusColor = {
+    pending: "bg-amber-50 text-amber-800 border-amber-200",
+    completed: "bg-emerald-50 text-emerald-800 border-emerald-200",
+    "on hold": "bg-purple-50 text-purple-800 border-purple-200",
+  };
+
+  const statusLabel = {
+    pending: "⏳ Under Review (Pending)",
+    completed: "✓ Approved (Completed)",
+    "on hold": "⏸ On Hold",
+  };
+
+  const statusMsg = {
+    pending: "Your application & fee payment proof are being verified by Zint Institute admissions office within 24 hours.",
+    completed: "Your admission application has been approved! Welcome to Zint Institute.",
+    "on hold": "Your application is currently on hold. Please contact administration for details.",
+  };
+
+  const statusKey = admission.status || "pending";
+
+  return (
+    <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm hover:shadow-md transition-all space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${admission.courseMode === "Offline" ? "bg-amber-100 text-amber-800" : "bg-purple-100 text-purple-800"}`}>
+              {admission.courseMode === "Offline" ? "🏫 Offline Course" : "🌐 Online Course"}
+            </span>
+            <span className="text-xs text-slate-400 font-medium">
+              Applied on {new Date(admission.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+            </span>
+          </div>
+          <h3 className="text-lg font-extrabold text-slate-900 tracking-tight">
+            {admission.courseId?.courseName || "Admission Application"}
+          </h3>
+        </div>
+        <div className={`px-3 py-1.5 rounded-2xl text-xs font-extrabold border self-start sm:self-auto ${statusColor[statusKey] || statusColor.pending}`}>
+          {statusLabel[statusKey] || statusLabel.pending}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-slate-700 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+        <div>
+          <span className="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Total Fee</span>
+          <span className="font-extrabold text-[#B026B5] text-sm">{inr(admission.totalFee)}</span>
+        </div>
+        <div>
+          <span className="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Batch Shift</span>
+          <span className="font-bold text-slate-800">{admission.batchTime || "Morning Batch"}</span>
+        </div>
+        <div>
+          <span className="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Batch Start Date</span>
+          <span className="font-bold text-[#B026B5]">{admission.batchStartTime || "Will update soon"}</span>
+        </div>
+      </div>
+
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1 text-xs">
+        <div className="flex flex-wrap items-center gap-4 text-slate-500 font-mono text-[11px]">
+          {admission.transactionId && <span>Transaction ID : <strong className="text-purple-700">{admission.transactionId}</strong></span>}
+          {admission.utrNumber && <span>UTR Number : <strong className="text-sky-700">{admission.utrNumber}</strong></span>}
+        </div>
+        <p className="text-[11px] text-slate-500 italic">
+          {statusMsg[statusKey] || statusMsg.pending}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 // ─── Dashboard View ────────────────────────────────────────────────────────────
-function DashboardView({ enrollments, onProgress, onCancel, onPayNow, navigateToAdmission, user }) {
+function DashboardView({ enrollments, admissions = [], onProgress, onCancel, onPayNow, navigateToAdmission, onNavClick, user }) {
   const active     = enrollments.filter((e) => e.status === "active").length;
   const completed  = enrollments.filter((e) => e.status === "completed").length;
   const spent      = enrollments.filter((e) => e.paymentStatus === "paid").reduce((s, e) => s + (e.amount || 0), 0);
@@ -214,7 +285,7 @@ function DashboardView({ enrollments, onProgress, onCancel, onPayNow, navigateTo
           <button
             type="button"
             onClick={navigateToAdmission}
-            className="px-5 py-3 rounded-2xl bg-white text-[#B026B5] hover:bg-purple-50 text-xs sm:text-sm font-extrabold shadow-lg transition-all duration-200 hover:scale-[1.02] flex items-center justify-center gap-2 shrink-0"
+            className="px-5 py-3 rounded-2xl bg-white text-[#B026B5] hover:bg-purple-50 text-xs sm:text-sm font-extrabold shadow-lg transition-all duration-200 hover:scale-[1.02] flex items-center justify-center gap-2 shrink-0 cursor-pointer"
           >
             <span>+</span> Enroll in a Course
           </button>
@@ -228,6 +299,30 @@ function DashboardView({ enrollments, onProgress, onCancel, onPayNow, navigateTo
         <StatCard label="Completed" value={completed} icon="🏆" gradient="bg-gradient-to-br from-emerald-400 to-teal-600" />
         <StatCard label="Spent (INR)" value={inr(spent)} icon="💳" gradient="bg-gradient-to-br from-amber-400 to-orange-500" />
       </div>
+
+      {/* ── My Submitted Admission Applications Section ── */}
+      {admissions.length > 0 && (
+        <div className="mb-8 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <span>📋 My Admission Applications</span>
+              <span className="text-xs bg-purple-100 text-[#B026B5] px-2.5 py-0.5 rounded-full font-bold">{admissions.length}</span>
+            </h2>
+            <button
+              onClick={() => onNavClick && onNavClick("my-admissions")}
+              className="text-xs font-bold text-[#B026B5] hover:underline cursor-pointer"
+            >
+              View All &rarr;
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            {admissions.map((adm) => (
+              <AdmissionCard key={adm._id} admission={adm} />
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ── Active Courses ── */}
       <div className="flex items-center justify-between mb-5">
@@ -245,7 +340,7 @@ function DashboardView({ enrollments, onProgress, onCancel, onPayNow, navigateTo
           <button
             type="button"
             onClick={navigateToAdmission}
-            className="px-6 py-3 bg-[#B026B5] hover:bg-[#8f1e92] text-white text-xs sm:text-sm font-bold rounded-2xl shadow-md transition-all duration-200"
+            className="px-6 py-3 bg-[#B026B5] hover:bg-[#8f1e92] text-white text-xs sm:text-sm font-bold rounded-2xl shadow-md transition-all duration-200 cursor-pointer"
           >
             Browse &amp; Enroll
           </button>
@@ -254,6 +349,48 @@ function DashboardView({ enrollments, onProgress, onCancel, onPayNow, navigateTo
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
           {inProgress.map((e) => (
             <CourseCard key={e._id} enrollment={e} onProgress={onProgress} onCancel={onCancel} onPayNow={onPayNow} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── My Admissions View ────────────────────────────────────────────────────────
+function MyAdmissionsView({ admissions, navigateToAdmission }) {
+  return (
+    <div>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">My Online Admissions</h1>
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">Track status and verification of your submitted admission applications</p>
+        </div>
+        <button
+          type="button"
+          onClick={navigateToAdmission}
+          className="px-4 py-2.5 bg-[#B026B5] hover:bg-[#8f1e92] text-white text-xs font-bold rounded-xl transition-all shadow-sm self-start sm:self-auto cursor-pointer"
+        >
+          + Submit New Admission
+        </button>
+      </div>
+
+      {admissions.length === 0 ? (
+        <div className="bg-white border border-slate-200 rounded-3xl p-12 text-center text-slate-400 shadow-sm">
+          <div className="text-5xl mb-3">📝</div>
+          <h3 className="text-base font-bold text-slate-700 mb-1">No admissions submitted yet</h3>
+          <p className="text-xs text-slate-500 mb-6">You have not submitted any online course admission forms.</p>
+          <button
+            type="button"
+            onClick={navigateToAdmission}
+            className="px-6 py-2.5 bg-[#B026B5] text-white text-xs font-bold rounded-xl shadow hover:bg-[#8f1e92] transition-colors cursor-pointer"
+          >
+            Apply Online Admission Now &rarr;
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {admissions.map((adm) => (
+            <AdmissionCard key={adm._id} admission={adm} />
           ))}
         </div>
       )}
@@ -323,8 +460,11 @@ function MyCoursesView({ enrollments, onProgress, onCancel, onPayNow, navigateTo
 
 // ─── Left Sidebar Navigation Items ─────────────────────────────────────────────
 const NAV = [
-  { id: "dashboard",  icon: "📊", label: "Dashboard"  },
-  { id: "my-courses", icon: "🎓", label: "My Courses" },
+  { id: "dashboard",         icon: "📊", label: "Dashboard"         },
+  { id: "my-admissions",     icon: "📋", label: "My Admissions"     },
+  { id: "my-courses",        icon: "🎓", label: "My Courses"        },
+  { id: "apply-certificate", icon: "📜", label: "Apply Certificate" },
+  { id: "online-test",       icon: "📝", label: "Online Test"       },
 ];
 
 // ─── Main Root Component ───────────────────────────────────────────────────────
@@ -334,6 +474,7 @@ export default function UserDashboard() {
 
   const [view,          setView]          = useState("dashboard");
   const [enrollments,   setEnrollments]   = useState([]);
+  const [admissions,    setAdmissions]    = useState([]);
   const [toast,         setToast]         = useState(null);
   const [progressModal, setProgressModal] = useState(null);
   const [progressVal,   setProgressVal]   = useState(50);
@@ -355,13 +496,27 @@ export default function UserDashboard() {
     }
   }, []);
 
+  const loadAdmissions = useCallback(async () => {
+    try {
+      const res  = await fetch(`${API}/admission`, { credentials: "include" });
+      const data = await res.json();
+      if (data.success) {
+        setAdmissions(data.data || []);
+      }
+    } catch {
+      setAdmissions([]);
+    }
+  }, []);
+
   useEffect(() => {
     loadEnrollments();
-  }, [loadEnrollments]);
+    loadAdmissions();
+  }, [loadEnrollments, loadAdmissions]);
 
   const handleNavClick = (v) => {
     setView(v);
     loadEnrollments();
+    loadAdmissions();
   };
 
   const navigateToAdmission = () => {
@@ -548,11 +703,19 @@ export default function UserDashboard() {
         {view === "dashboard" && (
           <DashboardView
             enrollments={enrollments}
+            admissions={admissions}
             onProgress={openProgress}
             onCancel={handleCancel}
             onPayNow={handlePayNow}
             navigateToAdmission={navigateToAdmission}
+            onNavClick={handleNavClick}
             user={user}
+          />
+        )}
+        {view === "my-admissions" && (
+          <MyAdmissionsView
+            admissions={admissions}
+            navigateToAdmission={navigateToAdmission}
           />
         )}
         {view === "my-courses" && (
@@ -563,6 +726,64 @@ export default function UserDashboard() {
             onPayNow={handlePayNow}
             navigateToAdmission={navigateToAdmission}
           />
+        )}
+
+        {/* ── Apply Certificate ── */}
+        {view === "apply-certificate" && (
+          <div>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-8">
+              <div>
+                <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Apply for Certificate</h1>
+                <p className="text-xs sm:text-sm text-slate-500 mt-1">Request your course completion certificate</p>
+              </div>
+            </div>
+            <div className="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm flex flex-col items-center justify-center text-center gap-5">
+              <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#B026B5] to-purple-600 flex items-center justify-center text-4xl shadow-lg">
+                📜
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-slate-800 mb-2">Certificate Application</h2>
+                <p className="text-sm text-slate-500 max-w-md">
+                  Apply for your official Zint Institute course completion certificate. Make sure you have completed the required course progress.
+                </p>
+              </div>
+              <Link
+                to="/ApplyCertificate"
+                className="px-8 py-3 bg-gradient-to-r from-[#B026B5] to-purple-600 hover:from-[#8f1e92] hover:to-purple-800 text-white text-sm font-bold rounded-2xl shadow-md transition-all duration-200 hover:scale-[1.02]"
+              >
+                Go to Certificate Application →
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* ── Online Test ── */}
+        {view === "online-test" && (
+          <div>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-8">
+              <div>
+                <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Online Test</h1>
+                <p className="text-xs sm:text-sm text-slate-500 mt-1">Take your course assessment tests</p>
+              </div>
+            </div>
+            <div className="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm flex flex-col items-center justify-center text-center gap-5">
+              <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center text-4xl shadow-lg">
+                📝
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-slate-800 mb-2">Assessment & Tests</h2>
+                <p className="text-sm text-slate-500 max-w-md">
+                  Take online assessments to validate your learning and earn your certification. Tests are available once you complete the course modules.
+                </p>
+              </div>
+              <Link
+                to="/OnlineTest"
+                className="px-8 py-3 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white text-sm font-bold rounded-2xl shadow-md transition-all duration-200 hover:scale-[1.02]"
+              >
+                Go to Online Test →
+              </Link>
+            </div>
+          </div>
         )}
       </main>
 

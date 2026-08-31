@@ -12,6 +12,7 @@ const links = [
   { path: "/admin/dashboard/AllEventRegistration",    label: "All Event Registration" },
   { path: "/admin/dashboard/Rating",                  label: "Rating" },
   { path: "/admin/dashboard/EnrolledStudent",         label: "Enrolled Student" },
+  { path: "/admin/dashboard/OnlineAdmissions",        label: "🎓 Online Admissions" },
   { path: "/admin/dashboard/Notification",            label: "Notification" },
   { path: "/admin/dashboard/AddCategory",             label: "Add Category" },
   { path: "/admin/dashboard/AddLatestUpdate",         label: "Add Latest Update" },

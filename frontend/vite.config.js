@@ -31,7 +31,7 @@ export default defineConfig(({ mode }) => ({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,jpg,jpeg,svg,webp,woff,woff2}'],
+        globPatterns: ['**/*.{js,css,html,ico,woff,woff2}'],
         navigateFallbackDenylist: [
           /^\/user\/auth\/google/,
           /^\/(user|course|mentor|placedStudent|event|eventRegistration|api|rating|notification|category|updates|enquiry|timeTable|internshipRegistration|placementRegistration|admission)/,

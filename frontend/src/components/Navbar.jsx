@@ -64,8 +64,10 @@ function DesktopDropdown({ label, to, children }) {
         </button>
       )}
       {open && (
-        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white rounded-lg rounded-t-none border-b-4 border-purple-700 shadow-lg z-50 w-52 max-w-[calc(100vw-1rem)]">
-          {children}
+        <div className="absolute top-full left-1/2 -translate-x-1/2 pt-1.5 z-50 w-52 max-w-[calc(100vw-1rem)]">
+          <div className="bg-white rounded-lg border-b-4 border-purple-700 shadow-lg overflow-hidden">
+            {children}
+          </div>
         </div>
       )}
     </div>
@@ -148,9 +150,8 @@ function CoursesDropdown() {
       {/* Panel — width scales with viewport instead of a hard 600px so it never
           overflows on md/tablet widths, and height caps relative to viewport height */}
       {open && (
-        <div
-          className="absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white rounded-xl rounded-t-none border-b-4 border-purple-700 shadow-2xl z-50 w-[600px] max-w-[calc(100vw-1.5rem)]"
-        >
+        <div className="absolute top-full left-1/2 -translate-x-1/2 pt-1.5 z-50 w-[600px] max-w-[calc(100vw-1.5rem)]">
+          <div className="bg-white rounded-xl border-b-4 border-purple-700 shadow-2xl overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center py-10 text-gray-400 text-sm gap-2">
               <div className="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
@@ -252,6 +253,7 @@ function CoursesDropdown() {
               </svg>
             </button>
           </div>
+        </div>
         </div>
       )}
     </div>
@@ -563,10 +565,6 @@ function Navbar() {
                 {[
                   { to: "/OnlineAdmission",  label: "Online Admission" },
                   { to: "/OnlineTraining",   label: "Online Training" },
-                  { to: "/ApplyCertificate", label: "Apply Certificate" },
-                  { to: "/OnlineTest",       label: "Online Test" },
-                  { to: "/Services",         label: "Services" },
-                  { to: "/Blog",             label: "Blog" },
                 ].map(({ to, label }) => (
                   <Link key={to} to={to}
                     className="flex items-center gap-2 px-3 py-2 text-sm text-black rounded-lg hover:bg-purple-50 hover:text-purple-800 transition-colors">
@@ -692,10 +690,6 @@ function Navbar() {
             <MobileAccordion label="Admission">
               {[
                 { to: "/OnlineAdmission",  label: "Online Admission" },
-                { to: "/ApplyCertificate", label: "Apply Certificate" },
-                { to: "/OnlineTest",       label: "Online Test" },
-                { to: "/Services",         label: "Services" },
-                { to: "/Blog",             label: "Blog" },
               ].map(({ to, label }, i, arr) => (
                 <Link key={to} to={to} onClick={closeMenu}
                   className={`flex items-center gap-2 py-2.5 px-2 text-sm text-gray-700 hover:text-purple-600 rounded-lg hover:bg-white transition-colors ${

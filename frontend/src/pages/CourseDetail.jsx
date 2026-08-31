@@ -399,6 +399,72 @@ function CurriculumDownloadModal({
 }
 
 
+/* ── Format Course About / Overview text ── */
+function formatAboutText(aboutText) {
+  if (!aboutText) return null;
+
+  const blocks = aboutText.split("\n\n").filter(Boolean);
+
+  return blocks.map((block, idx) => {
+    const trimmed = block.trim();
+
+    // Check if line contains skill pathway arrows e.g., Python -> SQL -> Data Analysis
+    if (trimmed.includes("->") || trimmed.includes("→")) {
+      const skills = trimmed
+        .replace(/^.*?:/i, "")
+        .split(/->|→/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+
+      return (
+        <div
+          key={idx}
+          className="my-5 p-5 rounded-2xl bg-gradient-to-r from-purple-500/5 via-blue-500/5 to-purple-500/5 border border-purple-200/60 shadow-sm"
+        >
+          <p className="text-xs font-extrabold uppercase tracking-wider text-purple-900 mb-3 flex items-center gap-1.5">
+            ✨ Core Technology &amp; Skill Pathway
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            {skills.map((skill, sIdx) => (
+              <div key={sIdx} className="flex items-center gap-2">
+                <span className="px-3.5 py-1.5 rounded-xl bg-white border border-purple-200 text-xs font-extrabold text-slate-800 shadow-sm hover:border-[#B11FA8] hover:text-[#B11FA8] transition-colors">
+                  {skill}
+                </span>
+                {sIdx < skills.length - 1 && (
+                  <span className="text-purple-400 font-bold text-xs">→</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // Check if line looks like a Subheading (e.g. "What is Data Science", "Why is Data Science Trending in 2026?", etc.)
+    const isHeading =
+      trimmed.length < 90 &&
+      (trimmed.endsWith("?") ||
+        /^(what|why|how|who|about|features|overview|highlights)/i.test(trimmed));
+
+    if (isHeading) {
+      return (
+        <div key={idx} className="pt-3 pb-1">
+          <h3 className="text-base sm:text-lg font-extrabold text-slate-900 flex items-center gap-2.5">
+            <span className="w-1.5 h-5 rounded-full bg-gradient-to-b from-[#8E1387] to-[#B11FA8]" />
+            {trimmed}
+          </h3>
+        </div>
+      );
+    }
+
+    return (
+      <p key={idx} className="text-slate-600 text-sm sm:text-base leading-relaxed font-medium">
+        {trimmed}
+      </p>
+    );
+  });
+}
+
 /* ─────────────────────────────────────────────
    MAIN COMPONENT
 ───────────────────────────────────────────────── */
@@ -888,51 +954,80 @@ export default function CourseDetail() {
       </section>
 
       {/* ══════════════════════════ TABS ══════════════════════════ */}
-      <nav className="sticky top-0 z-30 bg-white border-b border-pink-100 shadow-sm">
+      <nav className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-sm py-2">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="flex gap-0 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
-            {tabs.map(tab => (
-              <button key={tab} onClick={() => {
-                setActiveTab(tab);
-                if (tab === "reviews") {
-                  document.getElementById("reviews-section")?.scrollIntoView({ behavior: "smooth" });
-                } else if (tab === "roadmap") {
-                  document.getElementById("roadmap-section")?.scrollIntoView({ behavior: "smooth" });
-                } else if (tab === "certificate") {
-                  document.getElementById("certificate-section")?.scrollIntoView({ behavior: "smooth" });
-                } else {
-                  window.scrollTo({ top: 0, behavior: "smooth" });
-                }
-              }}
-                className="px-5 py-4 text-sm font-semibold capitalize whitespace-nowrap border-b-2 transition-all duration-200"
-                style={{
-                  borderColor: activeTab === tab ? PRIMARY : "transparent",
-                  color:       activeTab === tab ? PRIMARY : "#6b7280",
-                }}
-                onMouseEnter={e => { if (activeTab !== tab) e.currentTarget.style.color = BLUE; }}
-                onMouseLeave={e => { if (activeTab !== tab) e.currentTarget.style.color = "#6b7280"; }}>
-                {tab}
-              </button>
-            ))}
+          <div className="flex gap-2 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
+            {tabs.map((tab) => {
+              const isActive = activeTab === tab;
+              return (
+                <button
+                  key={tab}
+                  onClick={() => {
+                    setActiveTab(tab);
+                    if (tab === "reviews") {
+                      document.getElementById("reviews-section")?.scrollIntoView({ behavior: "smooth" });
+                    } else if (tab === "roadmap") {
+                      document.getElementById("roadmap-section")?.scrollIntoView({ behavior: "smooth" });
+                    } else if (tab === "certificate") {
+                      document.getElementById("certificate-section")?.scrollIntoView({ behavior: "smooth" });
+                    } else {
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }
+                  }}
+                  className={`px-5 py-2.5 text-xs sm:text-sm font-bold capitalize whitespace-nowrap rounded-xl transition-all duration-300 cursor-pointer ${
+                    isActive
+                      ? "bg-gradient-to-r from-[#8E1387] to-[#B11FA8] text-white shadow-md shadow-purple-500/20 scale-[1.02]"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80"
+                  }`}
+                >
+                  {tab}
+                </button>
+              );
+            })}
           </div>
         </div>
       </nav>
 
-      {/* ══════════════════════════ ABOUT ══════════════════════════ */}
+      {/* ══════════════════════════ ABOUT / OVERVIEW ══════════════════════════ */}
       {course.about && (
-        <section className="max-w-6xl mx-auto px-4 sm:px-6 py-14">
-          <SectionHeader title="About This Course" />
-          <p className="text-gray-500 leading-8 whitespace-pre-line max-w-3xl">{course.about}</p>
-          <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-3xl">
-            {LEARN_POINTS.map(point => (
-              <div key={point} className="flex items-start gap-2.5">
-                <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
-                  style={{ background: `${GREEN}20` }}>
-                  <FiCheck className="text-xs font-bold" style={{ color: GREEN }} />
-                </div>
-                <span className="text-sm" style={{ color: DARK }}>{point}</span>
+        <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-12">
+          <div className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200/80 shadow-xl shadow-purple-900/5 relative overflow-hidden">
+            {/* Subtle ambient lighting */}
+            <div className="pointer-events-none absolute -top-20 -right-20 w-80 h-80 bg-purple-100/50 rounded-full blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-20 -left-20 w-80 h-80 bg-blue-100/50 rounded-full blur-3xl" />
+
+            <div className="relative z-10">
+              <SectionHeader title="About This Course" />
+
+              {/* Formatted Course Overview Paragraphs */}
+              <div className="mt-6 space-y-5">
+                {formatAboutText(course.about)}
               </div>
-            ))}
+
+              {/* Key Learnings Highlights Grid */}
+              <div className="mt-10 pt-8 border-t border-slate-100">
+                <h4 className="text-base font-extrabold text-slate-900 mb-5 flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-[#8E1387] to-[#B11FA8]" />
+                  What You Will Learn In This Course
+                </h4>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  {LEARN_POINTS.map((point) => (
+                    <div
+                      key={point}
+                      className="flex items-center gap-3 p-3.5 rounded-2xl bg-slate-50/80 border border-slate-100 hover:border-purple-200 hover:bg-purple-50/30 transition-all group"
+                    >
+                      <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 text-white flex items-center justify-center flex-shrink-0 shadow-md shadow-emerald-500/20 group-hover:scale-110 transition-transform">
+                        <FiCheck className="text-xs font-black stroke-[3]" />
+                      </div>
+                      <span className="text-xs sm:text-sm font-bold text-slate-700 group-hover:text-slate-900">
+                        {point}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </section>
       )}
@@ -1260,3 +1355,5 @@ function SectionHeader({ title }) {
     </h2>
   );
 }
+
+

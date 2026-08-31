@@ -178,23 +178,23 @@ export default function NotificationPopup() {
       {/* Semi-transparent backdrop behind the popup. Clicking it closes
           the popup, same as the Close button. */}
       <div
-        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 transition-opacity"
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[200] transition-opacity"
         onClick={closeNow}
       />
 
       {/* Centered popup card container */}
-      <div className="fixed inset-0 z-50 mt-20 flex items-center justify-center p-4 pointer-events-none">
+      <div className="fixed inset-0 z-[201] flex items-center justify-center p-4 pointer-events-none">
         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden pointer-events-auto animate-fade-in">
 
-          {/* Optional notification image */}
+          {/* Optional notification image — show full poster without cropping */}
           {current.image && (
-            <div className="w-full h-100 overflow-hidden bg-gray-100">
+            <div className="relative w-full max-h-[60vh] bg-slate-950 flex items-center justify-center overflow-hidden">
               <img
                 src={toHttps(current.image)}
                 alt={current.title || "Notification"}
                 loading="lazy"
                 decoding="async"
-                className="w-full h-full object-cover"
+                className="w-full h-auto max-h-[60vh] object-contain"
               />
             </div>
           )}

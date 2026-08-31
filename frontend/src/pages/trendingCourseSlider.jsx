@@ -1,263 +1,497 @@
-import { useContext, useRef, useState } from "react";
+import { useContext, useRef, useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { DataContext } from "../context/DataContext";
 import SpecularButton from "../components/SpecularButton";
 import { toHttps } from "../utils/imgUrl";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Monitor,
+  Globe,
+  Sparkles,
+  ArrowRight,
+  Flame,
+  Star,
+} from "lucide-react";
 
+const DRAG_TH = 55; // px swipe to trigger navigation
 
-  const DarkPurple = "#8E1387";
-  const PrimaryPurple = "#B11FA8";
-  const BLUE = "#53BFEA";
-  const GREEN = "#45B51D";
+/* ── responsive card sizing helper ── */
+function useCardSize() {
+  const [w, setW] = useState(
+    typeof window !== "undefined" ? window.innerWidth : 1200
+  );
+  useEffect(() => {
+    const h = () => setW(window.innerWidth);
+    window.addEventListener("resize", h);
+    return () => window.removeEventListener("resize", h);
+  }, []);
+  // sm = 640, md = 768
+  if (w < 640) return { cardW: 240, gap: 16, mobile: true  };
+  if (w < 900) return { cardW: 230, gap: 24, mobile: false };
+  return              { cardW: 268, gap: 36, mobile: false };
+}
 
+/* ─────────────────────────────────────────────────────────────────
+   MAIN COMPONENT
+───────────────────────────────────────────────────────────────── */
 export default function CourseSlider() {
-  const { data }    = useContext(DataContext);
-  const navigate    = useNavigate();
-  const trackRef    = useRef(null);
+  const { data }  = useContext(DataContext);
+  const navigate  = useNavigate();
+
+  const { cardW, gap, mobile } = useCardSize();
+  const cardStep = cardW + gap;
+
   const [activeIndex, setActiveIndex] = useState(0);
+  const hasMoved = useRef(false);
+  const dragStart = useRef(0);
+  const dragging  = useRef(false);
 
   const courses = (data?.courses || []).filter((c) => c.trending === true);
-  if (!courses.length) return null;
 
-  const scrollToIndex = (index) => {
-    const clamped = Math.max(0, Math.min(index, courses.length - 1));
-    setActiveIndex(clamped);
-    const card = trackRef.current?.children[clamped];
-    if (card) card.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "start" });
+  /* ── navigation ── */
+  const goTo = useCallback(
+    (i) => setActiveIndex(Math.max(0, Math.min(i, courses.length - 1))),
+    [courses.length]
+  );
+  const goPrev = useCallback(() => goTo(activeIndex - 1), [goTo, activeIndex]);
+  const goNext = useCallback(() => goTo(activeIndex + 1), [goTo, activeIndex]);
+
+  /* ── keyboard ── */
+  useEffect(() => {
+    const h = (e) => {
+      if (e.key === "ArrowLeft")  goPrev();
+      if (e.key === "ArrowRight") goNext();
+    };
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+  }, [goPrev, goNext]);
+
+  /* ── drag / swipe ── */
+  const onDown = (e) => {
+    dragging.current  = true;
+    hasMoved.current  = false;
+    dragStart.current = e.touches ? e.touches[0].clientX : e.clientX;
+  };
+  const onMove = (e) => {
+    if (!dragging.current) return;
+    const x = e.touches ? e.touches[0].clientX : e.clientX;
+    if (Math.abs(x - dragStart.current) > 8) hasMoved.current = true;
+  };
+  const onUp = (e) => {
+    if (!dragging.current) return;
+    dragging.current = false;
+    const x     = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+    const delta = x - dragStart.current;
+    if      (delta < -DRAG_TH) goNext();
+    else if (delta >  DRAG_TH) goPrev();
   };
 
+  if (!courses.length) return null;
+
+  /* Pure-CSS centering — no JS width measurement needed */
+  const trackOffset = activeIndex * cardStep + cardW / 2;
+
   return (
-    /* ── Section wrapper — off-white bg ── */
-    <section className="w-full max-w-7xl mx-auto px-4 py-16">
-
-      {/* ── Header ── */}
-      <div className="flex items-end justify-between mb-10">
-        <div>
-          <h1 className="text-4xl sm:text-5xl md:text-5xl font-bold text-gray-900 leading-tight">
-              ⚡Trending <span style={{color: DarkPurple}}>Courses</span>
-            </h1>
-        </div>
-
-        {/* Arrow buttons — sky-blue hover */}
-        <div className="flex gap-3">
-          {[
-            { label: "‹", dir: -1, disabled: activeIndex === 0 },
-            { label: "›", dir:  1, disabled: activeIndex >= courses.length - 1 },
-          ].map(({ label, dir, disabled }) => (
-            <button
-              key={label}
-              onClick={() => scrollToIndex(activeIndex + dir)}
-              disabled={disabled}
-              className="w-11 h-11 rounded-full text-xl font-bold flex items-center justify-center transition-all duration-200 border-2 disabled:opacity-25 disabled:cursor-not-allowed"
-              style={{ borderColor: "#e5e7eb", color: "#6b7280", background: "white" }}
-              onMouseEnter={e => {
-                if (!disabled) {
-                  e.currentTarget.style.borderColor = "#38BDF8";
-                  e.currentTarget.style.color       = "#38BDF8";
-                  e.currentTarget.style.boxShadow   = "0 4px 14px rgba(56,189,248,0.18)";
-                }
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.borderColor = "#e5e7eb";
-                e.currentTarget.style.color       = "#6b7280";
-                e.currentTarget.style.boxShadow   = "none";
-              }}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Slider Track ── */}
+    <section className="relative w-full overflow-hidden border-b border-purple-100/50 bg-[#F8F7FC] py-14 sm:py-18 lg:py-20 select-none">
+      {/* Subtle radial glow backdrop */}
       <div
-        ref={trackRef}
-        className="flex gap-6 overflow-x-auto snap-x snap-mandatory pb-2 scroll-smooth"
-        style={{ scrollbarWidth: "none" }}
-      >
-        {courses.map((course) => (
-          <CourseCard
-            key={course._id}
-            course={course}
-            onKnowMore={() => navigate(`/courses/${course._id}`)}
-          />
-        ))}
-      </div>
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(ellipse 70% 55% at 50% 65%, rgba(177,31,168,0.07) 0%, transparent 72%)",
+        }}
+      />
 
-      {/* ── Dot Indicators — purple active ── */}
-      <div className="flex justify-center gap-2 mt-8">
-        {courses.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => scrollToIndex(i)}
-            className="h-2 rounded-full transition-all duration-300"
-            style={{
-              width:      i === activeIndex ? "28px" : "8px",
-              background: i === activeIndex ? "#B026B5" : "#d1d5db",
-            }}
-            onMouseEnter={e => { if (i !== activeIndex) e.currentTarget.style.background = "#38BDF8"; }}
-            onMouseLeave={e => { if (i !== activeIndex) e.currentTarget.style.background = "#d1d5db"; }}
-          />
-        ))}
-      </div>
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
-      {/* ── View All Courses Button ── */}
-      <div className="flex justify-center mt-8">
-        <button
-          onClick={() => navigate("/courses")}
-          className="group inline-flex items-center gap-2 px-7 py-3 rounded-full font-bold text-sm transition-all duration-300"
+        {/* ── HEADER ── */}
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            {/* Badge */}
+            <span className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-purple-200/70 bg-purple-50 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-widest text-[#8E1387]">
+              <Sparkles className="h-3.5 w-3.5" />
+              High Demand Skills
+            </span>
+
+            {/* Title — wraps on mobile, single line on sm+ */}
+            <h2 className="text-2xl font-black leading-tight tracking-tight text-slate-900 sm:whitespace-nowrap sm:text-3xl lg:text-[2rem]">
+              ⚡{" "}
+              <span>Trending</span>{" "}
+              <span className="bg-gradient-to-r from-[#8E1387] via-[#B11FA8] to-[#53BFEA] bg-clip-text text-transparent">
+                Professional Courses
+              </span>
+            </h2>
+
+            <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-500 sm:text-[15px]">
+              Curated by tech leaders — master job-ready skills with live hands-on projects.
+            </p>
+          </div>
+
+          {/* Arrow buttons */}
+          <div className="flex items-center gap-3 shrink-0">
+            <NavBtn onClick={goPrev} disabled={activeIndex === 0} aria-label="Previous">
+              <ChevronLeft className="h-5 w-5" />
+            </NavBtn>
+            <NavBtn onClick={goNext} disabled={activeIndex >= courses.length - 1} aria-label="Next">
+              <ChevronRight className="h-5 w-5" />
+            </NavBtn>
+          </div>
+        </div>
+
+        {/* ── 3-D COVERFLOW STAGE ── */}
+        <div
+          className="relative w-full overflow-hidden"
           style={{
-            background: "linear-gradient(135deg, #8E1387, #B026B5)",
-            color: "#fff",
-            boxShadow: "0 4px 20px rgba(176,38,181,0.30)",
+            height:            mobile ? "380px" : "470px",
+            perspective:       "1300px",
+            perspectiveOrigin: "50% 48%",
           }}
-          onMouseEnter={e => {
-            e.currentTarget.style.transform = "translateY(-2px)";
-            e.currentTarget.style.boxShadow = "0 8px 28px rgba(176,38,181,0.45)";
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.transform = "translateY(0)";
-            e.currentTarget.style.boxShadow = "0 4px 20px rgba(176,38,181,0.30)";
-          }}
+          onMouseDown={onDown}
+          onMouseMove={onMove}
+          onMouseUp={onUp}
+          onMouseLeave={onUp}
+          onTouchStart={onDown}
+          onTouchMove={onMove}
+          onTouchEnd={onUp}
         >
-          View All Courses
-          <svg className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
+          {/* Left / right fade masks */}
+          <div className="pointer-events-none absolute inset-y-0 left-0 w-10 sm:w-28 z-20 bg-gradient-to-r from-[#F8F7FC] via-[#F8F7FC]/80 to-transparent" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-10 sm:w-28 z-20 bg-gradient-to-l from-[#F8F7FC] via-[#F8F7FC]/80 to-transparent" />
+
+          {/* Sliding flex track */}
+          <div
+            style={{
+              position:   "absolute",
+              left:       "50%",
+              top:        0,
+              bottom:     0,
+              display:    "flex",
+              alignItems: "center",
+              gap:        `${gap}px`,
+              transform:  `translateX(-${trackOffset}px)`,
+              transition: "transform 580ms cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+              willChange: "transform",
+            }}
+          >
+            {courses.map((course, index) => (
+              <CourseCard
+                key={course._id}
+                course={course}
+                offset={index - activeIndex}
+                isCenter={index === activeIndex}
+                cardW={cardW}
+                mobile={mobile}
+                hasMoved={hasMoved}
+                onSelect={() => {
+                  if (hasMoved.current) return;
+                  index !== activeIndex
+                    ? goTo(index)
+                    : navigate(`/courses/${course._id}`);
+                }}
+                onCTA={(e) => {
+                  e.stopPropagation();
+                  if (!hasMoved.current) navigate(`/courses/${course._id}`);
+                }}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Mobile swipe hint */}
+        {mobile && (
+          <p className="mt-3 text-center text-[11px] text-slate-400">← Swipe to browse →</p>
+        )}
+
+        {/* ── DOTS ── */}
+        {courses.length > 1 && (
+          <div className="mt-5 flex justify-center items-center gap-2">
+            {courses.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => goTo(i)}
+                aria-label={`Go to course ${i + 1}`}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  i === activeIndex
+                    ? "w-7 bg-gradient-to-r from-[#8E1387] via-[#B11FA8] to-[#53BFEA] shadow shadow-purple-900/20"
+                    : "w-2 bg-slate-300/70 hover:bg-slate-400/70"
+                }`}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* ── EXPLORE CTA ── */}
+        <div className="mt-10 flex justify-center">
+          <button
+            type="button"
+            onClick={() => navigate("/courses")}
+            className="group inline-flex items-center gap-2.5 rounded-full bg-gradient-to-r from-[#8E1387] to-[#B11FA8] px-8 py-3.5 text-[13px] font-bold text-white shadow-lg shadow-purple-900/25 transition-all duration-300 hover:scale-[1.04] hover:shadow-purple-900/40 active:scale-95"
+          >
+            Explore Complete Course Catalog
+            <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1.5" />
+          </button>
+        </div>
       </div>
     </section>
   );
 }
 
-/* ═══════════════════════════════════════════════════════
-   COURSE CARD
-   — White bg + light gray border
-   — Sky-blue top accent bar
-   — Soft shadow, hover lift + sky-blue glow
-   — Purple DarkPurple CTA
-   — Green / Purple / Sky pill badges
-═══════════════════════════════════════════════════════ */
-function CourseCard({ course, onKnowMore }) {
-  const [hovered, setHovered] = useState(false);
-
+/* ─────────────────────────────────────────────────────────────────
+   NAV BUTTON
+───────────────────────────────────────────────────────────────── */
+function NavBtn({ children, onClick, disabled, ...rest }) {
   return (
-    <div
-      className="flex-none w-76 sm:w-100 snap-start rounded-2xl overflow-hidden flex flex-col transition-all duration-300 cursor-default"
-      style={{
-        background:   "white",
-        border:       `1px solid ${hovered ? "#38BDF8" : "#e5e7eb"}`,
-        boxShadow:    hovered
-          ? "0 16px 48px rgba(56,189,248,0.14), 0 4px 16px rgba(0,0,0,0.06)"
-          : "0 4px 20px rgba(0,0,0,0.06)",
-        transform:    hovered ? "translateY(-4px)" : "translateY(0)",
-      }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      {...rest}
+      className="
+        flex h-11 w-11 items-center justify-center
+        rounded-full border border-slate-200 bg-white
+        text-slate-600 shadow-sm
+        transition-all duration-200
+        hover:border-[#B11FA8] hover:text-[#B11FA8] hover:shadow-md
+        active:scale-95
+        disabled:cursor-not-allowed disabled:opacity-25
+      "
     >
-      {/* Sky-blue → Purple top gradient accent bar */}
-      <div className="h-1 w-full flex-shrink-0"
-        style={{ background: "linear-gradient(90deg, #38BDF8, #B026B5)" }} />
-
-      {/* ── Course Image ── */}
-      <div className="relative w-full h-52 overflow-hidden">
-        <img
-          src={toHttps(course.courseImage)}
-          alt={course.courseName}
-          className="w-full h-full object-full transition-transform duration-500"
-          style={{ transform: hovered ? "scale(1.05)" : "scale(1)" }}
-          onError={e => { e.target.src = "https://placehold.co/400x240/111827/B026B5?text=Course"; }}
-        />
-
-        {/* Purple trending badge */}
-        {/* <h1 className="absolute style={{color:DarkPurple}} top-3 left-3 text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-md">
-          ⚡ Trending
-        </h1> */}
-
-        {/* subtle gradient overlay */}
-        <div className="absolute inset-0"
-          style={{ background: "linear-gradient(to top, rgba(17,24,39,0.28) 0%, transparent 55%)" }} />
-      </div>
-
-      {/* ── Card Body ── */}
-      <div className="flex flex-col flex-1 p-5 gap-3">
-
-        {/* Course title — dark typography */}
-        <h3 className="font-bold text-[15px] leading-snug line-clamp-2"
-          style={{ color: "#111827" }}>
-          {course.courseName}
-        </h3>
-
-        {/* Info pills */}
-        <div className="flex flex-wrap gap-2">
-          {course.duration && (
-            <span className="text-[11px] font-semibold px-3 py-1 rounded-full"
-              style={{ background: "rgba(176,38,181,0.08)", color: "#B026B5" }}>
-              ⏱ {course.duration} Months
-            </span>
-          )}
-          {course.mode && (
-            <span className="text-[11px] font-semibold px-3 py-1 rounded-full"
-              style={{ background: "rgba(56,189,248,0.10)", color: "#0ea5e9" }}>
-              🖥 {course.mode}
-            </span>
-          )}
-          {course.language && (
-            <span className="text-[11px] font-semibold px-3 py-1 rounded-full"
-              style={{ background: "rgba(34,197,94,0.10)", color: "#16a34a" }}>
-              🗣 {course.language}
-            </span>
-          )}
-        </div>
-
-        {/* ── Footer ── */}
-        <div className="flex items-center justify-between pt-3 border-t"
-          style={{ borderColor: "#f1f5f9" }}>
-
-          {/* Fee — dark with green "50% off" */}
-          {/* {course.fee && (
-            <div className="flex flex-col leading-tight">
-              <span className="font-extrabold text-sm" style={{ color: "#111827" }}>
-                ₹{course.fee.toLocaleString("en-IN")}
-              </span>
-              <span className="text-[10px] font-semibold" style={{ color: "#22C55E" }}>
-                35% OFF
-              </span>
-            </div>
-          )} */}
-
-          {/* DarkPurple CTA — Purple */}
-          <KnowMoreBtn onClick={onKnowMore} />
-        </div>
-      </div>
-    </div>
+      {children}
+    </button>
   );
 }
 
-/* ── Purple CTA button with Specular Light Reflection Animation ── */
-function KnowMoreBtn({ onClick }) {
+/* ─────────────────────────────────────────────────────────────────
+   COURSE CARD — per-card perspective so no preserve-3d needed
+   3D transforms: perspective() rotateY() translateZ() scale()
+   All values are derived from `offset` (index - activeIndex).
+───────────────────────────────────────────────────────────────── */
+function CourseCard({ course, offset, isCenter, cardW, mobile, hasMoved, onSelect, onCTA }) {
+  const [hovered, setHovered] = useState(false);
+
+  const rating   = course.rating   != null && course.rating   !== "" ? course.rating   : null;
+  const reviews  = course.reviews  != null && course.reviews  !== "" ? course.reviews  : null;
+  const duration = course.duration != null && course.duration !== ""
+    ? String(course.duration).replace(/m$/i, "")
+    : null;
+
+  /* ── 3-D math ─────────────────────────────────────────────
+     5 cards rendered at a time:
+       offset  0  → center hero card (full size, glowing)
+       offset ±1  → flanking cards (smaller, rotated 36°)
+       offset ±2  → outer cards (heavily receded, rotated 54°)
+       offset ±3+ → invisible placeholders
+  ─────────────────────────────────────────────────────────── */
+  const absOff = Math.abs(offset);
+
+  // Mobile: show center + ±1; Desktop: show up to ±2
+  if (absOff > 2 || (mobile && absOff > 1)) {
+    return <div aria-hidden style={{ width: cardW, flexShrink: 0, visibility: "hidden" }} />;
+  }
+
+  // rotateY per depth level
+  const rotY =
+    absOff === 0 ? 0 :
+    absOff === 1 ? Math.sign(offset) * 36 :
+                  Math.sign(offset) * 54;
+
+  // translateZ per depth level
+  const tz =
+    isCenter     ? (hovered ? 82 : 68) :
+    absOff === 1 ? -55 :
+                   -160;
+
+  // scale per depth level
+  const scale =
+    isCenter     ? (hovered ? 1.06 : 1.0) :
+    absOff === 1 ? 0.80 :
+                   0.62;
+
+  // opacity per depth level
+  const opacity =
+    isCenter     ? 1    :
+    absOff === 1 ? 0.78 :
+                   0.52;
+
+  // dark depth overlay per depth level
+  const darkOverlay =
+    isCenter     ? 0    :
+    absOff === 1 ? 0.14 :
+                   0.36;
+
+  // z-index
+  const zIndex = isCenter ? 50 : absOff === 1 ? 30 : 10;
+
+  // subtle lift on center hover
+  const translateY = isCenter && hovered ? -10 : 0;
+
+
+  const shadow = isCenter
+    ? hovered
+      ? "0 36px 80px -10px rgba(177,31,168,0.42), 0 18px 40px -8px rgba(15,23,42,0.16)"
+      : "0 26px 64px -10px rgba(177,31,168,0.30), 0 12px 30px -5px rgba(15,23,42,0.11)"
+    : "0 8px 24px rgba(15,23,42,0.08)";
+
   return (
-    <SpecularButton
-      size="sm"
-      radius={20}
-      tint="#ffffff"
-      tintOpacity={0}
-      blur={0}
-      textColor="#ffffff"
-      lineColor="#bc05f3"
-      baseColor="#8E1387"
-      intensity={1}
-      shineSize={30}
-      shineFade={47}
-      thickness={2}
-      speed={0.35}
-      followMouse
-      proximity={300}
-      autoAnimate={false}
-      onClick={onClick}
-      className="w-full font-bold text-xs"
+    <article
+      style={{
+        width:   cardW,
+        flexShrink: 0,
+        /* per-card perspective gives clean 3-D without preserve-3d issues */
+        transform: `perspective(1300px) rotateY(${-rotY}deg) translateZ(${tz}px) scale(${scale}) translateY(${translateY}px)`,
+        opacity,
+        zIndex,
+        boxShadow: shadow,
+        transition:
+          "transform 520ms cubic-bezier(0.25, 0.46, 0.45, 0.94), " +
+          "opacity 400ms ease, " +
+          "box-shadow 400ms ease",
+        willChange: "transform, opacity",
+        cursor: isCenter ? "default" : "pointer",
+      }}
+      className={`
+        group relative overflow-hidden rounded-[18px] border bg-white
+        ${isCenter
+          ? "border-purple-300/60 ring-[3px] ring-purple-400/18"
+          : "border-slate-200/60"
+        }
+      `}
+      onClick={onSelect}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
     >
-      Know More <span className="ml-1">&rarr;</span>
-    </SpecularButton>
+      {/* Ambient glow halo behind active card */}
+      {isCenter && (
+        <div
+          className="pointer-events-none absolute -inset-5 rounded-[28px] blur-2xl"
+          style={{
+            background:
+              "radial-gradient(ellipse, rgba(177,31,168,0.18) 0%, rgba(83,191,234,0.10) 55%, transparent 100%)",
+            opacity: hovered ? 0.8 : 0.55,
+            transition: "opacity 350ms ease",
+          }}
+        />
+      )}
+
+      {/* 3-D depth-shading overlay on side cards */}
+      <div
+        className="pointer-events-none absolute inset-0 z-30 rounded-[18px] bg-slate-900"
+        style={{ opacity: darkOverlay, transition: "opacity 400ms ease" }}
+      />
+
+      {/* Top gradient accent bar */}
+      <div className="h-[4px] w-full bg-gradient-to-r from-[#8E1387] via-[#B11FA8] to-[#53BFEA]" />
+
+      {/* ── Course image ── */}
+      <div className="relative aspect-[16/9] w-full overflow-hidden border-b border-slate-100/80 bg-white">
+        <img
+          src={toHttps(course.courseImage)}
+          alt={course.courseName || "Course"}
+          width="268"
+          height="151"
+          loading="lazy"
+          decoding="async"
+          draggable="false"
+          className="absolute inset-0 h-full w-full object-contain transition-transform duration-500 ease-out group-hover:scale-[1.04]"
+          onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = "/images/course-placeholder.webp";
+          }}
+        />
+
+        {/* Trending badge */}
+        <div className="absolute left-2 top-2 z-10">
+          <span className="inline-flex items-center gap-0.5 rounded-full bg-gradient-to-r from-[#8E1387] to-[#B11FA8] px-2 py-0.5 text-[8px] font-bold text-white shadow-md shadow-purple-900/30">
+            <Flame className="h-2.5 w-2.5 fill-current" />
+            Trending
+          </span>
+        </div>
+
+        {/* Rating badge */}
+        {rating && (
+          <div className="absolute right-2 top-2 z-10">
+            <span className="inline-flex items-center gap-0.5 rounded-full bg-white/95 px-1.5 py-0.5 text-[8px] font-bold text-slate-700 shadow-md backdrop-blur-sm">
+              <Star className="h-2.5 w-2.5 fill-amber-400 text-amber-400" />
+              {rating}
+              {reviews != null && (
+                <span className="ml-0.5 font-medium text-slate-400">({reviews})</span>
+              )}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* ── Card body ── */}
+      <div className="flex min-h-[130px] flex-col p-4">
+        {/* Course name */}
+        <h3 className="line-clamp-2 text-[12.5px] font-extrabold leading-[1.3] tracking-[-0.01em] text-slate-900 transition-colors duration-200 group-hover:text-[#8E1387]">
+          {course.courseName}
+        </h3>
+
+        {/* Meta chips */}
+        <div className="mt-2.5 flex flex-wrap gap-1.5">
+          {duration && (
+            <MetaChip icon={<Clock className="h-3 w-3" />} text={`${duration}M`} color="purple" />
+          )}
+          {course.mode && (
+            <MetaChip icon={<Monitor className="h-3 w-3" />} text={course.mode} color="blue" />
+          )}
+          {course.language && (
+            <MetaChip icon={<Globe className="h-3 w-3" />} text={course.language} color="green" />
+          )}
+        </div>
+
+        <div className="flex-1" />
+        <div className="my-3 h-px w-full bg-slate-100" />
+
+        {/* CTA button */}
+        <SpecularButton
+          size="sm"
+          radius={11}
+          tint="#ffffff"
+          tintOpacity={0}
+          blur={0}
+          textColor="#ffffff"
+          lineColor="#bc05f3"
+          baseColor="#8E1387"
+          intensity={1}
+          shineSize={30}
+          shineFade={47}
+          thickness={2}
+          speed={0.35}
+          followMouse
+          proximity={300}
+          autoAnimate={false}
+          onClick={onCTA}
+          className="w-full min-h-[36px] rounded-[11px] px-3 py-2 text-[10.5px] font-bold"
+        >
+          <span className="flex items-center justify-center gap-1">
+            View Curriculum &amp; Fees
+            <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-1" />
+          </span>
+        </SpecularButton>
+      </div>
+    </article>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   META CHIP
+───────────────────────────────────────────────────────────────── */
+function MetaChip({ icon, text, color }) {
+  const cls = {
+    purple: "border-purple-100 bg-purple-50/80 text-[#8E1387]",
+    blue:   "border-sky-100   bg-sky-50/80   text-sky-700",
+    green:  "border-emerald-100 bg-emerald-50/80 text-emerald-700",
+  }[color];
+
+  return (
+    <span className={`inline-flex items-center gap-1 whitespace-nowrap rounded-md border px-1.5 py-0.5 text-[9px] font-bold ${cls}`}>
+      {icon}
+      <span>{text}</span>
+    </span>
   );
 }

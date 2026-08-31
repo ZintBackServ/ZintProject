@@ -21,6 +21,7 @@ import EditCourse  from "./EditCourse";
 import InternshipRegistration from "./InternshipRegistration";
 import PlacementRegistration from "./PlacementRegistration";
 import CurriculumDownloads from "./CurriculumDownloads";
+import OnlineAdmissions from "./OnlineAdmissions";
 
 function AdminDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -51,6 +52,7 @@ function AdminDashboard() {
             <Route path="/PlacedStudentDashboard"  element={<PlacedStudentDashboard/>} />
             <Route path="/Rating"   element={<Rating/>} />
             <Route path="/EnrolledStudent"   element={<EnrolledStudent/>} />
+            <Route path="/OnlineAdmissions"  element={<OnlineAdmissions/>} />
             <Route path="/Notification"   element={<Notification/>} />
             <Route path="/AddLatestUpdate"   element={<AddLatestUpdate/>} />
             <Route path="/AddCategory" element={<AddCategory />} />

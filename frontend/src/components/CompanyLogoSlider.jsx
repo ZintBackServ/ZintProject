@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from "react";
+import { Building2, TrendingUp, DollarSign, Clock } from "lucide-react";
 
-const PRIMARY     = "#8E1387";
-const LightPurple = "#C94CC2";
-
-// companies our students have been placed at
+// Top hiring partners
 const COMPANIES = [
   { name: "Google",     logo: "https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" },
   { name: "Microsoft",  logo: "https://upload.wikimedia.org/wikipedia/commons/9/96/Microsoft_logo_%282012%29.svg" },
@@ -25,66 +23,73 @@ export default function CompanyLogoSlider() {
   const row2 = COMPANIES.slice(mid);
 
   return (
-    <section className="py-16 overflow-hidden" style={{ background: "#111827" }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center mb-10">
-        <p className="text-xs text-fuchsia-200 font-bold uppercase tracking-widest mb-2">
-          Our Hiring Partners
-        </p>
-        <h2 className="text-2xl md:text-3xl font-extrabold text-white">
-          500+ Companies{" "}
-          <span style={{
-            background: "linear-gradient(90deg, #B026B5, #38BDF8)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: `${LightPurple}`,
-          }}>
-            Trust Our Students
+    <section className="py-12 sm:py-16 bg-[#0d0314] relative overflow-hidden text-white border-y border-white/10">
+      
+      {/* Background Ambient Glow */}
+      <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[250px] bg-[#B11FA8]/10 rounded-full blur-[130px]" />
+
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center mb-8 sm:mb-10 relative z-10">
+        <span className="inline-block text-[10px] font-extrabold uppercase tracking-[0.25em] text-[#53BFEA] mb-2">
+          Our Global Hiring Network
+        </span>
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight leading-tight">
+          500+ Leading Companies{" "}
+          <span className="bg-gradient-to-r from-[#B11FA8] via-pink-400 to-[#53BFEA] bg-clip-text text-transparent">
+            Hire Our Students
           </span>
         </h2>
-        <p className="text-gray-400 text-sm mt-2 max-w-lg mx-auto">
-          Our graduates are working at the world's leading technology and consulting firms.
+        <p className="text-slate-400 text-xs sm:text-sm mt-2 max-w-lg mx-auto font-medium">
+          Our alumni work at Fortune 500 tech leaders, fast-growing startups, and global consultancy giants.
         </p>
       </div>
 
-      {/* edge fade on both sides */}
-      <div className="relative">
-        <div className="absolute left-0 top-0 bottom-0 w-24 z-10 pointer-events-none"
-          style={{ background: "linear-gradient(to right, #111827, transparent)" }} />
-        <div className="absolute right-0 top-0 bottom-0 w-24 z-10 pointer-events-none"
-          style={{ background: "linear-gradient(to left, #111827, transparent)" }} />
+      {/* Edge Fade Overlay */}
+      <div className="relative z-10">
+        <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-28 z-10 pointer-events-none bg-gradient-to-r from-[#0d0314] to-transparent" />
+        <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-28 z-10 pointer-events-none bg-gradient-to-l from-[#0d0314] to-transparent" />
 
-        <div className="space-y-5">
-          <ScrollRow companies={row1} direction={1}   speed={1} />
-          <ScrollRow companies={row2} direction={-1}  speed={1.2} />
+        <div className="space-y-3">
+          <ScrollRow companies={row1} direction={1}  speed={0.9} />
+          <ScrollRow companies={row2} direction={-1} speed={1.1} />
         </div>
       </div>
 
-      {/* stats strip */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-12">
-        <div className="rounded-2xl px-6 py-5 flex flex-wrap items-center justify-center gap-6 md:gap-10 border"
-          style={{ background: "rgba(255,255,255,0.04)", borderColor: "rgba(255,255,255,0.08)" }}>
+      {/* Key Metric Highlights Strip */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 mt-8 sm:mt-10 relative z-10">
+        <div className="rounded-2xl p-4 sm:p-5 grid grid-cols-2 md:grid-cols-4 gap-4 bg-white/[0.03] border border-white/10 backdrop-blur-md shadow-xl">
           {[
-            { value: "500+",     label: "Partner Companies",  color: "#B026B5" },
-            { value: "98%",      label: "Placement Rate",     color: "#38BDF8" },
-            { value: "₹9.5 LPA", label: "Average Package",    color: "#22C55E" },
-            { value: "2 Months", label: "Avg. Time to Hire",  color: "#B026B5" },
-          ].map(s => (
-            <div key={s.label} className="text-center">
-              <p className="text-2xl font-extrabold" style={{ color: s.color }}>{s.value}</p>
-              <p className="text-xs text-gray-400 mt-0.5 uppercase tracking-wide font-semibold">{s.label}</p>
-            </div>
-          ))}
+            { value: "500+",     label: "Partner Companies", icon: Building2, color: "#B11FA8" },
+            { value: "98%",      label: "Placement Rate",    icon: TrendingUp, color: "#53BFEA" },
+            { value: "₹3.6 LPA", label: "Average Package",   icon: DollarSign, color: "#45B51D" },
+            { value: "2 Months", label: "Avg. Time to Hire", icon: Clock,      color: "#FBBF24" },
+          ].map((stat, i) => {
+            const Icon = stat.icon;
+            return (
+              <div key={i} className="flex flex-col items-center text-center group">
+                <div 
+                  className="h-8 w-8 rounded-lg flex items-center justify-center mb-1.5 transition-transform duration-300 group-hover:scale-110"
+                  style={{ backgroundColor: `${stat.color}15`, border: `1px solid ${stat.color}35` }}
+                >
+                  <Icon className="h-4 w-4" style={{ color: stat.color }} />
+                </div>
+                <p className="text-xl sm:text-2xl font-black text-white">{stat.value}</p>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mt-0.5">{stat.label}</p>
+              </div>
+            );
+          })}
         </div>
       </div>
+
     </section>
   );
 }
 
-// auto-scrolling row — row 1 goes left, row 2 goes right
+// Auto-scrolling Row Component
 function ScrollRow({ companies, direction, speed }) {
   const scrollRef   = useRef(null);
   const intervalRef = useRef(null);
 
-  // triple the list so there's always content on both sides for the loop
+  // Triple array for seamless infinite looping
   const loopData = [...companies, ...companies, ...companies];
 
   const startScroll = () => {
@@ -109,14 +114,14 @@ function ScrollRow({ companies, direction, speed }) {
     }
     startScroll();
     return () => clearInterval(intervalRef.current);
-  }, []);
+  }, [direction, speed]);
 
   return (
     <div
       ref={scrollRef}
       onMouseEnter={stopScroll}
       onMouseLeave={startScroll}
-      className="flex gap-4 overflow-x-hidden px-2 py-2 cursor-default"
+      className="flex gap-3 overflow-x-hidden px-2 py-1 cursor-default"
       style={{ scrollbarWidth: "none" }}
     >
       {loopData.map((company, i) => (
@@ -127,37 +132,21 @@ function ScrollRow({ companies, direction, speed }) {
 }
 
 function LogoCard({ company }) {
-  const [hov, setHov]       = useState(false);
   const [imgErr, setImgErr] = useState(false);
 
   return (
-    <div
-      className="flex-none flex flex-col items-center justify-center gap-2 rounded-2xl transition-all duration-300"
-      style={{
-        minWidth:  "140px",
-        height:    "80px",
-        background: hov ? "rgba(176,38,181,0.10)" : "rgba(255,255,255,0.05)",
-        border:    `1px solid ${hov ? "#B026B5" : "rgba(255,255,255,0.08)"}`,
-        boxShadow: hov ? "0 8px 28px rgba(176,38,181,0.2)" : "none",
-        transform: hov ? "translateY(-3px) scale(1.03)" : "translateY(0) scale(1)",
-        padding:   "12px 20px",
-      }}
-      onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
-    >
+    <div className="flex-none flex flex-col items-center justify-center rounded-xl p-3 w-[110px] sm:w-[130px] h-[55px] sm:h-[65px] bg-white/[0.04] border border-white/10 hover:border-[#B11FA8] hover:bg-[#B11FA8]/10 hover:shadow-lg hover:shadow-purple-900/30 hover:-translate-y-0.5 transition-all duration-300 group">
       {!imgErr ? (
         <img
           src={company.logo}
           alt={`${company.name} logo`}
           loading="lazy"
           decoding="async"
-          className="max-h-8 max-w-[100px] object-contain transition-all duration-300"
-          style={{ filter: hov ? "brightness(1.1)" : "brightness(0) invert(1)", opacity: hov ? 1 : 0.65 }}
+          className="max-h-5 sm:max-h-6 max-w-[85px] object-contain opacity-70 group-hover:opacity-100 brightness-0 invert group-hover:brightness-100 group-hover:invert-0 transition-all duration-300"
           onError={() => setImgErr(true)}
         />
       ) : (
-        <span className="text-sm font-bold tracking-wide transition-all duration-300"
-          style={{ color: hov ? "#B026B5" : "#9ca3af" }}>
+        <span className="text-xs font-bold text-slate-400 group-hover:text-white transition-colors">
           {company.name}
         </span>
       )}
