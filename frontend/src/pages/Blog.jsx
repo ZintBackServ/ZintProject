@@ -18,7 +18,10 @@ export default function Blog() {
         >
           ← Go Back
         </button>
+        
       </div>
     </div>
   );
 }
+
+

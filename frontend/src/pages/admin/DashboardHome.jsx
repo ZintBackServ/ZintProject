@@ -134,7 +134,7 @@ function DashboardHome() {
   const {
     mentors = [], placedStudents = [], users = [],
     enrollments = [], eventReg = [], ratings = [],
-    enquiries = [], notifications = [], internshipReg = [], placementReg = [],
+    enquiries = [], internshipReg = [], placementReg = [],
   } = liveData;
 
   const avgRating = ratings.length

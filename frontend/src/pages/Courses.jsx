@@ -55,7 +55,6 @@ const Courses = () => {
 
   // course.category is a populated object — grab its id / name
   const getCatId = (c) => c.category?._id ?? "";
-  const getCatName = (c) => c.category?.categoryName ?? "";
 
   const filteredCourses = cards.filter((c) =>
     activeCategory ? getCatId(c) === activeCategory : true
@@ -175,3 +174,4 @@ const Courses = () => {
 };
 
 export default Courses;
+

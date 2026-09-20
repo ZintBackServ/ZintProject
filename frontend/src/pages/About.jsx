@@ -167,12 +167,12 @@ function About() {
       <div className="w-full overflow-x-hidden bg-[#FAFAFA]">
 
         {/* ═══════════════ ABOUT POSTER BANNER ═══════════════ */}
-        <div className="w-full px-4 sm:px-6 lg:px-8 pt-6 pb-2 max-w-7xl mx-auto">
-          <div className="relative w-full overflow-hidden rounded-2xl sm:rounded-3xl shadow-xl shadow-fuchsia-100/60">
+        <div className="w-full sm:px-6 lg:px-8 sm:pt-6 sm:pb-2 sm:max-w-7xl sm:mx-auto">
+          <div className="relative w-full overflow-hidden sm:rounded-2xl lg:rounded-3xl shadow-xl shadow-fuchsia-100/60">
             <img
               src={aboutPoster}
               alt="About Zint Computer Education Institute"
-              className="w-full h-auto object-cover block"
+              className="w-full h-auto block"
               loading="eager"
             />
           </div>

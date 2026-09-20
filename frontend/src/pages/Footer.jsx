@@ -1,7 +1,7 @@
 import { useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { DataContext } from "../context/DataContext";
-import { FaFacebook, FaPhoneAlt, FaInstagramSquare, FaWhatsapp, FaYoutube, FaLinkedin } from "react-icons/fa";
+import { FaFacebook, FaPhoneAlt, FaInstagramSquare, FaYoutube, FaLinkedin } from "react-icons/fa";
 import { CiMail, CiLocationOn } from "react-icons/ci";
 import { RiTelegram2Fill } from "react-icons/ri";
 
@@ -34,7 +34,6 @@ const SOCIAL_LINKS = [
   { label: "Facebook", href: "https://www.facebook.com/share/1Cwfquebni/", bg: "#1877F2", icon: <FaFacebook size={14} /> },
   { label: "Instagram", href: "https://www.instagram.com/zintinstitute/", bg: "#E1306C", icon: <FaInstagramSquare size={14} /> },
   { label: "Telegram", href: "https://t.me/zintinstitute", bg: "#26A5E4", icon: <RiTelegram2Fill size={14} /> },
-  { label: "WhatsApp", href: "https://chat.whatsapp.com/BbUHk9fOxCa7Z5aEeNiYna", bg: "#25D366", icon: <FaWhatsapp size={14} /> },
 ];
 
 // ── Column title ──────────────────────────────────
@@ -216,8 +215,8 @@ const Footer = () => {
               {[
                 { label: "Batch Size", value: "≤ 20 students", color: PrimaryPurple, bg: PPL },
                 { label: "Mode", value: "Online & Offline", color: BLUE, bg: BLL },
-                { label: "Support", value: "6-month post-placement", color: GREEN, bg: GRL },
-                { label: "Cert.", value: "SSC NASSCOM", color: DarkPurple, bg: DPL },
+                { label: "Learning", value: "Live Projects", color: GREEN, bg: GRL },
+                { label: "Mentors", value: "Industry Experts", color: DarkPurple, bg: DPL },
               ].map(({ label, value, color, bg }) => (
                 <div key={label} style={{
                   background: bg, border: `1px solid ${color}22`,

@@ -30,6 +30,7 @@ const Internship           = lazy(() => import("./pages/Internship"));
 const Blog                 = lazy(() => import("./pages/Blog"));
 const OnlineTraining       = lazy(() => import("./pages/OnlineTraining"));
 const PlacementRegistration = lazy(() => import("./pages/PlacementRegistration"));
+const LatestJobUpdates     = lazy(() => import("./pages/LatestJobUpdates"));
 const GoogleAuthSuccess    = lazy(() => import("./pages/Googleauthsuccess"));
 
 // ── Components used as routes ──────────────────────────────────────────────
@@ -81,6 +82,7 @@ function App() {
           <Route path="/PlacedStudent"       element={<PlacedStudent />} />
           <Route path="/OnlineAdmission"       element={<Admission />} />
           <Route path="/PlacementRegistration"  element={<PlacementRegistration />} />
+          <Route path="/LatestJobUpdates"       element={<LatestJobUpdates />} />
           <Route path="/auth/google/success"    element={<GoogleAuthSuccess />} />
           <Route path="/magic-bento"            element={<MagicBento />} />
           <Route path="/antigravity"            element={<Antigravity />} />

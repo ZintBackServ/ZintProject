@@ -550,6 +550,7 @@ function Navbar() {
                 {[
                   { to: "/PlacedStudent",         label: "Placed Student" },
                   { to: "/PlacementRegistration", label: "Placement Registration" },
+                  { to: "/LatestJobUpdates",      label: "Latest Job Updates" },
                   { to: "/Internship",            label: "Internship" },
                 ].map(({ to, label }) => (
                   <Link key={to} to={to}
@@ -564,7 +565,6 @@ function Navbar() {
               <div className="flex flex-col p-2">
                 {[
                   { to: "/OnlineAdmission",  label: "Online Admission" },
-                  { to: "/OnlineTraining",   label: "Online Training" },
                 ].map(({ to, label }) => (
                   <Link key={to} to={to}
                     className="flex items-center gap-2 px-3 py-2 text-sm text-black rounded-lg hover:bg-purple-50 hover:text-purple-800 transition-colors">
@@ -658,10 +658,9 @@ function Navbar() {
           <ul className="flex flex-col divide-y divide-gray-100">
 
             {[
-              { to: "/",               label: "Home" },
-              { to: "/About",          label: "About" },
-              { to: "/Internship",     label: "Internship" },
-              { to: "/OnlineTraining", label: "Online Training" },
+              { to: "/",           label: "Home" },
+              { to: "/About",      label: "About" },
+              { to: "/Internship", label: "Internship" },
             ].map(({ to, label }) => (
               <li key={to}>
                 <Link to={to} onClick={closeMenu}
@@ -677,6 +676,7 @@ function Navbar() {
               {[
                 { to: "/PlacedStudent",         label: "Placed Student" },
                 { to: "/PlacementRegistration", label: "Placement Registration" },
+                { to: "/LatestJobUpdates",      label: "Latest Job Updates" },
               ].map(({ to, label }, i, arr) => (
                 <Link key={to} to={to} onClick={closeMenu}
                   className={`flex items-center gap-2 py-2.5 px-2 text-sm text-gray-700 hover:text-purple-600 rounded-lg hover:bg-white transition-colors ${

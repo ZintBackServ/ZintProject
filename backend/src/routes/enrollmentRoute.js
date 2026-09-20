@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
 const {
-  createEnrollment,
   getEnrollments,
   getEnrollmentById,
   updateProgress,
@@ -15,8 +14,6 @@ const authentication = require("../middlewares/authMiddleware");
 const authorization  = require("../middlewares/authorization");
 
 router.get("/",    authentication, getEnrollments);
-router.post("/",   authentication, createEnrollment);
-
 router.get("/:id", authentication, getEnrollmentById);
 
 router.patch("/:id/progress", authentication, updateProgress);

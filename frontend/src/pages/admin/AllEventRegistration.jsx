@@ -430,7 +430,7 @@ function EventsTab() {
     try {
       const data = await safeFetch(`${EVENT_URL}/name/${encodeURIComponent(name)}`);
       setEvents(data?.events || []);
-    } catch (err) {
+    } catch (_err) {
       // 404 "no events found" is a normal empty-result case, not an error to surface
       setEvents([]);
     } finally {

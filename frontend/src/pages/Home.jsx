@@ -33,6 +33,7 @@ const Reviews               = lazy(() => import("../components/Reviews"));
 const ContactUS             = lazy(() => import("../components/ContactUS"));
 const FAQ                   = lazy(() => import("../components/FAQ"));
 const Mentor                = lazy(() => import("./Mentor"));
+const OurValues             = lazy(() => import("../components/OurValues"));
 
 // Brand Identity Palette
 const BRAND = {
@@ -545,6 +546,7 @@ function Home() {
         <CompanyLogo />
         <Reviews />
         <Mentor />
+        <OurValues />
         <FAQ />
         <Location />
         <ContactUS />

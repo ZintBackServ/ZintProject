@@ -82,7 +82,7 @@ export default defineConfig(({ mode }) => ({
 
       // All other backend API paths — serve index.html for browser navigations (SPA),
       // proxy to Express for fetch/XHR requests
-      '^/(api|user|course|mentor|placedStudent|event|eventRegistration|rating|notification|category|updates|enquiry|timeTable|internshipRegistration|placementRegistration|admission)': {
+      '^/(api|user|course|mentor|placedStudent|event|eventRegistration|rating|notification|category|updates|enquiry|timeTable|internshipRegistration|placementRegistration|admission|trainingRegistration)': {
         target: 'http://localhost:2000',
         changeOrigin: true,
         bypass(req) {

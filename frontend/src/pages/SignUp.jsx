@@ -154,7 +154,7 @@ function RegistrationStep({ onSuccess }) {
     setLoading(true);
     setServerError("");
     try {
-      const { confirmPassword, ...userData } = formData;
+      const { confirmPassword: _confirmPassword, ...userData } = formData;
       const res = await fetch(`${import.meta.env.VITE_API_URL}/user/newUser`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -535,7 +535,7 @@ export default function SignUp() {
     setStep("otp");
   };
 
-  const handleVerified = (token) => {
+  const handleVerified = () => {
     // token stored in httpOnly cookie
     navigate("/");
   };

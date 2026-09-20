@@ -161,7 +161,6 @@ export default function ZInstituteInternship() {
   // Fetch logged-in user's profile (if any) and autofill locked fields
   useEffect(() => {
     (async () => {
-          if (!token) { setProfileLoading(false); return; }
       try {
         const data = await safeFetch(PROFILE_URL);
         const user = data?.data;

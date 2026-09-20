@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Briefcase, GraduationCap, Sparkles, Building2, TrendingUp } from "lucide-react";
 import { toHttps } from "../utils/imgUrl";
 
@@ -85,24 +85,21 @@ function ScrollRow({ students }) {
   const loopData = [...students, ...students, ...students];
   const SPEED = 0.75;
 
-  const tick = useCallback(() => {
-    const el = scrollRef.current;
-    if (el && !isPausedRef.current) {
-      el.scrollLeft += SPEED;
-      if (el.scrollLeft >= el.scrollWidth / 3) {
-        el.scrollLeft -= el.scrollWidth / 3;
-      }
-    }
-    rafRef.current = requestAnimationFrame(tick);
-  }, []);
-
   useEffect(() => {
+    const tick = () => {
+      const el = scrollRef.current;
+      if (el && !isPausedRef.current) {
+        el.scrollLeft += SPEED;
+        if (el.scrollLeft >= el.scrollWidth / 3) el.scrollLeft -= el.scrollWidth / 3;
+      }
+      rafRef.current = requestAnimationFrame(tick);
+    };
     rafRef.current = requestAnimationFrame(tick);
     return () => {
       cancelAnimationFrame(rafRef.current);
       clearTimeout(resumeTimeoutRef.current);
     };
-  }, [tick, students]);
+  }, [students]);
 
   const pauseAutoScroll = () => {
     isPausedRef.current = true;

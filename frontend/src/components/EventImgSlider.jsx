@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import img1  from "../assets/EventImg1.webp";
 import img2  from "../assets/EventImg2.webp";
-import img3  from "../assets/EventImg3.webp";
 import img4  from "../assets/EventImg4.webp";
 import img5  from "../assets/EventImg5.webp";
 import img6  from "../assets/EventImg6.webp";

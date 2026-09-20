@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import upiQR from "../assets/zint_upi_qr.jpg";
+import onlineAdmissionImg from "../assets/onlineAdmission.jpeg";
 
 const API = import.meta.env.VITE_API_URL;
 const inr = (n) => "₹ " + Number(n || 0).toLocaleString("en-IN");
@@ -1251,6 +1252,7 @@ function OnlineAdmissionForm({ courses, user, onSubmitSuccess, showToast }) {
 
 // ─── Choose Your Plan Modal (Exact UI for Course Pricing) ──────────────────────
 function ChoosePlanModal({ course, onClose, onBuy, payLoading }) {
+  const [selectedMode, setSelectedMode] = useState("Online");
   if (!course) return null;
 
   const onlinePrice = Number(course.online_fee ?? 0);
@@ -1261,14 +1263,11 @@ function ChoosePlanModal({ course, onClose, onBuy, payLoading }) {
   const isFree = !hasOnline && !hasOffline;
   const isBoth = hasOnline && hasOffline;
 
-  const [selectedMode, setSelectedMode] = useState(() => {
-    if (hasOffline && !hasOnline) return "Offline";
-    return "Online";
-  });
+  const activeMode = isBoth ? selectedMode : hasOffline ? "Offline" : "Online";
 
-  const activePrice = selectedMode === "Online" ? onlinePrice : offlinePrice;
+  const activePrice = activeMode === "Online" ? onlinePrice : offlinePrice;
   const originalPrice = Math.round(activePrice * 1.6);
-  const features = selectedMode === "Online" ? ONLINE_FEATURES : OFFLINE_FEATURES;
+  const features = activeMode === "Online" ? ONLINE_FEATURES : OFFLINE_FEATURES;
 
   return (
     <div
@@ -1291,12 +1290,12 @@ function ChoosePlanModal({ course, onClose, onBuy, payLoading }) {
             {course.courseName}
           </p>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mb-1">
-            {isBoth ? "Choose Your Plan" : `${selectedMode} Enrollment`}
+            {isBoth ? "Choose Your Plan" : `${activeMode} Enrollment`}
           </h2>
           <p className="text-xs sm:text-sm text-slate-500">
             {isBoth
               ? "Select the learning mode that suits you best"
-              : `This course is offered in ${selectedMode} mode`}
+              : `This course is offered in ${activeMode} mode`}
           </p>
         </div>
 
@@ -1328,11 +1327,11 @@ function ChoosePlanModal({ course, onClose, onBuy, payLoading }) {
         )}
 
         <div className="bg-white rounded-2xl p-6 border-2 border-[#B026B5] shadow-lg mb-6 relative">
-          <div className="text-3xl mb-3">{selectedMode === "Online" ? "🌐" : "🏫"}</div>
+          <div className="text-3xl mb-3">{activeMode === "Online" ? "🌐" : "🏫"}</div>
 
           <div className="flex items-center gap-2 mb-3">
-            <h3 className="text-xl font-bold text-slate-900">{selectedMode} Mode</h3>
-            {selectedMode === "Online" && (
+            <h3 className="text-xl font-bold text-slate-900">{activeMode} Mode</h3>
+            {activeMode === "Online" && (
               <span className="text-[11px] font-bold px-3 py-0.5 rounded-full text-white bg-[#7c3aed]">
                 Recommended
               </span>
@@ -1351,13 +1350,13 @@ function ChoosePlanModal({ course, onClose, onBuy, payLoading }) {
           </div>
 
           <p className="text-xs text-[#B026B5] font-semibold mb-6">
-            {selectedMode === "Online" ? "Registrations close soon" : "Limited campus seats available"}
+            {activeMode === "Online" ? "Registrations close soon" : "Limited campus seats available"}
           </p>
 
           <button
             type="button"
             disabled={payLoading}
-            onClick={() => onBuy(course, isFree ? "free" : selectedMode, activePrice)}
+            onClick={() => onBuy(course, isFree ? "free" : activeMode, activePrice)}
             className="w-full py-3.5 rounded-xl font-bold text-sm text-white bg-[#B026B5] hover:bg-[#8f1e92] transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2 disabled:opacity-60 mb-6"
           >
             {payLoading ? (
@@ -1510,7 +1509,7 @@ export default function Admission() {
   const [courses, setCourses] = useState([]);
   const [enrollments, setEnrollments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error] = useState(null);
   const [search, setSearch] = useState("");
   const [toast, setToast] = useState(null);
   const [modalCourse, setModalCourse] = useState(null);
@@ -1719,26 +1718,49 @@ export default function Admission() {
   return (
     <div className="min-h-screen bg-slate-50 pb-16">
 
-      {/* ── Page Header ── */}
+      {/* ── Top Banner Image ── */}
+      <div className="w-full sm:px-6 lg:px-8 sm:pt-6 sm:pb-2 sm:max-w-7xl sm:mx-auto">
+        <div className="relative w-full overflow-hidden sm:rounded-2xl lg:rounded-3xl shadow-xl shadow-fuchsia-100/60">
+          <img
+            src={onlineAdmissionImg}
+            alt="Online Admission Banner"
+            className="w-full h-auto block"
+            loading="eager"
+          />
+        </div>
+      </div>
+
+      {/* ── Tab Switcher & User Bar ── */}
       <div className="bg-white border-b border-slate-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-50 border border-purple-200 text-xs font-bold text-[#B026B5] mb-2">
-                <span>🎓 Official Zint Institute Portal</span>
-              </div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                Online Admission Portal
-              </h1>
-              <p className="text-sm text-slate-500 mt-1">
-                Fill in your student details to apply online or browse available courses.
-              </p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200">
+            {/* Tab Switcher: Online Admission Form vs Course Catalog */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setActiveTab("form")}
+                className={`pb-3 px-4 text-xs sm:text-sm font-bold border-b-2 transition-all flex items-center gap-2 -mb-px ${activeTab === "form"
+                    ? "border-[#B026B5] text-[#B026B5]"
+                    : "border-transparent text-slate-500 hover:text-slate-800"
+                  }`}
+              >
+                <span>📝 Online Admission Form</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab("catalog")}
+                className={`pb-3 px-4 text-xs sm:text-sm font-bold border-b-2 transition-all flex items-center gap-2 -mb-px ${activeTab === "catalog"
+                    ? "border-[#B026B5] text-[#B026B5]"
+                    : "border-transparent text-slate-500 hover:text-slate-800"
+                  }`}
+              >
+                <span>📚 Course Catalog & Pricing ({courses.length})</span>
+              </button>
             </div>
 
             {/* User Profile Badge */}
             {user && (
-              <div className="flex items-center gap-3 bg-purple-50/70 border border-purple-200/80 rounded-2xl px-4 py-2.5 shrink-0 shadow-xs">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#B026B5] to-[#8E1387] text-white flex items-center justify-center font-extrabold text-base shadow-sm">
+              <div className="flex items-center gap-3 bg-purple-50/70 border border-purple-200/80 rounded-2xl px-3 py-1.5 shrink-0 shadow-xs mb-2 sm:mb-2">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#B026B5] to-[#8E1387] text-white flex items-center justify-center font-extrabold text-xs shadow-sm">
                   {user.firstName?.[0]?.toUpperCase() || "U"}
                 </div>
                 <div>
@@ -1748,30 +1770,6 @@ export default function Admission() {
               </div>
             )}
           </div>
-
-          {/* Tab Switcher: Online Admission Form vs Course Catalog */}
-          <div className="flex items-center gap-2 mt-6 border-b border-slate-200">
-            <button
-              onClick={() => setActiveTab("form")}
-              className={`pb-3 px-4 text-xs sm:text-sm font-bold border-b-2 transition-all flex items-center gap-2 ${activeTab === "form"
-                  ? "border-[#B026B5] text-[#B026B5]"
-                  : "border-transparent text-slate-500 hover:text-slate-800"
-                }`}
-            >
-              <span>📝 Online Admission Form</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab("catalog")}
-              className={`pb-3 px-4 text-xs sm:text-sm font-bold border-b-2 transition-all flex items-center gap-2 ${activeTab === "catalog"
-                  ? "border-[#B026B5] text-[#B026B5]"
-                  : "border-transparent text-slate-500 hover:text-slate-800"
-                }`}
-            >
-              <span>📚 Course Catalog & Pricing ({courses.length})</span>
-            </button>
-          </div>
-
         </div>
       </div>
 

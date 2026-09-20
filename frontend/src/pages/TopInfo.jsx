@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { FaFacebook, FaPhoneAlt, FaInstagramSquare, FaWhatsapp, FaYoutube, FaLinkedin } from "react-icons/fa";
+import { FaFacebook, FaPhoneAlt, FaInstagramSquare, FaYoutube, FaLinkedin } from "react-icons/fa";
 import { CiMail, CiLocationOn } from "react-icons/ci";
 import { RiTelegram2Fill } from "react-icons/ri";
 
@@ -72,12 +72,6 @@ function TopInfo() {
                 aria-label="Visit Zint Institute on YouTube"
                 className="rounded-full border border-white/10 p-2 hover:bg-red-600 transition-colors" href="https://youtube.com/@zintinstitute?si=hs6oYmKtUX6nuji8">
                 <FaYoutube className="h-4 w-4" />
-              </a>
-              <a
-                target="_blank" rel="noopener noreferrer"
-                aria-label="Join Zint Institute WhatsApp group"
-                className="rounded-full border border-white/10 p-2 hover:bg-green-500 transition-colors" href="https://chat.whatsapp.com/BbUHk9fOxCa7Z5aEeNiYna">
-                <FaWhatsapp className="h-4 w-4" />
               </a>
               <a
                 target="_blank" rel="noopener noreferrer"

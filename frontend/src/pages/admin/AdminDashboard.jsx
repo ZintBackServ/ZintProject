@@ -10,6 +10,7 @@ import AllEventRegistration from "./AllEventRegistration";
 import AddMentor     from "./AddMentor";     // MentorDashboard
 import UserAdminDashboard from "./UserAdminDashboard";
 import PlacedStudentDashboard from "./PlacedStudentDashboard";
+import StudentDetailsAdmin from "./StudentDetailsAdmin";
 import Rating from "./Rating";
 import EnrolledStudent from "./EnrolledStudent";
 import Notification from "./Notification";
@@ -22,6 +23,8 @@ import InternshipRegistration from "./InternshipRegistration";
 import PlacementRegistration from "./PlacementRegistration";
 import CurriculumDownloads from "./CurriculumDownloads";
 import OnlineAdmissions from "./OnlineAdmissions";
+import AddWebinar from "./AddWebinar";
+import AddJobUpdate from "./AddJobUpdate";
 
 function AdminDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -50,6 +53,7 @@ function AdminDashboard() {
             <Route path="/UserAdminDashboard" element={<UserAdminDashboard/>} />
             <Route path="/AllEventRegistration" element={<AllEventRegistration/>} />
             <Route path="/PlacedStudentDashboard"  element={<PlacedStudentDashboard/>} />
+            <Route path="/StudentDetails"  element={<StudentDetailsAdmin/>} />
             <Route path="/Rating"   element={<Rating/>} />
             <Route path="/EnrolledStudent"   element={<EnrolledStudent/>} />
             <Route path="/OnlineAdmissions"  element={<OnlineAdmissions/>} />
@@ -61,6 +65,8 @@ function AdminDashboard() {
             <Route path="/TimeTable" element={<TimeTable />} />
             <Route path="/InternshipRegistration" element={<InternshipRegistration />} />
             <Route path="/PlacementRegistration" element={<PlacementRegistration />} />
+            <Route path="/AddWebinar" element={<AddWebinar />} />
+            <Route path="/AddJobUpdate" element={<AddJobUpdate />} />
           </Routes>
         </main>
 
@@ -70,5 +76,3 @@ function AdminDashboard() {
 }
 
 export default AdminDashboard;
-
-

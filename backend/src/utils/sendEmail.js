@@ -9,6 +9,39 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+const escapeHtml = (value = "") => String(value)
+  .replace(/&/g, "&amp;")
+  .replace(/</g, "&lt;")
+  .replace(/>/g, "&gt;")
+  .replace(/"/g, "&quot;")
+  .replace(/'/g, "&#039;");
+
+/** Send each new website enquiry to the admissions team. */
+const sendEnquiryNotificationEmail = async ({ fullName, email, mobile, courseName, mode, message }) => {
+  const recipient = process.env.ENQUIRY_EMAIL || process.env.GMAIL_USER;
+  if (!recipient) throw new Error("ENQUIRY_EMAIL or GMAIL_USER must be configured");
+
+  await transporter.sendMail({
+    from: `"Zint Website Enquiries" <${process.env.GMAIL_USER}>`,
+    to: recipient,
+    replyTo: email,
+    subject: `New enquiry: ${fullName} — ${courseName}`,
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:24px;border:1px solid #e2e8f0;border-radius:12px">
+        <h2 style="margin:0 0 18px;color:#8E1387">New website enquiry</h2>
+        <table style="width:100%;border-collapse:collapse;color:#334155;font-size:14px">
+          <tr><td style="padding:8px 0;font-weight:700;width:130px">Name</td><td>${escapeHtml(fullName)}</td></tr>
+          <tr><td style="padding:8px 0;font-weight:700">Email</td><td><a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></td></tr>
+          <tr><td style="padding:8px 0;font-weight:700">Mobile</td><td>${escapeHtml(mobile)}</td></tr>
+          <tr><td style="padding:8px 0;font-weight:700">Course</td><td>${escapeHtml(courseName)}</td></tr>
+          <tr><td style="padding:8px 0;font-weight:700">Mode</td><td>${escapeHtml(mode)}</td></tr>
+          <tr><td style="padding:8px 0;font-weight:700;vertical-align:top">Message</td><td>${escapeHtml(message || "—")}</td></tr>
+        </table>
+      </div>
+    `,
+  });
+};
+
 /**
  * Send OTP email to user
  * @param {string} toEmail  - recipient email
@@ -143,4 +176,4 @@ const sendPasswordResetEmail = async (toEmail, otp) => {
 };
 
 
-module.exports = { sendOTPEmail, sendCurriculumEmail, sendPasswordResetEmail };
+module.exports = { sendOTPEmail, sendCurriculumEmail, sendPasswordResetEmail, sendEnquiryNotificationEmail };

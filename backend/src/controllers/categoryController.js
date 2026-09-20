@@ -13,9 +13,16 @@ const addCategory = async (req, res) => {
     if (exists)
       return res.status(409).json({ msg: "Category already exists" });
 
+    const lastCategory = await categoryModel
+      .findOne({ isActive: { $ne: false } })
+      .sort({ displayOrder: -1 })
+      .select("displayOrder")
+      .lean();
+
     const category = await categoryModel.create({
       categoryName: categoryName.trim(),
       description:  description?.trim(),
+      displayOrder: (lastCategory?.displayOrder ?? -1) + 1,
     });
 
     return res.status(201).json({ msg: "Category created successfully", category });
@@ -30,8 +37,35 @@ const getAllCategories = async (req, res) => {
   try {
     const categories = await categoryModel
       .find({ isActive: { $ne: false } })
+      .sort({ displayOrder: 1, createdAt: 1 })
       .populate("courses", "courseName fee mode trending courseImage");
     return res.status(200).json({ msg: "Categories fetched successfully", categories });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ msg: "Internal Server Error" });
+  }
+};
+
+// PUT /reorderCategories
+const reorderCategories = async (req, res) => {
+  try {
+    const { categoryIds } = req.body;
+    if (!Array.isArray(categoryIds) || categoryIds.length === 0)
+      return res.status(400).json({ msg: "Category order is required" });
+
+    const uniqueIds = [...new Set(categoryIds.map(String))];
+    if (uniqueIds.length !== categoryIds.length || uniqueIds.some((id) => !mongoose.Types.ObjectId.isValid(id)))
+      return res.status(400).json({ msg: "Invalid category order" });
+
+    const categories = await categoryModel.find({ isActive: { $ne: false } }).select("_id").lean();
+    if (categories.length !== uniqueIds.length || categories.some((category) => !uniqueIds.includes(String(category._id))))
+      return res.status(400).json({ msg: "The category order must include every active category" });
+
+    await categoryModel.bulkWrite(uniqueIds.map((id, displayOrder) => ({
+      updateOne: { filter: { _id: id }, update: { $set: { displayOrder } } },
+    })));
+
+    return res.status(200).json({ msg: "Category order updated successfully" });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ msg: "Internal Server Error" });
@@ -103,4 +137,4 @@ const deleteCategory = async (req, res) => {
   }
 };
 
-module.exports = { addCategory, getAllCategories, getCategoryById, updateCategory, deleteCategory };
+module.exports = { addCategory, getAllCategories, getCategoryById, updateCategory, deleteCategory, reorderCategories };

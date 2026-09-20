@@ -2,10 +2,8 @@ import React, { useState, useEffect } from "react";
 import { 
   Calendar, 
   Newspaper, 
-  FileText, 
   ArrowRight, 
   ExternalLink, 
-  X, 
   Award, 
   GraduationCap,
   Download,
@@ -23,31 +21,37 @@ export default function LatestUpdatesSection() {
 
   useEffect(() => {
     const fetchUpdates = async () => {
-      try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/updates/getAllUpdates`);
-        if (!res.ok) throw new Error(`Request failed with status ${res.status}`);
-        const data = await res.json();
-        if (data?.data && Array.isArray(data.data) && data.data.length > 0) {
+      const configuredApiUrl = import.meta.env.VITE_API_URL?.replace(/\/$/, "");
+      const apiUrls = [...new Set([configuredApiUrl, window.location.origin].filter(Boolean))];
+
+      for (const apiUrl of apiUrls) {
+        try {
+          const res = await fetch(`${apiUrl}/updates/getAllUpdates`);
+          if (!res.ok) continue;
+
+          const data = await res.json();
+          if (!Array.isArray(data?.data) || data.data.length === 0) continue;
+
           const unique = data.data.filter(
             (item, index, self) =>
               index === self.findIndex((t) => t.heading === item.heading)
           );
           setUpdates(unique);
-        } else {
-          setUpdates([]);
+          // Open the newest notice in the preview as soon as the section loads.
+          setSelectedPdf(unique[0]?.pdf || null);
+          setLoading(false);
+          return;
+        } catch (err) {
+          console.warn(`Updates unavailable from ${apiUrl}`, err);
         }
-      } catch (err) {
-        console.error("Updates fetch error:", err);
-        setUpdates([]);
-      } finally {
-        setLoading(false);
       }
+
+      console.error("Updates fetch error: no API source returned announcements");
+      setUpdates([]);
+      setLoading(false);
     };
     fetchUpdates();
   }, []);
-
-  const openPdf = (url) => setSelectedPdf(url);
-  const closePdf = () => setSelectedPdf(null);
 
   const defaultItems = [
     {
@@ -113,6 +117,8 @@ export default function LatestUpdatesSection() {
   ];
 
   const featured = filteredList[activeFeatured] || filteredList[0] || formattedItems[0];
+  // Keep a PDF visible by default, including after changing a category.
+  const previewPdf = selectedPdf || featured?.pdf || null;
 
   const getCategoryIcon = (category) => {
     switch (category) {
@@ -132,7 +138,7 @@ export default function LatestUpdatesSection() {
       id="latest-updates" 
       className="relative overflow-hidden bg-[#FAF9FC] py-6 sm:py-8 px-4 sm:px-6 lg:px-10 select-none border-y border-slate-200/60"
     >
-      <div className="max-w-6xl mx-auto relative z-10">
+      <div className="max-w-5xl mx-auto relative z-10">
         
         {/* ==================== HEADER (CLEAN & COMPACT) ==================== */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-4">
@@ -153,6 +159,7 @@ export default function LatestUpdatesSection() {
                 onClick={() => {
                   setActiveCategory(cat.id);
                   setActiveFeatured(0);
+                  setSelectedPdf(null);
                 }}
                 className={`px-3 py-1 rounded-full text-[11px] font-bold transition-all duration-150 cursor-pointer ${
                   activeCategory === cat.id
@@ -167,10 +174,10 @@ export default function LatestUpdatesSection() {
         </div>
 
         {/* ==================== 2 EQUAL-LEVEL BOXES ==================== */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
           
-          {/* ── Left Box: Updates List (7 cols) ── */}
-          <div className="lg:col-span-7 bg-white rounded-2xl border border-slate-200/90 p-3.5 sm:p-4 shadow-sm flex flex-col justify-between">
+          {/* ── Left Box: Updates List ── */}
+          <div className="min-h-[400px] h-full bg-white rounded-2xl border border-slate-200/90 p-3.5 sm:p-4 shadow-sm flex flex-col justify-between">
             {loading ? (
               <div className="space-y-2">
                 {[1, 2].map((i) => (
@@ -186,8 +193,10 @@ export default function LatestUpdatesSection() {
                 {filteredList.map((item, idx) => (
                   <div
                     key={item._id || idx}
-                    onMouseEnter={() => setActiveFeatured(idx)}
-                    onClick={() => item.pdf && openPdf(item.pdf)}
+                    onClick={() => {
+                      setActiveFeatured(idx);
+                      setSelectedPdf(item.pdf || null);
+                    }}
                     className={`group flex items-center justify-between gap-3 p-2.5 sm:p-3 rounded-xl transition-all duration-200 cursor-pointer border ${
                       activeFeatured === idx
                         ? "bg-purple-50/40 border-purple-300 shadow-2xs"
@@ -233,8 +242,8 @@ export default function LatestUpdatesSection() {
             </div>
           </div>
 
-          {/* ── Right Box: Matching Height Preview Box (5 cols) ── */}
-          <div className="lg:col-span-5 bg-gradient-to-br from-slate-900 via-[#1b0324] to-slate-950 rounded-2xl border border-slate-800 p-4 sm:p-5 text-white shadow-md flex flex-col justify-between">
+          {/* ── Right Box: Selected update preview / inline PDF ── */}
+          <div className="min-h-[400px] h-full bg-gradient-to-br from-slate-900 via-[#1b0324] to-slate-950 rounded-2xl border border-slate-800 p-4 sm:p-5 text-white shadow-md flex flex-col justify-between">
             <div>
               {/* Preview Header */}
               <div className="flex items-center justify-between mb-2">
@@ -251,10 +260,19 @@ export default function LatestUpdatesSection() {
                 {featured.heading}
               </h3>
 
-              {/* Description */}
-              <p className="text-xs text-slate-300 leading-relaxed font-normal">
-                {featured.summary}
-              </p>
+              {previewPdf ? (
+                <div className="mt-3 w-full overflow-hidden rounded-xl border border-white/15 bg-black shadow-inner">
+                  <iframe
+                    src={`${previewPdf}#page=1&zoom=page-fit`}
+                    title={`${featured.heading} PDF preview`}
+                    className="h-[220px] sm:h-[245px] w-full border-none bg-white"
+                  />
+                </div>
+              ) : (
+                <p className="text-xs text-slate-300 leading-relaxed font-normal">
+                  {featured.summary}
+                </p>
+              )}
             </div>
 
             {/* Bottom Action Area */}
@@ -267,61 +285,35 @@ export default function LatestUpdatesSection() {
                 </span>
               </div>
 
-              <button
-                onClick={() => featured.pdf ? openPdf(featured.pdf) : null}
-                className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#8B1C8D] to-[#B11FA8] px-4 py-2 text-xs font-bold text-white shadow-sm hover:opacity-95 transition-all cursor-pointer"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>Download Official Notice (PDF)</span>
-              </button>
+              {previewPdf ? (
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <a
+                    href={previewPdf}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-xs font-bold text-white transition hover:bg-white/15"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    <span>Open in New Tab</span>
+                  </a>
+                  <a
+                    href={previewPdf}
+                    download
+                    className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#8B1C8D] to-[#B11FA8] px-3 py-2 text-xs font-bold text-white shadow-sm transition hover:opacity-95"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Download PDF</span>
+                  </a>
+                </div>
+              ) : (
+                <p className="text-center text-[11px] text-slate-400">Select an update to preview its PDF here.</p>
+              )}
             </div>
           </div>
 
         </div>
 
       </div>
-
-      {/* ==================== PDF MODAL VIEWER ==================== */}
-      {selectedPdf && (
-        <div
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[1000] p-4 animate-in fade-in duration-200"
-          onClick={closePdf}
-        >
-          <div
-            className="bg-white w-full max-w-4xl h-[85vh] rounded-3xl overflow-hidden flex flex-col shadow-2xl border border-purple-200"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50">
-              <div className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-[#8B1C8D]" />
-                <span className="font-bold text-sm text-slate-900">Official Document &amp; Circular Viewer</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <a
-                  href={selectedPdf}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-xs font-bold text-[#8B1C8D] hover:underline"
-                >
-                  Open in New Tab <ExternalLink className="h-3.5 w-3.5" />
-                </a>
-                <button
-                  onClick={closePdf}
-                  aria-label="Close PDF Viewer"
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-200 text-slate-600 hover:bg-slate-300 hover:text-slate-900 transition-colors"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-            <iframe
-              src={selectedPdf}
-              title="Zint Document Viewer"
-              className="flex-1 w-full border-none"
-            />
-          </div>
-        </div>
-      )}
     </section>
   );
 }

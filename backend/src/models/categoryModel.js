@@ -24,6 +24,11 @@ const categorySchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    displayOrder: {
+      type: Number,
+      default: 0,
+      index: true,
+    },
   },
   { timestamps: true }
 );

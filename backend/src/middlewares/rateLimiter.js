@@ -9,4 +9,12 @@ const formLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-module.exports = { formLimiter };
+const messagingLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { success: false, msg: "Too many requests. Please try again in 15 minutes." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+module.exports = { formLimiter, messagingLimiter };

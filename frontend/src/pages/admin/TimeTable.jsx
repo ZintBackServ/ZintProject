@@ -89,7 +89,7 @@ async function safeFetch(url, options = {}) {
   });
   const raw = await res.text();
   let data = null;
-  try { data = raw ? JSON.parse(raw) : null; } catch {}
+  try { data = raw ? JSON.parse(raw) : null; } catch { data = null; }
   if (!res.ok) throw new Error(data?.msg || `Request failed with status ${res.status}`);
   return data;
 }

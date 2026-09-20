@@ -1,38 +1,6 @@
 const Enrollment = require("../models/enrollmentModel");
 
 // ─────────────────────────────────────────────
-// @desc    Create/enroll in a course
-// @route   POST /api/enrollments
-// @access  Private
-// ─────────────────────────────────────────────
-const createEnrollment = async (req, res) => {
-  try {
-    const { courseId } = req.body;
-
-    if (!courseId) {
-      return res.status(400).json({ success: false, message: "courseId is required." });
-    }
-
-    // Prevent duplicate enrollment
-    const existing = await Enrollment.findOne({ userId: req.user._id, courseId });
-    if (existing) {
-      return res.status(400).json({ success: false, message: "Already enrolled in this course." });
-    }
-
-    const enrollment = await Enrollment.create({
-      userId: req.user._id,
-      courseId,
-      status: "active",
-      progress: 0,
-    });
-
-    res.status(201).json({ success: true, data: enrollment });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-// ─────────────────────────────────────────────
 // @desc    Get all enrollments (admin) or own (user)
 // @route   GET /api/enrollments
 // @access  Private
@@ -219,7 +187,6 @@ const deleteEnrollment = async (req, res) => {
 };
 
 module.exports = {
-  createEnrollment,
   getEnrollments,
   getEnrollmentById,
   updateProgress,

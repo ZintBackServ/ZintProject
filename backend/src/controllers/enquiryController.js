@@ -2,7 +2,8 @@
 const mongoose = require("mongoose");
 const enquiryModel = require("../models/enquiryModel");
 const courseModel  = require("../models/courseModel");
-const { sendCurriculumEmail } = require("../utils/sendEmail");
+const { sendCurriculumEmail, sendEnquiryNotificationEmail } = require("../utils/sendEmail");
+const { sendWhatsAppMessage } = require("../services/whatsappService");
 
 // ── POST /addEnquiry ──────────────────────────────────────────────
 const addEnquiry = async (req, res) => {
@@ -30,6 +31,32 @@ const addEnquiry = async (req, res) => {
       mode: mode.trim(),
       message: message?.trim(),
     });
+
+    // Notify admissions through the configured email and WhatsApp number.
+    // Notification failures never prevent the enquiry from being saved.
+    sendEnquiryNotificationEmail({
+      fullName: enquiry.fullName,
+      email: enquiry.email,
+      mobile: enquiry.mobile,
+      courseName: courseExists.courseName,
+      mode: enquiry.mode,
+      message: enquiry.message,
+    }).catch((err) => console.error("Enquiry email notification failed:", err.message));
+
+    const whatsAppRecipient = process.env.WATSAPPNUMBER?.trim();
+    if (whatsAppRecipient) {
+      const details = [
+        "📩 *New Website Enquiry*",
+        `Name: ${enquiry.fullName}`,
+        `Email: ${enquiry.email}`,
+        `Mobile: ${enquiry.mobile}`,
+        `Course: ${courseExists.courseName}`,
+        `Mode: ${enquiry.mode}`,
+        `Message: ${enquiry.message || "—"}`,
+      ].join("\n");
+      sendWhatsAppMessage(whatsAppRecipient, details)
+        .catch((err) => console.error("Enquiry WhatsApp notification failed:", err.message));
+    }
 
     // Send curriculum PDF via Gmail if this is a curriculum download request
     if (mode.trim().toLowerCase() === "curriculum download") {

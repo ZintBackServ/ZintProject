@@ -1,10 +1,16 @@
-// components/ScrollToTop.jsx
 import { useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
-// Renders nothing — just watches the route and scrolls up whenever it changes.
 function ScrollToTop() {
-  const { pathname, hash } = useLocation();
+  const { pathname, hash, search } = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (pathname.includes("//")) {
+      const cleanPath = pathname.replace(/\/{2,}/g, "/") || "/";
+      navigate(`${cleanPath}${search}${hash}`, { replace: true });
+    }
+  }, [pathname, search, hash, navigate]);
 
   useEffect(() => {
     if (hash) {
@@ -16,9 +22,9 @@ function ScrollToTop() {
         }
       }, 100);
       return () => clearTimeout(timer);
-    } else {
-      window.scrollTo({ top: 0, behavior: "smooth" });
     }
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, [pathname, hash]);
 
   return null;

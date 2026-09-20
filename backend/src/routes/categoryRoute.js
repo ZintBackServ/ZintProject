@@ -21,7 +21,7 @@ const express = require("express");
 const router  = express.Router();
 const {
   addCategory, getAllCategories, getCategoryById,
-  updateCategory, deleteCategory,
+  updateCategory, deleteCategory, reorderCategories,
 } = require("../controllers/categoryController");
 
 // ✅ Single consistent import style
@@ -32,6 +32,7 @@ router.post("/addCategory",          authentication, authorization("admin"), add
 router.get("/getAllCategories",      getAllCategories);
 router.get("/getCategoryById/:id",   getCategoryById);
 router.put("/updateCategory/:id",    authentication, authorization("admin"), updateCategory);
+router.put("/reorderCategories",     authentication, authorization("admin"), reorderCategories);
 router.delete("/deleteCategory/:id", authentication, authorization("admin"), deleteCategory);
 
 module.exports = router;

@@ -26,18 +26,33 @@ import { usePageMeta } from "../hooks/usePageMeta";
 const FREE_WORKSHOP_FORM_URL = "https://forms.gle/MNC7k3BVMeKLv8s17";
 
 // KRG Workshop Images
-import krg1 from "../assets/krg-1.jpg";
-import krg2 from "../assets/krg-2.jpg";
-import krg3 from "../assets/krg-3.jpg";
-import krg4 from "../assets/krg-4.jpg";
-import krg5 from "../assets/krg-5.jpg";
-import krg6 from "../assets/krg-6.jpg";
-import krg7 from "../assets/krg-7.jpg";
-import krg8 from "../assets/krg-8.jpg";
-import krg9 from "../assets/krg-9.jpg";
-import krg10 from "../assets/krg-10.jpg";
-import krg11 from "../assets/krg-11.jpg";
-import krg12 from "../assets/krg-12.jpg";
+import krg1 from "../assets/krg-1.webp";
+import krg2 from "../assets/krg-2.webp";
+import krg3 from "../assets/krg-3.webp";
+import krg4 from "../assets/krg-4.webp";
+import krg5 from "../assets/krg-5.webp";
+import krg6 from "../assets/krg-6.webp";
+import krg7 from "../assets/krg-7.webp";
+import krg8 from "../assets/krg-8.webp";
+import krg9 from "../assets/krg-9.webp";
+import krg10 from "../assets/krg-10.webp";
+import krg11 from "../assets/krg-11.webp";
+import krg12 from "../assets/krg-12.webp";
+
+// Shrimant Madhavrao Scindia Govt. Model Science College Images
+import sc1 from "../assets/sc1.jpg";
+import sc2 from "../assets/sc2.jpg";
+import sc3 from "../assets/sc3.jpg";
+import sc4 from "../assets/sc4.jpg";
+import sc5 from "../assets/sc5.jpg";
+import sc6 from "../assets/sc6.jpg";
+import sc7 from "../assets/sc7.jpg";
+import sc8 from "../assets/sc8.jpg";
+import sc9 from "../assets/sc9.jpg";
+import sc10 from "../assets/sc10.jpg";
+import sc11 from "../assets/sc11.jpg";
+import sc12 from "../assets/sc12.jpg";
+import sc13 from "../assets/sc13.jpg";
 
 // Govt. Girls Hr. Sec. School Images
 import ghs1 from "../assets/ghs1.jpeg";
@@ -140,6 +155,41 @@ const WORKSHOPS_DATA = [
     ]
   },
   {
+    id: "science-college-gwalior-2026",
+    title: "Science College Gwalior — Career Guidance & Technology Workshop",
+    shortName: "Science College Gwalior",
+    date: "08 September 2026",
+    rawDate: "2026-09-08",
+    category: "College Workshop",
+    venue: "Shrimant Madhavrao Scindia Govt. Model Science College, Gwalior (M.P.)",
+    attendees: "College Students",
+    speaker: "ZINT Institute Workshop Team",
+    description:
+      "An interactive campus workshop at Shrimant Madhavrao Scindia Govt. Model Science College, Gwalior. The session brought students together to explore practical technology learning, current digital skills, and career pathways in the evolving IT industry.",
+    highlights: [
+      "Career guidance on technology pathways, emerging digital skills, and professional growth",
+      "Interactive student session focused on practical learning and industry-oriented training",
+      "Guidance on building skills through hands-on practice, projects, and modern tools",
+      "Faculty and student interaction with the ZINT Institute workshop team"
+    ],
+    badge: "College Workshop",
+    images: [
+      { src: sc1, caption: "Welcome and appreciation moment with faculty and students at Science College Gwalior", alt: "Science College Gwalior workshop welcome" },
+      { src: sc2, caption: "Interactive workshop session with students at Shrimant Madhavrao Scindia Govt. Model Science College", alt: "Science College Gwalior student session" },
+      { src: sc3, caption: "Workshop moment at Science College Gwalior", alt: "Science College Gwalior workshop moment 3" },
+      { src: sc4, caption: "Students participating in the Science College Gwalior workshop", alt: "Science College Gwalior workshop moment 4" },
+      { src: sc5, caption: "Technology and career guidance workshop at Science College Gwalior", alt: "Science College Gwalior workshop moment 5" },
+      { src: sc6, caption: "Interactive campus learning moment at Science College Gwalior", alt: "Science College Gwalior workshop moment 6" },
+      { src: sc7, caption: "Students and mentors during the Science College Gwalior workshop", alt: "Science College Gwalior workshop moment 7" },
+      { src: sc8, caption: "Practical learning discussion at Science College Gwalior", alt: "Science College Gwalior workshop moment 8" },
+      { src: sc9, caption: "Engaged students during the college workshop", alt: "Science College Gwalior workshop moment 9" },
+      { src: sc10, caption: "Workshop session at Shrimant Madhavrao Scindia Govt. Model Science College", alt: "Science College Gwalior workshop moment 10" },
+      { src: sc11, caption: "Career and technology learning moment at Science College Gwalior", alt: "Science College Gwalior workshop moment 11" },
+      { src: sc12, caption: "Science College Gwalior workshop interaction", alt: "Science College Gwalior workshop moment 12" },
+      { src: sc13, caption: "Science College Gwalior workshop gallery highlight", alt: "Science College Gwalior workshop moment 13" }
+    ]
+  },
+  {
     id: "govt-girls-hs-school-shinde-chhawani",
     title: "Govt. Girls Higher Secondary School, Shinde Ki Chhawani — Career Guidance & Digital Literacy Workshop",
     shortName: "Govt. Girls H.S. School, Shinde Ki Chhawani",
@@ -231,6 +281,9 @@ const WORKSHOPS_DATA = [
 ];
 
 const CATEGORIES = ["All", "College Workshop", "School Workshop"];
+const LATEST_WORKSHOPS = [...WORKSHOPS_DATA].sort(
+  (first, second) => new Date(second.rawDate) - new Date(first.rawDate)
+);
 
 export default function Workshop() {
   usePageMeta(
@@ -238,7 +291,7 @@ export default function Workshop() {
     "Explore interactive tech workshops and career guidance seminars conducted by Zint Computer Education Institute across top colleges and schools in Gwalior and Central India."
   );
 
-  const [selectedId, setSelectedId] = useState(WORKSHOPS_DATA[0].id);
+  const [selectedId, setSelectedId] = useState(LATEST_WORKSHOPS[0].id);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   
@@ -248,7 +301,7 @@ export default function Workshop() {
 
   // Filtered workshops for the selector
   const filteredWorkshops = useMemo(() => {
-    return WORKSHOPS_DATA.filter((item) => {
+    return LATEST_WORKSHOPS.filter((item) => {
       const matchesCategory = selectedCategory === "All" || item.category === selectedCategory;
       const matchesSearch = 
         item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -261,11 +314,12 @@ export default function Workshop() {
 
   // Selected workshop
   const activeWorkshop = useMemo(() => {
-    return WORKSHOPS_DATA.find((w) => w.id === selectedId) || WORKSHOPS_DATA[0];
+    return LATEST_WORKSHOPS.find((w) => w.id === selectedId) || LATEST_WORKSHOPS[0];
   }, [selectedId]);
 
   // Separate poster (image 0) and gallery photos (images 1+)
   const posterImage = activeWorkshop?.images?.[0];
+  const featuredImageIsPoster = posterImage?.isPoster === true;
   const galleryPhotos = useMemo(() => {
     return (activeWorkshop?.images || []).slice(1);
   }, [activeWorkshop]);
@@ -282,18 +336,6 @@ export default function Workshop() {
     };
   }, [lightboxOpen]);
 
-  // Keyboard navigation for Lightbox
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (!lightboxOpen) return;
-      if (e.key === "Escape") setLightboxOpen(false);
-      if (e.key === "ArrowLeft") handlePrevImage();
-      if (e.key === "ArrowRight") handleNextImage();
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [lightboxOpen, lightboxIndex, activeWorkshop]);
-
   const openLightbox = (index) => {
     setLightboxIndex(index);
     setLightboxOpen(true);
@@ -308,6 +350,18 @@ export default function Workshop() {
     if (!activeWorkshop?.images?.length) return;
     setLightboxIndex((prev) => (prev === activeWorkshop.images.length - 1 ? 0 : prev + 1));
   };
+
+  // Keyboard navigation for Lightbox
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (!lightboxOpen) return;
+      if (e.key === "Escape") setLightboxOpen(false);
+      if (e.key === "ArrowLeft") handlePrevImage();
+      if (e.key === "ArrowRight") handleNextImage();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [lightboxOpen, activeWorkshop]);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-fuchsia-500/30 selection:text-fuchsia-200">
@@ -766,10 +820,10 @@ export default function Workshop() {
                     </div>
                     <div>
                       <h3 className="text-sm sm:text-base md:text-lg font-bold text-white leading-tight">
-                        Official Workshop Poster & Announcement
+                        {featuredImageIsPoster ? "Official Workshop Poster & Announcement" : "Featured Workshop Moment"}
                       </h3>
                       <p className="text-[11px] sm:text-xs text-slate-400">
-                        Official banner and program schedule released for this event
+                        {featuredImageIsPoster ? "Official banner and program schedule released for this event" : "A highlight from this campus workshop"}
                       </p>
                     </div>
                   </div>
@@ -779,7 +833,7 @@ export default function Workshop() {
                     className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-semibold rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors shrink-0"
                   >
                     <Maximize2 className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">Enlarge Poster</span>
+                    <span className="hidden sm:inline">Enlarge {featuredImageIsPoster ? "Poster" : "Photo"}</span>
                     <span className="sm:hidden">Enlarge</span>
                   </button>
                 </div>
@@ -810,14 +864,14 @@ export default function Workshop() {
                     <div className="absolute inset-0 z-20 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                       <span className="px-4 py-2 rounded-xl bg-slate-900/90 border border-fuchsia-500/50 text-fuchsia-200 text-xs font-semibold flex items-center gap-2 backdrop-blur-md shadow-2xl">
                         <ZoomIn className="w-4 h-4" />
-                        <span>Click to View Full Poster</span>
+                        <span>Click to View Full {featuredImageIsPoster ? "Poster" : "Photo"}</span>
                       </span>
                     </div>
 
                     {/* Top Chip */}
                     <div className="absolute top-2.5 sm:top-3 left-2.5 sm:left-3 z-20 px-2.5 sm:px-3 py-1 rounded-lg bg-fuchsia-600/90 backdrop-blur-md text-[11px] sm:text-xs font-bold text-white shadow-lg flex items-center gap-1.5 border border-fuchsia-400/40">
                       <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                      <span>Poster • Photo 1 of {activeWorkshop.images.length}</span>
+                      <span>{featuredImageIsPoster ? "Poster" : "Featured"} • Photo 1 of {activeWorkshop.images.length}</span>
                     </div>
                   </div>
 
@@ -870,6 +924,7 @@ export default function Workshop() {
                           src={img.src}
                           alt={img.alt || activeWorkshop.title}
                           loading="lazy"
+                          decoding="async"
                           className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
                         />
 

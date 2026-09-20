@@ -129,7 +129,6 @@ const verifyPayment = async (req, res) => {
       razorpay_order_id,
       razorpay_payment_id,
       razorpay_signature,
-      expiredAt,
     } = req.body;
 
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
@@ -146,9 +145,14 @@ const verifyPayment = async (req, res) => {
       .update(body)
       .digest("hex");
 
-    if (expectedSignature !== razorpay_signature) {
+    const signatureIsValid =
+      typeof razorpay_signature === "string" &&
+      razorpay_signature.length === expectedSignature.length &&
+      crypto.timingSafeEqual(Buffer.from(expectedSignature), Buffer.from(razorpay_signature));
+
+    if (!signatureIsValid) {
       await Enrollment.findOneAndUpdate(
-        { orderId: razorpay_order_id },
+        { orderId: razorpay_order_id, userId: req.user._id },
         { paymentStatus: "failed", status: "cancelled" }
       );
       return res.status(400).json({
@@ -159,14 +163,13 @@ const verifyPayment = async (req, res) => {
 
     // Activate enrollment
     const enrollment = await Enrollment.findOneAndUpdate(
-      { orderId: razorpay_order_id },
+      { orderId: razorpay_order_id, userId: req.user._id, paymentStatus: "pending" },
       {
         paymentId:     razorpay_payment_id,
         signature:     razorpay_signature,
         paymentStatus: "paid",
         status:        "active",
         purchasedAt:   new Date(),
-        expiredAt:     expiredAt || null,
       },
       { returnDocument: "after" }
     )
@@ -202,13 +205,24 @@ const verifyPayment = async (req, res) => {
 // ─────────────────────────────────────────────
 const enrollFree = async (req, res) => {
   try {
-    const { courseId, expiredAt } = req.body;
+    const { courseId } = req.body;
 
     if (!courseId) {
       return res.status(400).json({
         success: false,
         message: "courseId is required.",
       });
+    }
+
+    const course = await courseModel.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ success: false, message: "Course not found." });
+    }
+
+    const definedPrices = [course.fee, course.online_fee].filter(Number.isFinite);
+    const isFreeCourse = definedPrices.length > 0 && definedPrices.every((price) => price === 0);
+    if (!isFreeCourse) {
+      return res.status(400).json({ success: false, message: "This course requires payment." });
     }
 
     const existing = await Enrollment.findOne({
@@ -231,7 +245,6 @@ const enrollFree = async (req, res) => {
       status:        "active",
       amount:        0,
       purchasedAt:   new Date(),
-      expiredAt:     expiredAt || null,
     });
 
     return res.status(201).json({
@@ -265,20 +278,28 @@ const razorpayWebhook = async (req, res) => {
     const webhookSecret      = process.env.RAZORPAY_WEBHOOK_SECRET;
     const receivedSignature  = req.headers["x-razorpay-signature"];
 
+    if (!webhookSecret || !receivedSignature || !Buffer.isBuffer(req.body)) {
+      return res.status(400).json({ success: false, message: "Invalid webhook request." });
+    }
+
     const expectedSignature = crypto
       .createHmac("sha256", webhookSecret)
-      .update(JSON.stringify(req.body))
+      .update(req.body)
       .digest("hex");
 
-    if (receivedSignature !== expectedSignature) {
+    if (
+      receivedSignature.length !== expectedSignature.length ||
+      !crypto.timingSafeEqual(Buffer.from(receivedSignature), Buffer.from(expectedSignature))
+    ) {
       return res.status(400).json({
         success: false,
         message: "Invalid webhook signature.",
       });
     }
 
-    const event   = req.body.event;
-    const payload = req.body.payload?.payment?.entity;
+    const webhook = JSON.parse(req.body.toString("utf8"));
+    const event   = webhook.event;
+    const payload = webhook.payload?.payment?.entity;
 
     if (event === "payment.captured" && payload) {
       await Enrollment.findOneAndUpdate(

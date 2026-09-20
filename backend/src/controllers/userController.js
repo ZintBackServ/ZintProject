@@ -12,15 +12,17 @@ const {
   isValidPassword,
 } = require("../utils/validator");
 const mongoose = require("mongoose");
+const { frontendPath, frontendBaseUrl, isLocalFrontend } = require("../utils/frontendUrl");
 
 // ── Cookie config ────────────────────────────────────────────────────────────
 const IS_PROD = process.env.NODE_ENV === "production";
+const COOKIE_SECURE = IS_PROD && !isLocalFrontend();
 
 function cookieSameSite() {
-  if (!IS_PROD) return "lax";
+  if (!COOKIE_SECURE) return "lax";
 
   const apiOrigin = process.env.API_PUBLIC_URL || process.env.API_URL;
-  const frontend = process.env.frontendurl || process.env.FRONTEND_URL;
+  const frontend = frontendBaseUrl();
   if (!apiOrigin || !frontend) return "lax";
 
   try {
@@ -32,7 +34,7 @@ function cookieSameSite() {
 
 const COOKIE_OPTIONS = {
   httpOnly: true,
-  secure:   IS_PROD,
+  secure:   COOKIE_SECURE,
   sameSite: cookieSameSite(),
   maxAge:   24 * 60 * 60 * 1000,
 };
@@ -307,7 +309,7 @@ const logoutUser = async (req, res) => {
 
   res.clearCookie("token", {
     httpOnly: true,
-    secure:   IS_PROD,
+    secure:   COOKIE_SECURE,
     sameSite: cookieSameSite(),
   });
   return res.status(200).json({ success: true, msg: "Logged out successfully." });
@@ -320,14 +322,14 @@ const logoutUser = async (req, res) => {
 const googleAuthCallback = async (req, res) => {
   try {
     const user = req.user;
-    if (!user) return res.redirect(`${process.env.FRONTEND_URL}/login?error=google_failed`);
+    if (!user) return res.redirect(frontendPath("/login?error=google_failed"));
 
     await setTokenCookie(res, user);
     // Redirect without token in URL — frontend reads /user/me instead
-    return res.redirect(`${process.env.FRONTEND_URL}/auth/google/success`);
+    return res.redirect(frontendPath("/auth/google/success"));
   } catch (error) {
     logger.error("googleAuthCallback error:", error);
-    return res.redirect(`${process.env.FRONTEND_URL}/login?error=google_failed`);
+    return res.redirect(frontendPath("/login?error=google_failed"));
   }
 };
 

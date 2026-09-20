@@ -285,7 +285,7 @@ function CircleGalleryRadial({ items, activeIndex, setActiveIndex }) {
   };
 
   // Pointer drag move
-  const handlePointerMove = (clientX, clientY) => {
+  const handlePointerMove = (clientX, _clientY) => {
     if (!isDragging) return;
     const now = performance.now();
     const dt = now - lastTimeRef.current;

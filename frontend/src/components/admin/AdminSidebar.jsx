@@ -9,6 +9,7 @@ const links = [
   { path: "/admin/dashboard/AddMentor",               label: "👨‍🏫 Add Mentor"   },
   { path: "/admin/dashboard/UserAdminDashboard",      label: "👥 Users"        },
   { path: "/admin/dashboard/PlacedStudentDashboard",  label: "🏆 Placements"   },
+  { path: "/admin/dashboard/StudentDetails",         label: "📋 Student Details" },
   { path: "/admin/dashboard/AllEventRegistration",    label: "All Event Registration" },
   { path: "/admin/dashboard/Rating",                  label: "Rating" },
   { path: "/admin/dashboard/EnrolledStudent",         label: "Enrolled Student" },
@@ -21,6 +22,8 @@ const links = [
   { path: "/admin/dashboard/TimeTable",               label: "Time Table" },
   { path: "/admin/dashboard/InternshipRegistration",  label: "Internship Registrations" },
   { path: "/admin/dashboard/PlacementRegistration",  label: "Placement Registration" },
+  { path: "/admin/dashboard/AddWebinar",              label: "📺 Add Webinar" },
+  { path: "/admin/dashboard/AddJobUpdate",            label: "💼 Add Job Update" },
 ];
 
 function AdminSidebar({ isOpen, onClose }) {
@@ -82,55 +85,3 @@ function AdminSidebar({ isOpen, onClose }) {
 }
 
 export default AdminSidebar;
-
-
-// // components/admin/AdminSidebar.jsx
-// import { Link, useLocation } from "react-router-dom";
-
-// // All sidebar links — add new pages here only
-// const links = [
-//   { path: "/admin/dashboard",                              label: "🏠 Dashboard"    },
-//   { path: "/admin/dashboard/AddCourse",                    label: "➕ Add Course"   },
-//   { path: "/admin/dashboard/ShowAllCourse",                label: "📚 All Courses"  },
-//   { path: "/admin/dashboard/AddMentor",                    label: "👨‍🏫 Add Mentor"   },
-//   { path: "/admin/dashboard/UserAdminDashboard",           label: "👥 Users"        },
-//   { path: "/admin/dashboard/PlacedStudentDashboard",  label: "🏆 Placements"   },
-//   { path: "/admin/dashboard/AllEventRegistration",         label: "All Event Registration"   },
-//   { path: "/admin/dashboard/Rating",                       label: "Rating"   },
-//   { path: "/admin/dashboard/EnrolledStudent",              label: "Enrolled Student"   },
-//   { path: "/admin/dashboard/Notification",                 label: "Notification"   },
-//   { path: "/admin/dashboard/AddCategory",                 label: "Add Category"   },
-//   { path: "/admin/dashboard/AddLatestUpdate",                 label: "Add Latest Update"   },
-//   { path: "/admin/dashboard/Enquiries",                 label: "Enquiries"   },
-//   { path: "/admin/dashboard/TimeTable",                 label: "Time Table"   },
-//   { path: "/admin/dashboard/InternshipRegistration",                 label: "Internship Registrations"   },
-// ];
-
-// function AdminSidebar({ onClose }) {
-//   const location = useLocation();
-
-//   return (
-//     <aside className="w-56 bg-gray-900 text-white flex flex-col gap-1 p-4 min-h-screen pt-4">
-//       <p className="text-xs font-bold text-gray-400 uppercase mb-4 tracking-wider">
-//         Navigation
-//       </p>
-
-//       {links.map((link) => (
-//         <Link
-//           key={link.path}
-//           to={link.path}
-//           onClick={onClose} // close sidebar on mobile after click
-//           className={`px-4 py-2.5 rounded-lg text-sm font-medium transition
-//             ${location.pathname === link.path
-//               ? "bg-indigo-600 text-white"
-//               : "text-gray-300 hover:bg-gray-700"
-//             }`}
-//         >
-//           {link.label}
-//         </Link>
-//       ))}
-//     </aside>
-//   );
-// }
-
-// export default AdminSidebar;

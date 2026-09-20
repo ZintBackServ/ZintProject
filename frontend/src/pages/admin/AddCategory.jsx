@@ -1,7 +1,7 @@
 // pages/admin/AddCategory.jsx
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiPlus, FiTrash2, FiAlertCircle, FiCheck, FiLoader, FiX } from "react-icons/fi";
+import { FiPlus, FiTrash2, FiAlertCircle, FiCheck, FiLoader, FiX, FiChevronsDown, FiChevronsUp } from "react-icons/fi";
 
 /* ── tiny reusable input ── */
 function TextInput({ value, onChange, placeholder, onKeyDown }) {
@@ -27,6 +27,8 @@ export default function AddCategory() {
   const [existing, setExisting]         = useState([]);
   const [exLoading, setExLoading]       = useState(true);
   const [deletingId, setDeletingId]     = useState(null);
+  const [orderingId, setOrderingId]     = useState(null);
+  const [orderError, setOrderError]     = useState("");
 
   // ── bulk-add queue (local, not yet saved) ──
   const [queue, setQueue]               = useState([]); // [{ id, categoryName, description }]
@@ -112,6 +114,33 @@ export default function AddCategory() {
       else { const d = await res.json(); alert(d.msg || "Delete failed."); }
     } catch { alert("Network error."); }
     finally { setDeletingId(null); }
+  };
+
+  const moveCategory = async (id, position) => {
+    const fromIndex = existing.findIndex((category) => category._id === id);
+    const toIndex = position === "top" ? 0 : existing.length - 1;
+    if (fromIndex < 0 || fromIndex === toIndex) return;
+
+    const previous = existing;
+    const reordered = [...existing];
+    const [category] = reordered.splice(fromIndex, 1);
+    reordered.splice(toIndex, 0, category);
+    setExisting(reordered);
+    setOrderingId(id);
+    setOrderError("");
+
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/category/reorderCategories`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ categoryIds: reordered.map((item) => item._id) }),
+      });
+      if (!res.ok) throw new Error((await res.json()).msg || "Could not save category order.");
+    } catch (error) {
+      setExisting(previous);
+      setOrderError(error.message || "Could not save category order.");
+    } finally { setOrderingId(null); }
   };
 
   return (
@@ -243,9 +272,7 @@ export default function AddCategory() {
         {/* ── EXISTING CATEGORIES ── */}
         <div className="bg-white rounded-2xl border p-5 flex flex-col gap-4" style={{ borderColor: "#f0f0f0" }}>
           <div className="flex items-center justify-between">
-            <p className="text-sm font-bold" style={{ color: "#374151" }}>
-              Existing Categories
-            </p>
+            <div><p className="text-sm font-bold" style={{ color: "#374151" }}>Existing Categories</p><p className="mt-1 text-xs" style={{ color: "#9ca3af" }}>Use the arrows to place a category first or last. No categories are removed.</p></div>
             {!exLoading && (
               <span className="text-xs px-2 py-0.5 rounded-full font-semibold"
                 style={{ background: "#f3f4f6", color: "#6b7280" }}>
@@ -278,6 +305,25 @@ export default function AddCategory() {
                       <p className="text-xs mt-0.5 truncate" style={{ color: "#9ca3af" }}>{cat.description}</p>
                     )}
                   </div>
+                  <div className="flex items-center gap-1">
+                    <button onClick={() => moveCategory(cat._id, "top")}
+                      disabled={orderingId !== null || existing[0]?._id === cat._id}
+                      title="Move to top"
+                      className="flex-shrink-0 p-1.5 rounded-lg transition disabled:cursor-not-allowed disabled:opacity-30"
+                      style={{ color: "#7c3aed" }}
+                      onMouseEnter={e => { if (!e.currentTarget.disabled) e.currentTarget.style.background = "#f5f3ff"; }}
+                      onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+                      {orderingId === cat._id ? <FiLoader size={14} className="animate-spin" /> : <FiChevronsUp size={16} />}
+                    </button>
+                    <button onClick={() => moveCategory(cat._id, "bottom")}
+                      disabled={orderingId !== null || existing[existing.length - 1]?._id === cat._id}
+                      title="Move to bottom"
+                      className="flex-shrink-0 p-1.5 rounded-lg transition disabled:cursor-not-allowed disabled:opacity-30"
+                      style={{ color: "#7c3aed" }}
+                      onMouseEnter={e => { if (!e.currentTarget.disabled) e.currentTarget.style.background = "#f5f3ff"; }}
+                      onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+                      <FiChevronsDown size={16} />
+                    </button>
                   <button onClick={() => handleDelete(cat._id, cat.categoryName)}
                     disabled={deletingId === cat._id}
                     className="flex-shrink-0 p-1.5 rounded-lg transition disabled:opacity-40"
@@ -288,10 +334,12 @@ export default function AddCategory() {
                       ? <FiLoader size={14} className="animate-spin" />
                       : <FiTrash2 size={14} />}
                   </button>
+                  </div>
                 </div>
               ))}
             </div>
           )}
+          {orderError && <p className="flex items-center gap-1 text-xs" style={{ color: "#ef4444" }}><FiAlertCircle size={12} /> {orderError}</p>}
         </div>
 
       </div>

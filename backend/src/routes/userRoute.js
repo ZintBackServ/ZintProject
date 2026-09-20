@@ -2,6 +2,7 @@ const express   = require("express");
 const router    = express.Router();
 const passport  = require("../config/passport");
 const rateLimit = require("express-rate-limit");
+const { frontendPath } = require("../utils/frontendUrl");
 
 const {
   signUpUser,
@@ -68,7 +69,7 @@ router.get(
 router.get(
   "/auth/google/callback",
   passport.authenticate("google", {
-    failureRedirect: `${process.env.FRONTEND_URL}/login?error=google_failed`,
+    failureRedirect: frontendPath("/login?error=google_failed"),
     session: false,
   }),
   googleAuthCallback

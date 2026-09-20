@@ -4,6 +4,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
+import OnlineTrainingSection from "../../components/OnlineTrainingSection";
+import MyDetailsView from "../../components/MyDetailsView";
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -254,7 +256,7 @@ function AdmissionCard({ admission }) {
 }
 
 // ─── Dashboard View ────────────────────────────────────────────────────────────
-function DashboardView({ enrollments, admissions = [], onProgress, onCancel, onPayNow, navigateToAdmission, onNavClick, user }) {
+function DashboardView({ enrollments, admissions = [], onProgress, onCancel, onPayNow, navigateToAdmission, onNavClick, user, onToast }) {
   const active     = enrollments.filter((e) => e.status === "active").length;
   const completed  = enrollments.filter((e) => e.status === "completed").length;
   const spent      = enrollments.filter((e) => e.paymentStatus === "paid").reduce((s, e) => s + (e.amount || 0), 0);
@@ -352,6 +354,27 @@ function DashboardView({ enrollments, admissions = [], onProgress, onCancel, onP
           ))}
         </div>
       )}
+
+      {/* ── Online Training & Live Classes Timetable Section Below Dashboard ── */}
+      <div className="mt-10 pt-6 border-t border-slate-200/80">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+          <div>
+            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <span>💻 Scheduled Online Classes &amp; Live Training</span>
+            </h2>
+            <p className="text-xs text-slate-500">Register to receive WhatsApp meeting details and an automated 30-minute reminder</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => onNavClick && onNavClick("online-training")}
+            className="text-xs font-bold text-[#B026B5] hover:underline cursor-pointer self-start sm:self-auto"
+          >
+            Open in Full Tab &rarr;
+          </button>
+        </div>
+
+        <OnlineTrainingSection showTitle={false} onToast={onToast} />
+      </div>
     </div>
   );
 }
@@ -414,6 +437,7 @@ function MyCoursesView({ enrollments, onProgress, onCancel, onPayNow, navigateTo
           <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">My Courses</h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">All your course enrollments and progress in one place</p>
         </div>
+         
         <button
           type="button"
           onClick={navigateToAdmission}
@@ -461,6 +485,8 @@ function MyCoursesView({ enrollments, onProgress, onCancel, onPayNow, navigateTo
 // ─── Left Sidebar Navigation Items ─────────────────────────────────────────────
 const NAV = [
   { id: "dashboard",         icon: "📊", label: "Dashboard"         },
+  { id: "my-details",        icon: "👤", label: "My Details"        },
+  { id: "online-training",   icon: "💻", label: "Online Training"   },
   { id: "my-admissions",     icon: "📋", label: "My Admissions"     },
   { id: "my-courses",        icon: "🎓", label: "My Courses"        },
   { id: "apply-certificate", icon: "📜", label: "Apply Certificate" },
@@ -566,7 +592,7 @@ export default function UserDashboard() {
     }
   };
 
-  const openRazorpay = useCallback(({ order, key, courseTitle, enrollmentId }) => {
+  const openRazorpay = useCallback(({ order, key, courseTitle }) => {
     const options = {
       key,
       amount:      order.amount,
@@ -629,7 +655,7 @@ export default function UserDashboard() {
         showToast(data.message, "error");
         return;
       }
-      openRazorpay({ order: data.order, key: data.key, courseTitle, enrollmentId });
+      openRazorpay({ order: data.order, key: data.key, courseTitle });
     } catch {
       showToast("Could not initiate payment", "error");
     }
@@ -710,7 +736,16 @@ export default function UserDashboard() {
             navigateToAdmission={navigateToAdmission}
             onNavClick={handleNavClick}
             user={user}
+            onToast={showToast}
           />
+        )}
+        {view === "my-details" && (
+          <MyDetailsView user={user} onToast={showToast} />
+        )}
+        {view === "online-training" && (
+          <div className="space-y-6">
+            <OnlineTrainingSection showTitle={true} onToast={showToast} />
+          </div>
         )}
         {view === "my-admissions" && (
           <MyAdmissionsView
