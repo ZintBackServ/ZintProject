@@ -2,6 +2,11 @@ const dotenv = require("dotenv");
 dotenv.config();
 const express        = require("express");
 const app            = express();
+
+// Hostinger/Nginx terminates the public request and forwards it to this
+// process. Trust exactly one proxy hop so rate limiting uses the real client
+// IP from X-Forwarded-For instead of treating every visitor as the proxy.
+app.set("trust proxy", 1);
 const cookieParser   = require("cookie-parser");
 const mongoSanitize  = require("express-mongo-sanitize");
 const helmet         = require("helmet");
