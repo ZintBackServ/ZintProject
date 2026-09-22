@@ -531,7 +531,7 @@ export default function MyDetailsView({ user, onToast }) {
             </div>
 
             {/* Total Fee (Optional) */}
-            <div className="sm:col-span-2">
+            <div className="sm:col-start-2">
               <label className="block text-xs font-bold text-slate-700 mb-1.5">
                 Course Fee (INR) <span className="text-slate-400 font-normal">(optional)</span>
               </label>

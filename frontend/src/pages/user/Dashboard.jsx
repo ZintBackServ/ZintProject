@@ -499,6 +499,7 @@ export default function UserDashboard() {
   const navigate    = useNavigate();
 
   const [view,          setView]          = useState("dashboard");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [enrollments,   setEnrollments]   = useState([]);
   const [admissions,    setAdmissions]    = useState([]);
   const [toast,         setToast]         = useState(null);
@@ -541,6 +542,7 @@ export default function UserDashboard() {
 
   const handleNavClick = (v) => {
     setView(v);
+    setMobileMenuOpen(false);
     loadEnrollments();
     loadAdmissions();
   };
@@ -707,25 +709,59 @@ export default function UserDashboard() {
         )}
       </nav>
 
-      {/* Mobile Bottom Nav */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-white border-t border-slate-200 flex">
-        {NAV.map((n) => (
+      {/* Mobile Bottom Navigation — four clear primary actions plus an overflow menu */}
+      {mobileMenuOpen && (
+        <div className="md:hidden fixed inset-0 z-20 bg-slate-950/20" onClick={() => setMobileMenuOpen(false)} />
+      )}
+      {mobileMenuOpen && (
+        <div className="md:hidden fixed bottom-[4.75rem] left-3 right-3 z-30 rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl">
+          <p className="px-2 pb-2 text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">More options</p>
+          <div className="grid grid-cols-3 gap-2">
+            {NAV.filter((n) => !["dashboard", "my-details", "online-training", "my-courses"].includes(n.id)).map((n) => (
+              <button
+                key={n.id}
+                type="button"
+                onClick={() => handleNavClick(n.id)}
+                className={`flex min-h-20 flex-col items-center justify-center gap-1 rounded-xl px-1 text-center text-[10px] font-bold transition-colors ${
+                  view === n.id ? "bg-purple-50 text-[#B026B5]" : "bg-slate-50 text-slate-600"
+                }`}
+              >
+                <span className="text-xl">{n.icon}</span>
+                <span className="leading-tight">{n.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 flex h-[4.75rem] border-t border-slate-200 bg-white px-1 pb-[env(safe-area-inset-bottom)] shadow-[0_-5px_18px_rgba(15,23,42,0.08)]">
+        {NAV.filter((n) => ["dashboard", "my-details", "online-training", "my-courses"].includes(n.id)).map((n) => (
           <button
             key={n.id}
             type="button"
             onClick={() => handleNavClick(n.id)}
-            className={`flex-1 flex flex-col items-center gap-0.5 py-3 text-[11px] font-bold transition-colors ${
-              view === n.id ? "text-[#B026B5]" : "text-slate-400"
+            className={`flex-1 flex min-w-0 flex-col items-center justify-center gap-0.5 px-1 text-[10px] font-bold transition-colors ${
+              view === n.id ? "text-[#B026B5]" : "text-slate-500"
             }`}
           >
-            <span className="text-xl">{n.icon}</span>
-            {n.label}
+            <span className="text-lg leading-none">{n.icon}</span>
+            <span className="truncate">{n.label}</span>
           </button>
         ))}
+        <button
+          type="button"
+          onClick={() => setMobileMenuOpen((open) => !open)}
+          aria-expanded={mobileMenuOpen}
+          className={`flex-1 flex min-w-0 flex-col items-center justify-center gap-0.5 px-1 text-[10px] font-bold transition-colors ${
+            mobileMenuOpen ? "text-[#B026B5]" : "text-slate-500"
+          }`}
+        >
+          <span className="text-lg leading-none">•••</span>
+          <span>More</span>
+        </button>
       </nav>
 
       {/* ── Main Content Area ── */}
-      <main className="flex-1 p-6 sm:p-8 overflow-y-auto pb-24 md:pb-8">
+      <main className="flex-1 overflow-y-auto p-4 pb-28 sm:p-8 sm:pb-28 md:pb-8">
         {view === "dashboard" && (
           <DashboardView
             enrollments={enrollments}

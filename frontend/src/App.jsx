@@ -1,5 +1,5 @@
 import React, { lazy, Suspense } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import TopInfo from "./pages/TopInfo";
 import Footer from "./pages/Footer";
@@ -52,11 +52,14 @@ const FeePay               = lazy(() => import("./pages/user/FeePay"));
 const AdminRatingDashboard = lazy(() => import("./pages/admin/Rating").then(m => ({ default: m.AdminRatingDashboard })));
 
 function App() {
+  const { pathname } = useLocation();
+  const isPortal = pathname.startsWith("/user/") || pathname.startsWith("/admin/");
+
   return (
     <DataProvider>
       <ScrollToTop />
-      <TopInfo />
-      <Navbar />
+      {!isPortal && <TopInfo />}
+      {!isPortal && <Navbar />}
       <NotificationPopup />
 
       {/* Suspense fallback shown while any lazy chunk is loading */}
@@ -106,7 +109,7 @@ function App() {
         </Routes>
       </Suspense>
 
-      <Footer />
+      {!isPortal && <Footer />}
     </DataProvider>
   );
 }
