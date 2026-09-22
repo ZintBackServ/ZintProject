@@ -11,30 +11,30 @@ const values = [
   {
     icon: GraduationCap,
     number: "01",
-    title: "We Believe in Empowering Tech Talent",
-    description: "Our core belief is to empower students with the skills, knowledge, and confidence needed to succeed in today’s rapidly evolving technology and digital industry.",
+    title: "Quality, Practical & Career-Oriented Training",
+    description: "Our vision is to provide quality, practical, and career-oriented training that prepares students to meet evolving industry requirements and emerging career opportunities. We are committed to continuously updating our training programs in line with emerging technologies, modern industry trends, and the changing demands of the digital world.",
     color: "text-cyan-300", glow: "bg-cyan-400/15", line: "bg-cyan-300",
   },
   {
     icon: Lightbulb,
     number: "02",
-    title: "We Believe in Practical Learning",
-    description: "We believe that learning by doing creates stronger professionals. Our training focuses on practical sessions, real-world projects, hands-on practice, and industry-relevant tools to prepare students for real workplace challenges.",
+    title: "Beyond Classroom Training",
+    description: "At ZINT Institute, our focus goes beyond classroom training. Through practical learning, live projects, industry-relevant skills, career guidance, and placement support, we strive to help students move confidently towards their career goals.",
     color: "text-violet-300", glow: "bg-violet-400/15", line: "bg-violet-300",
   },
   {
     icon: BriefcaseBusiness,
     number: "03",
-    title: "We Believe in Building Careers",
-    description: "We believe education should go beyond completing a course. From skill development and project-based learning to interview preparation and placement assistance, we support students in taking meaningful steps toward their career goals.",
+    title: "Every Student Has Potential",
+    description: "We believe that every student has the potential to build a successful career. Our vision is to create a dynamic learning environment where students continuously learn, stay updated with the latest technologies, develop their skills and confidence, and prepare themselves for opportunities in employment, freelancing, and entrepreneurship.",
     color: "text-fuchsia-300", glow: "bg-fuchsia-400/15", line: "bg-fuchsia-300",
   },
 ];
 
 const proofPoints = [
-  ["17+", "Years of skill-first training"],
-  ["Hands-on", "Learning for real-world work"],
-  ["Career", "Focused guidance at every step"],
+  ["Skilled", "Build practical, in-demand skills"],
+  ["Confident", "Grow with guidance and support"],
+  ["Future-ready", "Prepare for emerging opportunities"],
 ];
 
 export default function OurValues() {
@@ -49,13 +49,13 @@ export default function OurValues() {
           <div className="grid gap-14 lg:grid-cols-[minmax(0,.88fr)_minmax(0,1.32fr)] lg:gap-20">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-fuchsia-300/30 bg-fuchsia-400/10 px-3.5 py-2 text-sm font-bold text-fuchsia-200">
-                <Sparkles className="h-4 w-4" aria-hidden="true" /> Our values
+                <Sparkles className="h-4 w-4" aria-hidden="true" /> Our vision
               </div>
               <h2 id="our-values-heading" className="mt-6 max-w-xl text-4xl font-black leading-[1.03] tracking-tight text-white sm:text-5xl lg:text-[3.45rem]">
-                Empowering futures through <span className="bg-gradient-to-r from-cyan-300 via-violet-300 to-fuchsia-300 bg-clip-text text-transparent">skill-based excellence.</span>
+                Building skilled, confident, <span className="bg-gradient-to-r from-cyan-300 via-violet-300 to-fuchsia-300 bg-clip-text text-transparent">future-ready professionals.</span>
               </h2>
               <p className="mt-6 max-w-xl text-base leading-7 text-violet-100/75 sm:text-lg">
-                With 17+ years of training experience, ZINT Institute delivers practical, industry-oriented education that helps students build relevant skills for today’s digital world.
+                ZINT Institute envisions becoming a leading centre of excellence in education and skill development, where students are empowered to become skilled, confident, industry-ready, and future-ready professionals.
               </p>
 
               <div className="mt-10 grid grid-cols-3 gap-3 sm:gap-4">
@@ -70,7 +70,7 @@ export default function OurValues() {
 
               <div className="mt-8 flex items-center gap-3 text-sm font-semibold text-violet-100/85">
                 <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10"><CircleCheck className="h-4 w-4 text-cyan-300" aria-hidden="true" /></span>
-                Learn with confidence. Build a career with purpose.
+                Empowering Skills • Enabling Careers • Building a Brighter Future
               </div>
             </div>
 
@@ -84,7 +84,7 @@ export default function OurValues() {
                     </div>
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <span className={`text-[11px] font-extrabold tracking-[0.2em] ${color}`}>VALUE {number}</span>
+                        <span className={`text-[11px] font-extrabold tracking-[0.2em] ${color}`}>VISION {number}</span>
                         <h3 className="mt-1.5 text-xl font-extrabold leading-snug text-white sm:text-2xl">{title}</h3>
                       </div>
                       <ArrowUpRight className="mt-1 h-5 w-5 shrink-0 text-white/30 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-white" aria-hidden="true" />

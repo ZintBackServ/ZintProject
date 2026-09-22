@@ -308,7 +308,7 @@ const Footer = () => {
         }}>
           <span>© {new Date().getFullYear()} ZintSkills. All rights reserved.</span>
           <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
-            {[["Privacy Policy", "/privacy"], ["Terms & Conditions", "/terms"], ["Refund Policy", "/refund"]].map(
+            {[["Privacy Policy", "/PrivacyPolicy"], ["Terms & Conditions", "/TermsConditions"], ["Refund Policy", "/RefundPolicy"]].map(
               ([label, to]) => (
                 <Link key={to} to={to} className="foot-link" style={{ fontSize: 12 }}>{label}</Link>
               )
