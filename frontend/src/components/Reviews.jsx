@@ -45,9 +45,9 @@ const reviews = [
 const videoTestimonials = [
   {
     id: 1,
-    youtubeId: "o_7MHq7zyPg",
-    name: "Ankit Lahariya",
-    course: "MERN Stack Development",
+    youtubeId: "UCRKLnad_Do",
+    name: "Harshita Singh",
+    course: "Python",
     initials: "AL",
     gradient: "from-pink-500 to-purple-600",
   },
