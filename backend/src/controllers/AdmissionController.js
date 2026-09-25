@@ -50,17 +50,21 @@ const applyAdmission = async (req, res) => {
     }
     const courseFee = Number(selectedMode === "Online" ? (course.online_fee ?? course.fee ?? 0) : (course.fee ?? course.online_fee ?? 0));
 
-    const duplicateFilter = userId ? { userId, courseId } : { email: email.trim().toLowerCase(), courseId, userId: { $exists: false } };
+    const normalizedEmail = email.trim().toLowerCase();
+    const duplicateFilter = userId
+      ? { userId, courseId }
+      : { email: normalizedEmail, courseId, userId: { $exists: false } };
     if (await Admission.exists(duplicateFilter)) {
       return res.status(409).json({ success: false, msg: "An admission application already exists for this course and email." });
     }
 
     const admission = await Admission.create({
       ...(userId ? { userId } : {}),
+      ...(!userId ? { guestEmail: normalizedEmail } : {}),
       studentName: name,
       name,
       fatherName,
-      email,
+      email: normalizedEmail,
       mobileNumber,
       fatherMobile,
       category,

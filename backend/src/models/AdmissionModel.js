@@ -34,6 +34,14 @@ const AdmissionSchema = new mongoose.Schema(
       lowercase: true,
     },
 
+    // Present only on guest applications; this permits a supported partial
+    // unique index without filtering on `userId: { $exists: false }`.
+    guestEmail: {
+      type: String,
+      trim: true,
+      lowercase: true,
+    },
+
     mobileNumber: {
       type: String,
       trim: true,
@@ -138,6 +146,9 @@ const AdmissionSchema = new mongoose.Schema(
 
 // FIX: prevent a user from applying to the same course twice
 AdmissionSchema.index({ userId: 1, courseId: 1 }, { unique: true, partialFilterExpression: { userId: { $exists: true } } });
-AdmissionSchema.index({ email: 1, courseId: 1 }, { unique: true, partialFilterExpression: { userId: { $exists: false } } });
+AdmissionSchema.index(
+  { guestEmail: 1, courseId: 1 },
+  { unique: true, partialFilterExpression: { guestEmail: { $type: "string" } } }
+);
 
 module.exports = mongoose.model("Admission", AdmissionSchema);
