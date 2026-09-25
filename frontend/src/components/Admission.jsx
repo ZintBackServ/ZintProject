@@ -10,24 +10,6 @@ import onlineAdmissionImg from "../assets/onlineAdmission.jpeg";
 const API = import.meta.env.VITE_API_URL;
 const inr = (n) => "₹ " + Number(n || 0).toLocaleString("en-IN");
 
-const ONLINE_FEATURES = [
-  { title: "Live Online Classes", desc: "Attend classes from anywhere via Zoom / Google Meet" },
-  { title: "Recorded Sessions", desc: "Lifetime access to all recorded lectures" },
-  { title: "Doubt Clearing Sessions", desc: "Weekly live Q&A with mentors" },
-  { title: "Digital Study Material", desc: "PDFs, notes & assignments shared digitally" },
-  { title: "Placement Support", desc: "Resume building, mock interviews & job referrals" },
-  { title: "Certificate", desc: "Industry-recognised course completion certificate" },
-];
-
-const OFFLINE_FEATURES = [
-  { title: "Physical Classroom", desc: "In-person sessions at our institute campus" },
-  { title: "Recorded Backup", desc: "Access recordings if you miss a class" },
-  { title: "Printed Study Material", desc: "Comprehensive printed notes & workbooks" },
-  { title: "Doubt Clearing Sessions", desc: "Face-to-face doubt sessions with faculty" },
-  { title: "Placement Support", desc: "Resume building, mock interviews & job referrals" },
-  { title: "Certificate", desc: "Industry-recognised course completion certificate" },
-];
-
 // ─── Toast Component ──────────────────────────────────────────────────────────
 function Toast({ toast }) {
   if (!toast) return null;
@@ -142,7 +124,6 @@ function PolicyModal({ type, onClose }) {
 
 // ─── 4-Step Online Admission Form Component with Review & Agreement ────────────
 function OnlineAdmissionForm({ courses, user, onSubmitSuccess, showToast }) {
-  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
 
   // Helper to format/extract batch start date from course API
@@ -190,6 +171,16 @@ function OnlineAdmissionForm({ courses, user, onSubmitSuccess, showToast }) {
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [activePolicyModal, setActivePolicyModal] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    setFormData((prev) => ({
+      ...prev,
+      studentName: prev.studentName || `${user.firstName || ""} ${user.lastName || ""}`.trim(),
+      email: prev.email || user.email || "",
+      mobileNumber: prev.mobileNumber || user.contactNo || "",
+    }));
+  }, [user]);
 
   // Filter available courses based on selected courseMode ("Online" or "Offline") using `mode` in course schema
   const availableCourses = useMemo(() => {
@@ -411,11 +402,8 @@ function OnlineAdmissionForm({ courses, user, onSubmitSuccess, showToast }) {
       });
       const data = await res.json();
       if (data.success) {
-        showToast("Online Admission Form & Payment Proof submitted successfully! 🎉 Redirecting to User Dashboard...", "success");
+        showToast("Online Admission Form & Payment Proof submitted successfully! 🎉", "success");
         if (onSubmitSuccess) onSubmitSuccess(data.data);
-        setTimeout(() => {
-          navigate("/Dashboard");
-        }, 1500);
       } else {
         showToast(data.msg || "Failed to submit admission form", "error");
       }
@@ -1250,182 +1238,6 @@ function OnlineAdmissionForm({ courses, user, onSubmitSuccess, showToast }) {
   );
 }
 
-// ─── Choose Your Plan Modal (Exact UI for Course Pricing) ──────────────────────
-function ChoosePlanModal({ course, onClose, onBuy, payLoading }) {
-  const [selectedMode, setSelectedMode] = useState("Online");
-  if (!course) return null;
-
-  const onlinePrice = Number(course.online_fee ?? 0);
-  const offlinePrice = Number(course.fee ?? 0);
-
-  const hasOnline = onlinePrice > 0;
-  const hasOffline = offlinePrice > 0;
-  const isFree = !hasOnline && !hasOffline;
-  const isBoth = hasOnline && hasOffline;
-
-  const activeMode = isBoth ? selectedMode : hasOffline ? "Offline" : "Online";
-
-  const activePrice = activeMode === "Online" ? onlinePrice : offlinePrice;
-  const originalPrice = Math.round(activePrice * 1.6);
-  const features = activeMode === "Online" ? ONLINE_FEATURES : OFFLINE_FEATURES;
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto"
-      onClick={onClose}
-    >
-      <div
-        className="bg-[#f8f9fa] rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 sm:p-8 relative border border-slate-200 text-slate-800 my-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button
-          onClick={onClose}
-          className="absolute top-5 right-5 w-9 h-9 flex items-center justify-center rounded-full bg-slate-200 text-slate-500 hover:bg-purple-100 hover:text-purple-700 transition-colors text-xl font-bold z-10"
-        >
-          ✕
-        </button>
-
-        <div className="text-center mb-6 pr-6">
-          <p className="text-xs font-bold uppercase tracking-wider text-[#B026B5] mb-1">
-            {course.courseName}
-          </p>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mb-1">
-            {isBoth ? "Choose Your Plan" : `${activeMode} Enrollment`}
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-500">
-            {isBoth
-              ? "Select the learning mode that suits you best"
-              : `This course is offered in ${activeMode} mode`}
-          </p>
-        </div>
-
-        {isBoth && (
-          <div className="flex justify-center mb-6">
-            <div className="inline-flex items-center p-1.5 rounded-full bg-slate-200/80 shadow-inner gap-1">
-              <button
-                type="button"
-                onClick={() => setSelectedMode("Online")}
-                className={`px-8 py-2 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 ${selectedMode === "Online"
-                    ? "bg-white text-[#B026B5] shadow-md"
-                    : "text-slate-500 hover:text-slate-800"
-                  }`}
-              >
-                Online
-              </button>
-              <button
-                type="button"
-                onClick={() => setSelectedMode("Offline")}
-                className={`px-8 py-2 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 ${selectedMode === "Offline"
-                    ? "bg-white text-[#B026B5] shadow-md"
-                    : "text-slate-500 hover:text-slate-800"
-                  }`}
-              >
-                Offline
-              </button>
-            </div>
-          </div>
-        )}
-
-        <div className="bg-white rounded-2xl p-6 border-2 border-[#B026B5] shadow-lg mb-6 relative">
-          <div className="text-3xl mb-3">{activeMode === "Online" ? "🌐" : "🏫"}</div>
-
-          <div className="flex items-center gap-2 mb-3">
-            <h3 className="text-xl font-bold text-slate-900">{activeMode} Mode</h3>
-            {activeMode === "Online" && (
-              <span className="text-[11px] font-bold px-3 py-0.5 rounded-full text-white bg-[#7c3aed]">
-                Recommended
-              </span>
-            )}
-          </div>
-
-          <div className="flex items-baseline gap-2 mb-1">
-            <span className="text-3xl font-extrabold text-slate-900">
-              {isFree ? "Free" : inr(activePrice)}
-            </span>
-            {!isFree && originalPrice > activePrice && (
-              <span className="text-lg line-through text-slate-400 font-medium">
-                {inr(originalPrice)}
-              </span>
-            )}
-          </div>
-
-          <p className="text-xs text-[#B026B5] font-semibold mb-6">
-            {activeMode === "Online" ? "Registrations close soon" : "Limited campus seats available"}
-          </p>
-
-          <button
-            type="button"
-            disabled={payLoading}
-            onClick={() => onBuy(course, isFree ? "free" : activeMode, activePrice)}
-            className="w-full py-3.5 rounded-xl font-bold text-sm text-white bg-[#B026B5] hover:bg-[#8f1e92] transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-2 disabled:opacity-60 mb-6"
-          >
-            {payLoading ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Processing…
-              </>
-            ) : isFree ? (
-              "Enroll for Free"
-            ) : (
-              "Buy now"
-            )}
-          </button>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-4 border-t border-slate-100">
-            {features.map((f, i) => (
-              <div key={i} className="flex items-start gap-2.5">
-                <Tick />
-                <div>
-                  <p className="text-xs font-bold text-slate-800 leading-snug">{f.title}</p>
-                  <p className="text-[11px] text-slate-500 leading-tight">{f.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {isBoth && (
-          <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 mb-4">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 text-center mb-3">
-              Price Comparison
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setSelectedMode("Online")}
-                className={`flex items-center justify-between p-3.5 rounded-xl border transition-all ${selectedMode === "Online"
-                    ? "bg-purple-50/70 border-[#B026B5] text-[#B026B5]"
-                    : "bg-slate-50 border-slate-200 text-slate-700 hover:border-purple-300"
-                  }`}
-              >
-                <div className="flex items-center gap-2 text-xs font-bold">
-                  <span>🌐</span> Online
-                </div>
-                <span className="text-sm font-extrabold">{inr(onlinePrice)}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setSelectedMode("Offline")}
-                className={`flex items-center justify-between p-3.5 rounded-xl border transition-all ${selectedMode === "Offline"
-                    ? "bg-purple-50/70 border-[#B026B5] text-[#B026B5]"
-                    : "bg-slate-50 border-slate-200 text-slate-700 hover:border-purple-300"
-                  }`}
-              >
-                <div className="flex items-center gap-2 text-xs font-bold">
-                  <span>🏫</span> Offline
-                </div>
-                <span className="text-sm font-extrabold">{inr(offlinePrice)}</span>
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ─── Course Card Component ───────────────────────────────────────────────────
 function CourseCard({ course, enrolled, onViewCourse, onEnroll }) {
   const [hovered, setHovered] = useState(false);
   const title = course.courseName || course.title;
@@ -1502,7 +1314,7 @@ function CourseCard({ course, enrolled, onViewCourse, onEnroll }) {
 
 // ─── Main Page Component ──────────────────────────────────────────────────────
 export default function Admission() {
-  const { user, authLoading } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState("form"); // "form" | "catalog"
@@ -1512,15 +1324,7 @@ export default function Admission() {
   const [error] = useState(null);
   const [search, setSearch] = useState("");
   const [toast, setToast] = useState(null);
-  const [modalCourse, setModalCourse] = useState(null);
-  const [payLoading, setPayLoading] = useState(false);
   const toastTimer = useRef(null);
-
-  // Redirect guest to login page
-  useEffect(() => {
-    if (authLoading) return;
-    if (!user) navigate("/login?redirect=/OnlineAdmission", { replace: true });
-  }, [user, authLoading, navigate]);
 
   const showToast = useCallback((msg, type = "info") => {
     setToast({ msg, type });
@@ -1530,7 +1334,6 @@ export default function Admission() {
 
   // Fetch courses & user enrollments resiliently
   useEffect(() => {
-    if (authLoading || !user) return;
     let isMounted = true;
 
     (async () => {
@@ -1568,6 +1371,7 @@ export default function Admission() {
 
       // 2. Fetch User Enrollments independently (non-blocking)
       try {
+        if (!user) return;
         const enrollRes = await fetch(`${API}/api/enrollments`, { credentials: "include" });
         if (enrollRes.ok) {
           const ej = await enrollRes.json();
@@ -1581,7 +1385,7 @@ export default function Admission() {
     })();
 
     return () => { isMounted = false; };
-  }, [user, authLoading]);
+  }, [user]);
 
   const enrolledIds = useMemo(() => {
     const s = new Set();
@@ -1593,107 +1397,6 @@ export default function Admission() {
     return s;
   }, [enrollments]);
 
-  // Razorpay Integration
-  const openRazorpay = useCallback(({ order, key, courseTitle }) => {
-    const options = {
-      key,
-      amount: order.amount,
-      currency: order.currency,
-      name: "Zint Institute",
-      description: courseTitle,
-      order_id: order.id,
-      handler: async (response) => {
-        showToast("Verifying payment…", "info");
-        try {
-          const res = await fetch(`${API}/api/payments/verify`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify({
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-            }),
-          });
-          const data = await res.json();
-          if (data.success) {
-            showToast("Payment successful! You are enrolled 🎉", "success");
-            setModalCourse(null);
-            const r = await fetch(`${API}/api/enrollments`, { credentials: "include" });
-            const d = await r.json();
-            setEnrollments(d.success ? d.data : []);
-          } else {
-            showToast(data.message || "Payment verification failed", "error");
-          }
-        } catch {
-          showToast("Verification failed", "error");
-        } finally {
-          setPayLoading(false);
-        }
-      },
-      theme: { color: "#B026B5" },
-      modal: {
-        ondismiss: () => {
-          showToast("Payment cancelled. Your enrollment is saved as pending.", "info");
-          setPayLoading(false);
-        },
-      },
-    };
-    const rzp = new window.Razorpay(options);
-    rzp.on("payment.failed", (r) => {
-      showToast("Payment failed: " + (r.error?.description || "Unknown error"), "error");
-      setPayLoading(false);
-    });
-    rzp.open();
-  }, [showToast]);
-
-  const handleBuyPlan = async (course, mode, price) => {
-    if (mode === "free") {
-      setPayLoading(true);
-      showToast("Enrolling in free course…", "info");
-      try {
-        const res = await fetch(`${API}/api/payments/enroll-free`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ courseId: course._id }),
-        });
-        const data = await res.json();
-        showToast(data.message, data.success ? "success" : "error");
-        if (data.success) {
-          setEnrollments((prev) => [...prev, data.data]);
-          setModalCourse(null);
-        }
-      } catch {
-        showToast("Enrollment failed", "error");
-      } finally {
-        setPayLoading(false);
-      }
-      return;
-    }
-
-    setPayLoading(true);
-    showToast("Creating order…", "info");
-    try {
-      const res = await fetch(`${API}/api/payments/create-order`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ courseId: course._id, mode, amount: price }),
-      });
-      const data = await res.json();
-      if (!data.success) {
-        showToast(data.message || "Could not create order.", "error");
-        setPayLoading(false);
-        return;
-      }
-      openRazorpay({ order: data.order, key: data.key, courseTitle: course.courseName });
-    } catch {
-      showToast("Could not initiate payment", "error");
-      setPayLoading(false);
-    }
-  };
-
   const filtered = useMemo(() => {
     if (!search.trim()) return courses;
     const q = search.toLowerCase();
@@ -1703,17 +1406,6 @@ export default function Admission() {
         (c.category?.categoryName || "").toLowerCase().includes(q)
     );
   }, [courses, search]);
-
-  if (authLoading || !user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="text-center text-slate-400">
-          <div className="text-4xl mb-3 animate-spin">⏳</div>
-          <p className="text-sm">Redirecting…</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-slate-50 pb-16">
@@ -1847,7 +1539,7 @@ export default function Admission() {
                     course={c}
                     enrolled={enrolledIds.has(c._id)}
                     onViewCourse={(id) => navigate(`/courses/${id}`)}
-                    onEnroll={(course) => setModalCourse(course)}
+                    onEnroll={(course) => navigate(`/courses/${course._id}/fee`)}
                   />
                 ))}
               </div>
@@ -1856,16 +1548,6 @@ export default function Admission() {
         )}
 
       </div>
-
-      {/* Choose Your Plan Payment Modal */}
-      {modalCourse && (
-        <ChoosePlanModal
-          course={modalCourse}
-          onClose={() => setModalCourse(null)}
-          onBuy={handleBuyPlan}
-          payLoading={payLoading}
-        />
-      )}
 
       <Toast toast={toast} />
     </div>

@@ -42,7 +42,7 @@ function AutoSlider() {
     if (isHovered) return;
     const interval = setInterval(() => {
       setCurrent((prev) => (prev === images.length - 1 ? 0 : prev + 1));
-    }, 3000);
+    }, 7000);
     return () => clearInterval(interval);
   }, [isHovered]);
 
@@ -53,7 +53,7 @@ function AutoSlider() {
 
   return (
     <div
-      className="relative w-full mx-auto overflow-hidden"
+      className="relative mx-auto aspect-[5/2] w-full overflow-hidden bg-slate-950"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -62,7 +62,7 @@ function AutoSlider() {
         alt={images[current].alt}
         width="1200"
         height="480"
-        className="w-full sm:h-90 md:h-120 object-center transition-all duration-500"
+        className="absolute inset-0 h-full w-full object-cover object-center"
         loading={current === 0 ? "eager" : "lazy"}
         fetchPriority={current === 0 ? "high" : "auto"}
         decoding="async"

@@ -62,10 +62,7 @@ function AuthPromptModal({ eventName, onClose }) {
             onClick={() => navigate("/login", { state: { redirectTo: "/events" } })}
             className="w-full bg-gradient-to-r from-[#8E1387] to-[#B11FA8] hover:opacity-95 text-white font-bold py-2.5 rounded-xl text-sm transition-all shadow-md shadow-purple-900/20 cursor-pointer"
           >Sign In</button>
-          <button
-            onClick={() => navigate("/signup", { state: { redirectTo: "/events" } })}
-            className="w-full border border-zinc-700 hover:border-purple-400 hover:text-purple-300 text-white font-semibold py-2.5 rounded-xl text-sm transition-colors cursor-pointer"
-          >Create Account</button>
+          <p className="text-zinc-500 text-xs text-center">New students can request an account from the institute administrator.</p>
         </div>
       </div>
     </div>

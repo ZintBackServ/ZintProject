@@ -31,7 +31,9 @@ export default defineConfig(({ mode }) => ({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,woff,woff2}'],
+        // Precache only the small app shell. Route chunks are cached when visited,
+        // instead of downloading every public and admin route on the first visit.
+        globPatterns: ['**/*.{css,html,ico,woff,woff2}'],
         navigateFallbackDenylist: [
           /^\/user\/auth\/google/,
           /^\/(user|course|mentor|placedStudent|event|eventRegistration|api|rating|notification|category|updates|enquiry|timeTable|internshipRegistration|placementRegistration|admission)/,
@@ -43,6 +45,17 @@ export default defineConfig(({ mode }) => ({
             options: {
               cacheName: 'api-cache',
               expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 * 24 },
+            },
+          },
+          {
+            urlPattern: ({ request, url }) =>
+              request.destination === 'script' &&
+              url.origin === self.location.origin &&
+              url.pathname.startsWith('/assets/'),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'app-scripts',
+              expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 30 },
             },
           },
           {

@@ -6,6 +6,7 @@ const { frontendPath } = require("../utils/frontendUrl");
 
 const {
   signUpUser,
+  createStudentAccount,
   loginUser,
   logoutUser,
   verifyOTP,
@@ -44,7 +45,8 @@ const otpLimiter = rateLimit({
 });
 
 // ── Public Routes ─────────────────────────────────────────────────────────────
-router.post("/newUser",     signUpUser);
+// Self-service registration is disabled. Only an authenticated admin can create accounts.
+router.post("/newUser",     (req, res) => res.status(403).json({ success: false, msg: "Accounts can only be created by an administrator." }));
 router.post("/login",       authLimiter, loginUser);
 router.post("/logout",      logoutUser);
 
@@ -80,6 +82,7 @@ router.get("/me",                authentication, getMyProfile);
 router.put("/UpdateUser/:id",    authentication, UpdateUser);
 
 // Admin only
+router.post("/createStudent", authentication, authorization("admin"), createStudentAccount);
 router.get("/allUsers",          authentication, authorization("admin"), getAllUser);
 router.get("/getUserById/:id",   authentication, authorization("admin"), getUserById);
 router.post("/getUsersByIDs",    authentication, authorization("admin"), getUsersByIDs);

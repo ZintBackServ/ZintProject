@@ -233,7 +233,7 @@ export default function AdminInternshipRegistrations() {
   );
 
   return (
-    <div className="min-h-screen" style={{ background: "#fafafa", fontFamily: "Poppins, sans-serif" }}>
+    <div className="min-h-screen" style={{ background: "#fafafa", fontFamily: "system-ui, sans-serif" }}>
       {/* ── Top Nav ── */}
       <div className="bg-white border-b sticky top-0 z-40" style={{ borderColor: `${PP}18` }}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-3">

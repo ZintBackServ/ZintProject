@@ -1,5 +1,5 @@
 import React, { lazy, Suspense } from "react";
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import TopInfo from "./pages/TopInfo";
 import Footer from "./pages/Footer";
@@ -24,7 +24,6 @@ const Courses              = lazy(() => import("./pages/Courses"));
 const CourseDetail         = lazy(() => import("./pages/CourseDetail"));
 const About                = lazy(() => import("./pages/About"));
 const Login                = lazy(() => import("./pages/Login"));
-const SignUp               = lazy(() => import("./pages/SignUp"));
 const Events               = lazy(() => import("./pages/Events"));
 const Internship           = lazy(() => import("./pages/Internship"));
 const Blog                 = lazy(() => import("./pages/Blog"));
@@ -76,7 +75,7 @@ function App() {
           <Route path="/contact"             element={<ContactUS />} />
           <Route path="/careers"             element={<Careers />} />
           <Route path="/login"               element={<Login />} />
-          <Route path="/signup"              element={<SignUp />} />
+          <Route path="/signup"              element={<Navigate to="/login" replace />} />
           <Route path="/courses/:id"         element={<CourseDetail />} />
           <Route path="/courses/:id/fee"     element={<FeePay />} />
           <Route path="/Events"              element={<Events />} />

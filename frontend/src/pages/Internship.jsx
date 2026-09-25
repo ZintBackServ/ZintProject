@@ -251,7 +251,7 @@ export default function ZInstituteInternship() {
         @keyframes zp-slideUp  { from{opacity:0;transform:translateY(28px) scale(0.97)} to{opacity:1;transform:translateY(0) scale(1)} }
 
         .zint-page {
-          font-family: 'Poppins', sans-serif;
+          font-family: system-ui, sans-serif;
           background: #ffffff;
           color: #1a0019;
           overflow-x: hidden;
@@ -272,7 +272,7 @@ export default function ZInstituteInternship() {
         .zint-page .btn-pri {
           background: linear-gradient(135deg, ${DP}, ${PP});
           color: #fff; border: none; cursor: pointer;
-          font-family: 'Poppins', sans-serif; font-weight: 600;
+          font-family: system-ui, sans-serif; font-weight: 600;
           transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
         .zint-page .btn-pri:hover   { transform: translateY(-2px); box-shadow: 0 10px 28px ${PP}44; }
@@ -282,7 +282,7 @@ export default function ZInstituteInternship() {
         .zint-page .btn-out {
           background: #fff; color: ${PP};
           border: 1.5px solid ${PP}55; cursor: pointer;
-          font-family: 'Poppins', sans-serif; font-weight: 500;
+          font-family: system-ui, sans-serif; font-weight: 500;
           transition: all 0.2s ease;
         }
         .zint-page .btn-out:hover { border-color: ${PP}; background: ${PPL}; transform: translateY(-2px); }
@@ -294,7 +294,7 @@ export default function ZInstituteInternship() {
         .zint-page .zcard:hover { box-shadow: 0 10px 32px ${PP}1c; transform: translateY(-4px); border-color: ${PP}44; }
 
         .zint-page input, .zint-page select {
-          font-family: 'Poppins', sans-serif;
+          font-family: system-ui, sans-serif;
           background: #faf5fa; border: 1.5px solid #e8d8e7;
           border-radius: 10px; padding: 12px 14px;
           width: 100%; font-size: 14px; color: #1a0019;
@@ -482,7 +482,7 @@ export default function ZInstituteInternship() {
                     <p style={{ fontSize: 13, color: "rgba(255,255,255,0.65)", lineHeight: 1.6, fontWeight: 300 }}>Choose the track that aligns with your career goals.</p>
                   </div>
                   <button onClick={scrollToForm}
-                    style={{ marginTop: 20, background: "#fff", color: PP, border: "none", borderRadius: 10, padding: "10px 18px", fontWeight: 600, fontSize: 13, cursor: "pointer", transition: "transform 0.2s", fontFamily: "Poppins, sans-serif" }}
+                    style={{ marginTop: 20, background: "#fff", color: PP, border: "none", borderRadius: 10, padding: "10px 18px", fontWeight: 600, fontSize: 13, cursor: "pointer", transition: "transform 0.2s", fontFamily: "system-ui, sans-serif" }}
                     onMouseEnter={e => e.currentTarget.style.transform = "scale(1.04)"}
                     onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}>
                     Explore All Tracks →
@@ -753,7 +753,7 @@ export default function ZInstituteInternship() {
                   Seats fill up fast. Register today and secure your spot in the most sought-after tech internship program.
                 </p>
                 <button onClick={scrollToForm}
-                  style={{ background: "#fff", color: DP, border: "none", borderRadius: 12, padding: "14px 34px", fontWeight: 700, fontSize: 14.5, cursor: "pointer", transition: "all 0.22s", position: "relative", fontFamily: "Poppins, sans-serif" }}
+                  style={{ background: "#fff", color: DP, border: "none", borderRadius: 12, padding: "14px 34px", fontWeight: 700, fontSize: 14.5, cursor: "pointer", transition: "all 0.22s", position: "relative", fontFamily: "system-ui, sans-serif" }}
                   onMouseOver={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 14px 32px rgba(0,0,0,0.2)"; }}
                   onMouseOut={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = ""; }}>
                   Register Now — Free to Apply

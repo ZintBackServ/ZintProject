@@ -805,19 +805,12 @@ export default function CourseDetail() {
   };
 
   const goToSignUp = () => {
-    navigate(`/signup?redirect=/courses/${id}`);
+    navigate(`/login?redirect=${encodeURIComponent(`/courses/${id}`)}`);
     setAuthGate(null);
   };
 
   // ── ENROLL handler ──
   const handleEnroll = () => {
-    if (!isLoggedIn) {
-      setAuthGate({
-        title: "Login Required",
-        message: "Please sign in or create an account to enroll in this course.",
-      });
-      return;
-    }
     navigate(`/courses/${id}/fee`);
   };
 

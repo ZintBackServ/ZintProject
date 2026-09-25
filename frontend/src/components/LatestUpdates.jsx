@@ -16,6 +16,7 @@ export default function LatestUpdatesSection() {
   const [updates, setUpdates] = useState([]);
   const [activeCategory, setActiveCategory] = useState("all");
   const [selectedPdf, setSelectedPdf] = useState(null);
+  const [pdfPreviewVisible, setPdfPreviewVisible] = useState(false);
   const [activeFeatured, setActiveFeatured] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -39,6 +40,7 @@ export default function LatestUpdatesSection() {
           setUpdates(unique);
           // Open the newest notice in the preview as soon as the section loads.
           setSelectedPdf(unique[0]?.pdf || null);
+          setPdfPreviewVisible(false);
           setLoading(false);
           return;
         } catch (err) {
@@ -160,6 +162,7 @@ export default function LatestUpdatesSection() {
                   setActiveCategory(cat.id);
                   setActiveFeatured(0);
                   setSelectedPdf(null);
+                  setPdfPreviewVisible(false);
                 }}
                 className={`px-3 py-1 rounded-full text-[11px] font-bold transition-all duration-150 cursor-pointer ${
                   activeCategory === cat.id
@@ -196,6 +199,7 @@ export default function LatestUpdatesSection() {
                     onClick={() => {
                       setActiveFeatured(idx);
                       setSelectedPdf(item.pdf || null);
+                      setPdfPreviewVisible(false);
                     }}
                     className={`group flex items-center justify-between gap-3 p-2.5 sm:p-3 rounded-xl transition-all duration-200 cursor-pointer border ${
                       activeFeatured === idx
@@ -261,12 +265,25 @@ export default function LatestUpdatesSection() {
               </h3>
 
               {previewPdf ? (
-                <div className="mt-3 w-full overflow-hidden rounded-xl border border-white/15 bg-black shadow-inner">
+                <div className="mt-3 h-[220px] sm:h-[245px] w-full overflow-hidden rounded-xl border border-white/15 bg-black shadow-inner">
+                  {pdfPreviewVisible ? (
                   <iframe
                     src={`${previewPdf}#page=1&zoom=page-fit`}
                     title={`${featured.heading} PDF preview`}
-                    className="h-[220px] sm:h-[245px] w-full border-none bg-white"
+                    loading="lazy"
+                    className="h-full w-full border-none bg-white"
                   />
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setPdfPreviewVisible(true)}
+                      className="flex h-full w-full flex-col items-center justify-center gap-2 px-4 text-center text-sm font-semibold text-white hover:bg-white/5"
+                    >
+                      <span className="text-2xl" aria-hidden="true">📄</span>
+                      <span>Load PDF preview</span>
+                      <span className="text-xs font-normal text-slate-300">Open or download the notice below</span>
+                    </button>
+                  )}
                 </div>
               ) : (
                 <p className="text-xs text-slate-300 leading-relaxed font-normal">

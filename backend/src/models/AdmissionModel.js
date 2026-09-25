@@ -5,7 +5,7 @@ const AdmissionSchema = new mongoose.Schema(
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      required: false,
       index: true,
     },
 
@@ -137,6 +137,7 @@ const AdmissionSchema = new mongoose.Schema(
 );
 
 // FIX: prevent a user from applying to the same course twice
-AdmissionSchema.index({ userId: 1, courseId: 1 }, { unique: true });
+AdmissionSchema.index({ userId: 1, courseId: 1 }, { unique: true, partialFilterExpression: { userId: { $exists: true } } });
+AdmissionSchema.index({ email: 1, courseId: 1 }, { unique: true, partialFilterExpression: { userId: { $exists: false } } });
 
 module.exports = mongoose.model("Admission", AdmissionSchema);

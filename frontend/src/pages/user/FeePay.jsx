@@ -1,7 +1,6 @@
 // pages/CoursePricing.jsx
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useAuth } from "../../hooks/useAuth";
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -148,7 +147,6 @@ function PlanCard({ title, icon, price, originalPrice, urgency, features, recomm
 export default function CoursePricing() {
   const { id }   = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
 
   const [mode, setMode]       = useState("Online");
   const [course, setCourse]   = useState(null);
@@ -156,6 +154,13 @@ export default function CoursePricing() {
   const [error, setError]     = useState("");
   const [payLoading, setPayLoading] = useState(false);
   const [toast, setToast]     = useState(null);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [checkoutInfo, setCheckoutInfo] = useState({ fullName: "", mobile: "", email: "" });
+  const [checkoutOtp, setCheckoutOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [checkoutError, setCheckoutError] = useState("");
+  const [checkoutBusy, setCheckoutBusy] = useState(false);
+  const [checkoutSelection, setCheckoutSelection] = useState({ mode: "Online", price: 0 });
 
   // ── Toast helper ──
   let toastTimer;
@@ -176,9 +181,9 @@ export default function CoursePricing() {
         const fetchedCourse = data.course || data;
         setCourse(fetchedCourse);
 
-        const onl = Number(fetchedCourse?.online_fee ?? 0);
+        const onl = Number(fetchedCourse?.online_fee ?? fetchedCourse?.fee ?? 0);
         const off = Number(fetchedCourse?.fee ?? 0);
-        if (off > 0 && onl === 0) {
+        if (fetchedCourse?.mode === "Offline" || (off > 0 && onl === 0)) {
           setMode("Offline");
         } else {
           setMode("Online");
@@ -198,22 +203,55 @@ export default function CoursePricing() {
   // Step 2 → open Razorpay
   // Step 3 → verify → enrollment becomes active
   // Step 4 → dismissed → enrollment stays "pending" (user can Pay Now later)
-  const handleBuy = async (selectedMode, price) => {
-    if (!user) {
-      showToast("Please log in to enroll.", "error");
-      navigate("/login");
-      return;
-    }
+  const beginCheckout = (selectedMode, price) => {
+    setCheckoutSelection({ mode: selectedMode, price });
+    setCheckoutInfo({ fullName: "", mobile: "", email: "" });
+    setCheckoutOtp(""); setOtpSent(false); setCheckoutError("");
+    setCheckoutOpen(true);
+  };
 
+  const sendCheckoutOtp = async (e) => {
+    e.preventDefault(); setCheckoutError("");
+    if (checkoutInfo.fullName.trim().length < 2 || !/^\d{10}$/.test(checkoutInfo.mobile.replace(/\D/g, "")) || !/^\S+@\S+\.\S+$/.test(checkoutInfo.email.trim())) {
+      setCheckoutError("Enter your full name, a valid 10-digit mobile number, and email address."); return;
+    }
+    setCheckoutBusy(true);
+    try {
+      const res = await fetch(`${API}/api/payments/guest/send-otp`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(checkoutInfo) });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Could not send verification code.");
+      setOtpSent(true); setCheckoutError("");
+    } catch (err) { setCheckoutError(err.message); }
+    finally { setCheckoutBusy(false); }
+  };
+
+  const verifyCheckoutOtp = async (e) => {
+    e.preventDefault(); setCheckoutError(""); setCheckoutBusy(true);
+    try {
+      const res = await fetch(`${API}/api/payments/guest/verify-otp`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: checkoutInfo.email, otp: checkoutOtp }) });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Email verification failed.");
+      await handleBuy(checkoutSelection.mode, checkoutSelection.price, data.verificationToken);
+    } catch (err) { setCheckoutError(err.message); }
+    finally { setCheckoutBusy(false); }
+  };
+
+  const handleBuy = async (selectedMode, price, verifiedToken) => {
     setPayLoading(true);
     showToast("Creating your enrollment…", "info");
 
     try {
+      if (Number(price) === 0) {
+        const freeRes = await fetch(`${API}/api/payments/guest/enroll-free`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ courseId: id, mode: selectedMode, verificationToken: verifiedToken }) });
+        const freeData = await freeRes.json();
+        if (!freeRes.ok) throw new Error(freeData.message || "Could not complete enrollment.");
+        setCheckoutOpen(false); showToast("Email verified. Your free course enrollment is confirmed.", "success");
+        setPayLoading(false); return;
+      }
       // ── Step 1: Create Razorpay order ─────────────────────────────────────
       // This also creates a PENDING enrollment on the backend (same as UserDashboard)
-      const orderRes = await fetch(`${API}/api/payments/create-order`, {
+      const orderRes = await fetch(`${API}/api/payments/guest/create-order`, {
         method: "POST",
-        credentials: "include",
         headers: {
               "Content-Type": "application/json",
         },
@@ -221,6 +259,7 @@ export default function CoursePricing() {
           courseId: id,
           amount:   price,
           mode:     selectedMode,
+          verificationToken: verifiedToken,
         }),
       });
 
@@ -232,8 +271,7 @@ export default function CoursePricing() {
         return;
       }
 
-      const { order, key, enrollmentId } = orderData;
-      // enrollmentId comes back from backend so we can update it after payment
+      const { order, key } = orderData;
 
       // ── Step 2: Open Razorpay ──────────────────────────────────────────────
       const options = {
@@ -249,9 +287,8 @@ export default function CoursePricing() {
         handler: async (response) => {
           showToast("Verifying payment…", "info");
           try {
-            const verifyRes = await fetch(`${API}/api/payments/verify`, {
+            const verifyRes = await fetch(`${API}/api/payments/guest/verify-payment`, {
               method: "POST",
-              credentials: "include",
               headers: {
                           "Content-Type": "application/json",
               },
@@ -259,7 +296,6 @@ export default function CoursePricing() {
                 razorpay_order_id:   response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature:  response.razorpay_signature,
-                enrollmentId,
               }),
             });
 
@@ -268,6 +304,7 @@ export default function CoursePricing() {
             if (verifyData.success) {
               showToast("Payment successful! You are enrolled 🎉", "success");
               // Small delay so user sees the toast before redirect
+              setCheckoutOpen(false);
               setTimeout(() => navigate("/OnlineAdmission"), 2000);
             } else {
               showToast(verifyData.message || "Payment verification failed.", "error");
@@ -281,13 +318,11 @@ export default function CoursePricing() {
 
         theme: { color: THEME.primary },
 
-        // ── Step 4: Modal DISMISSED (user closed without paying) ────────────
-        // Enrollment stays PENDING — user can complete it later via "Pay Now"
+        // ── Payment modal dismissed ─────────────────────────────────────────
         modal: {
           ondismiss: () => {
-            showToast("Payment cancelled. Your enrollment is saved as pending — you can complete it later.", "warning");
+            showToast("Payment cancelled. You can restart checkout whenever you are ready.", "warning");
             setPayLoading(false);
-            setTimeout(() => navigate("/OnlineAdmission"), 4000);
           },
         },
       };
@@ -339,11 +374,11 @@ export default function CoursePricing() {
     </div>
   );
 
-  const onlinePrice  = Number(course?.online_fee ?? 0);
-  const offlinePrice = Number(course?.fee ?? 0);
+  const onlinePrice  = Number(course?.online_fee ?? course?.fee ?? 0);
+  const offlinePrice = Number(course?.fee ?? course?.online_fee ?? 0);
 
-  const hasOnline  = onlinePrice > 0;
-  const hasOffline = offlinePrice > 0;
+  const hasOnline  = ["Online", "Hybrid"].includes(course?.mode) && onlinePrice >= 0;
+  const hasOffline = ["Offline", "Hybrid"].includes(course?.mode) && offlinePrice >= 0;
   const isBoth     = hasOnline && hasOffline;
 
   return (
@@ -400,7 +435,7 @@ export default function CoursePricing() {
               features={ONLINE_FEATURES}
               recommended={true}
               payLoading={payLoading}
-              onBuy={() => handleBuy("Online", onlinePrice)}
+              onBuy={() => beginCheckout("Online", onlinePrice)}
             />
           )}
           {mode === "Offline" && (
@@ -413,7 +448,7 @@ export default function CoursePricing() {
               features={OFFLINE_FEATURES}
               recommended={false}
               payLoading={payLoading}
-              onBuy={() => handleBuy("Offline", offlinePrice)}
+              onBuy={() => beginCheckout("Offline", offlinePrice)}
             />
           )}
         </div>
@@ -474,15 +509,29 @@ export default function CoursePricing() {
         )}
 
         {/* ── Pending note ── */}
-        <p className="text-center text-xs mt-6" style={{ color: THEME.textFaint }}>
-          If you close the payment window, your enrollment will be saved as{" "}
-          <span style={{ color: THEME.warning, fontWeight: 600 }}>pending</span>.
-          You can complete it anytime from your dashboard.
-        </p>
+        <p className="text-center text-xs mt-6" style={{ color: THEME.textFaint }}>No account is needed. Verify your email to continue to secure checkout.</p>
 
       </div>
 
       <Toast toast={toast} />
+      {checkoutOpen && <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-4" onClick={e => { if (e.target === e.currentTarget && !checkoutBusy) setCheckoutOpen(false); }}>
+        <form onSubmit={otpSent ? verifyCheckoutOtp : sendCheckoutOtp} className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl space-y-4">
+          <div className="flex items-start justify-between"><div><p className="text-xs font-semibold uppercase tracking-wide" style={{ color: THEME.primary }}>Course enrollment</p><h2 className="text-xl font-bold text-slate-900 mt-1">{course.courseName}</h2><p className="text-sm text-slate-500">{checkoutSelection.mode} · ₹ {checkoutSelection.price.toLocaleString("en-IN")}</p></div><button type="button" onClick={() => setCheckoutOpen(false)} className="text-slate-400 hover:text-slate-700" aria-label="Close">✕</button></div>
+          {!otpSent ? <>
+            <label className="block text-sm font-medium text-slate-700">Full name<input required maxLength={100} autoComplete="name" value={checkoutInfo.fullName} onChange={e => setCheckoutInfo({ ...checkoutInfo, fullName: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5" /></label>
+            <label className="block text-sm font-medium text-slate-700">Mobile number<input required inputMode="numeric" maxLength={10} autoComplete="tel-national" value={checkoutInfo.mobile} onChange={e => setCheckoutInfo({ ...checkoutInfo, mobile: e.target.value.replace(/\D/g, "").slice(0, 10) })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5" /></label>
+            <label className="block text-sm font-medium text-slate-700">Email address<input required type="email" autoComplete="email" value={checkoutInfo.email} onChange={e => setCheckoutInfo({ ...checkoutInfo, email: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5" /></label>
+            <button disabled={checkoutBusy} className="w-full rounded-xl py-3 font-semibold text-white disabled:opacity-50" style={{ background: THEME.primary }}>{checkoutBusy ? "Sending code…" : "Verify email"}</button>
+          </> : <>
+            <p className="text-sm text-slate-600">Enter the 6-digit code sent to <strong>{checkoutInfo.email}</strong>.</p>
+            <label className="block text-sm font-medium text-slate-700">Email verification code<input required inputMode="numeric" maxLength={6} pattern="[0-9]{6}" autoComplete="one-time-code" value={checkoutOtp} onChange={e => setCheckoutOtp(e.target.value.replace(/\D/g, "").slice(0, 6))} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 tracking-[0.3em]" /></label>
+            <button disabled={checkoutBusy || checkoutOtp.length !== 6} className="w-full rounded-xl py-3 font-semibold text-white disabled:opacity-50" style={{ background: THEME.primary }}>{checkoutBusy ? "Verifying…" : Number(checkoutSelection.price) === 0 ? "Verify & enroll" : "Verify & continue to payment"}</button>
+            <button type="button" disabled={checkoutBusy} onClick={() => { setOtpSent(false); setCheckoutOtp(""); }} className="w-full text-sm font-medium" style={{ color: THEME.primary }}>Edit details / send a new code</button>
+          </>}
+          {checkoutError && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{checkoutError}</p>}
+          <p className="text-xs text-slate-400">Your email verification code expires in 10 minutes.</p>
+        </form>
+      </div>}
     </div>
   );
 }

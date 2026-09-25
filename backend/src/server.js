@@ -190,6 +190,10 @@ app.use(errorHandler);
 connectDB().then(() => {
   const userModel = require("./models/userModel");
   userModel.syncIndexes().catch(err => console.log("User index sync info:", err.message));
+  const Admission = require("./models/AdmissionModel");
+  Admission.syncIndexes().catch(err => console.log("Admission index sync info:", err.message));
+  require("./models/checkoutOtpModel").syncIndexes().catch(err => console.log("Checkout OTP index sync info:", err.message));
+  require("./models/guestEnrollmentModel").syncIndexes().catch(err => console.log("Guest enrollment index sync info:", err.message));
 });
 
 app.listen(process.env.PORT, () => {

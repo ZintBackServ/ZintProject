@@ -2,7 +2,7 @@ import { useContext, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { DataContext } from "../context/DataContext";
 import SpecularButton from "../components/SpecularButton";
-import { toHttps } from "../utils/imgUrl";
+import { toCloudinaryThumbnail } from "../utils/imgUrl";
 
 
   const DarkPurple = "#8E1387";
@@ -164,9 +164,14 @@ function CourseCard({ course, onKnowMore }) {
       {/* ── Course Image ── */}
       <div className="relative w-full h-40 sm:h-44 overflow-hidden">
         <img
-          src={toHttps(course.courseImage)}
+          src={toCloudinaryThumbnail(course.courseImage, 640)}
           alt={course.courseName}
-          className="w-full h-full object-full transition-transform duration-500"
+          width="400"
+          height="240"
+          loading="lazy"
+          decoding="async"
+          fetchPriority="low"
+          className="w-full h-full object-cover transition-transform duration-500"
           style={{ transform: hovered ? "scale(1.05)" : "scale(1)" }}
           onError={e => { e.target.src = "https://placehold.co/400x240/111827/B026B5?text=Course"; }}
         />
@@ -263,7 +268,5 @@ function KnowMoreBtn({ onClick }) {
     </SpecularButton>
   );
 }
-
-
 
 

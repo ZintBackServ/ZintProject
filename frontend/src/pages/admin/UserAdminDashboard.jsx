@@ -28,6 +28,50 @@ function Spinner() {
   return <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin inline-block shrink-0" />;
 }
 
+function CreateStudentModal({ onClose, onCreated, showToast }) {
+  const [form, setForm] = useState({ firstName: "", lastName: "", email: "", contactNo: "", password: "" });
+  const [loading, setLoading] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
+  const change = e => {
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [name]: value }));
+    setFieldErrors(prev => ({ ...prev, [name]: "" }));
+    setFormError("");
+  };
+  const submit = async e => {
+    e.preventDefault(); setLoading(true);
+    try {
+      const res = await fetch(`${BASE}/createStudent`, { method: "POST", credentials: "include", headers: authHeader(), body: JSON.stringify(form) });
+      const json = await res.json();
+      if (!res.ok) {
+        setFormError(json.msg || "Could not create student account.");
+        setFieldErrors({
+          ...(json.fields?.email ? { email: "This email already belongs to a student account." } : {}),
+          ...(json.fields?.contactNo ? { contactNo: "This mobile number already belongs to a student account." } : {}),
+          ...(res.status === 400 && /mobile number/i.test(json.msg || "") ? { contactNo: json.msg } : {}),
+        });
+        return;
+      }
+      showToast("Student account created. Share the login credentials securely.");
+      onCreated(); onClose();
+    } catch (err) { setFormError(err.message || "Could not create student account."); }
+    finally { setLoading(false); }
+  };
+  return <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+    <form onSubmit={submit} className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
+      <div className="flex justify-between items-center"><h2 className="text-lg font-bold text-gray-900">Create Student Account</h2><button type="button" onClick={onClose}>✕</button></div>
+      <p className="text-sm text-gray-500">Set the student's login email and initial password. They can change it later after email OTP verification.</p>
+      <div className="grid grid-cols-2 gap-3"><InputField label="First name" name="firstName" value={form.firstName} onChange={change}/><InputField label="Last name" name="lastName" value={form.lastName} onChange={change}/></div>
+      <div><InputField label="Email (login ID)" name="email" type="email" value={form.email} onChange={change}/>{fieldErrors.email && <p className="mt-1 text-xs text-red-600">{fieldErrors.email}</p>}</div>
+      <div><InputField label="Contact number" name="contactNo" value={form.contactNo} onChange={change}/><p className="mt-1 text-xs text-gray-400">Indian numbers may include a leading 0 or +91; we normalize them before checking.</p>{fieldErrors.contactNo && <p className="mt-1 text-xs text-red-600">{fieldErrors.contactNo}</p>}</div>
+      <InputField label="Initial password" name="password" type="password" value={form.password} onChange={change}/>
+      {formError && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{formError}</p>}
+      <div className="flex gap-3 pt-2"><button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border text-sm font-semibold">Cancel</button><button disabled={loading} className="flex-1 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold disabled:opacity-50">{loading ? "Creating…" : "Create Account"}</button></div>
+    </form>
+  </div>;
+}
+
 // ── Update User Modal ─────────────────────────────────────────────────────────
 function UpdateModal({ user, onClose, onUpdated, showToast }) {
   const [form, setForm] = useState({
@@ -156,6 +200,7 @@ export default function UserAdminDashboard() {
   const [search,        setSearch]        = useState("");
   const [toast,         setToast]         = useState(null);
   const [editUser,      setEditUser]      = useState(null);
+  const [createOpen,    setCreateOpen]    = useState(false);
   const [detailUser,    setDetailUser]    = useState(null);
   const [deleteTarget,  setDeleteTarget]  = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -229,6 +274,7 @@ export default function UserAdminDashboard() {
     <>
       {toast      && <Toast {...toast} onClose={() => setToast(null)} />}
       {editUser   && <UpdateModal user={editUser} onClose={() => setEditUser(null)} onUpdated={fetchUsers} showToast={showToast} />}
+      {createOpen && <CreateStudentModal onClose={() => setCreateOpen(false)} onCreated={fetchUsers} showToast={showToast} />}
       {detailUser && (
         <UserDetailModal
           user={detailUser}
@@ -271,10 +317,11 @@ export default function UserAdminDashboard() {
             <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
             <p className="text-gray-400 text-sm mt-0.5">{users.length} registered users</p>
           </div>
-          <button onClick={fetchUsers}
+          <div className="flex gap-2"><button onClick={() => setCreateOpen(true)}
+            className="px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition">＋ Create Student</button><button onClick={fetchUsers}
             className="px-4 py-2 rounded-xl border border-gray-200 text-gray-500 text-sm font-semibold hover:bg-gray-50 transition">
             ↻ Refresh
-          </button>
+          </button></div>
         </div>
 
         {/* Stats */}

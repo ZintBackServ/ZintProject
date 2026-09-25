@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Briefcase, GraduationCap, Sparkles, Building2, TrendingUp } from "lucide-react";
-import { toHttps } from "../utils/imgUrl";
+import { toCloudinaryThumbnail } from "../utils/imgUrl";
 
 export default function PlacedStudentsSlider() {
   const [students, setStudents] = useState([]);
@@ -179,7 +179,7 @@ function StudentCard({ student }) {
         <div className="relative w-full h-40 sm:h-44 overflow-hidden bg-gradient-to-b from-slate-900 to-[#120420]">
           {student.profileImage && !imgErr ? (
             <img
-              src={toHttps(student.profileImage)}
+              src={toCloudinaryThumbnail(student.profileImage, 400)}
               alt={`${student.name} - Placed student`}
               className="w-full h-full object-cover object-top transition-transform duration-700 ease-out group-hover:scale-105"
               loading="lazy"

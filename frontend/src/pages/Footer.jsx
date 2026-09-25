@@ -73,7 +73,7 @@ const Footer = () => {
       width: "100%",
       background: "#fff",
       color: "#4b4060",
-      fontFamily: "'Poppins', sans-serif",
+      fontFamily: "system-ui, sans-serif",
       borderTop: `3px solid ${PrimaryPurple}22`,
     }}>
       <style>{`
@@ -84,7 +84,7 @@ const Footer = () => {
           background: #faf5fa; border: 1px solid ${PrimaryPurple}22;
           border-radius: 8px; padding: 7px 12px;
           cursor: pointer; transition: all 0.18s ease; width: 100%;
-          font-family: 'Poppins', sans-serif;
+          font-family: system-ui, sans-serif;
         }
         .foot-cat-btn:hover { background: ${PPL}; border-color: ${PrimaryPurple}55; color: ${DarkPurple}; }
         .social-btn { display: flex; align-items: center; gap: 10px; text-decoration: none; transition: all 0.18s ease; }

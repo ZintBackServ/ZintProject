@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { PlayCircle, Clock, Video } from "lucide-react";
 
 const DEFAULT_LECTURES = [
@@ -29,6 +29,7 @@ const DEFAULT_LECTURES = [
 ];
 
 function VideoLectures({ lectures = DEFAULT_LECTURES }) {
+  const [activeLecture, setActiveLecture] = useState(null);
   return (
     <section className="w-full py-10 sm:py-14 bg-gradient-to-b from-white via-purple-50/20 to-white overflow-hidden border-b border-purple-100/60">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
@@ -51,21 +52,44 @@ function VideoLectures({ lectures = DEFAULT_LECTURES }) {
 
         {/* ── Responsive Video Grid ── */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-          {lectures.map((lecture) => (
+          {lectures.map((lecture) => {
+            const videoId = new URL(lecture.embedUrl).pathname.split("/").filter(Boolean).at(-1);
+            const isActive = activeLecture === lecture.id;
+            return (
             <div
               key={lecture.id}
               className="group bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-xl hover:border-purple-200 hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col justify-between"
             >
               {/* ── 16:9 Video Frame ── */}
               <div className="relative w-full aspect-video bg-black overflow-hidden shadow-inner">
-                <iframe
-                  className="w-full h-full border-0"
-                  src={lecture.embedUrl}
-                  title={lecture.title}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  referrerPolicy="strict-origin-when-cross-origin"
-                  allowFullScreen
-                />
+                {isActive ? (
+                  <iframe
+                    className="w-full h-full border-0"
+                    src={lecture.embedUrl}
+                    title={lecture.title}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    allowFullScreen
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setActiveLecture(lecture.id)}
+                    aria-label={`Play ${lecture.title}`}
+                    className="absolute inset-0 flex items-center justify-center bg-slate-950 text-white"
+                  >
+                    <img
+                      src={`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`}
+                      alt=""
+                      width="480"
+                      height="360"
+                      loading="lazy"
+                      decoding="async"
+                      className="absolute inset-0 h-full w-full object-cover opacity-90"
+                    />
+                    <span className="relative z-10 rounded-full bg-black/75 px-5 py-3 text-sm font-bold shadow-lg">▶ Play lesson</span>
+                  </button>
+                )}
               </div>
 
               {/* ── Video Metadata ── */}
@@ -109,7 +133,7 @@ function VideoLectures({ lectures = DEFAULT_LECTURES }) {
                 </div>
               </div>
             </div>
-          ))}
+          );})}
         </div>
 
       </div>

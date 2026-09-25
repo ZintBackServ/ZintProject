@@ -3,11 +3,129 @@ const crypto      = require("crypto");
 const Enrollment  = require("../models/enrollmentModel");
 const courseModel = require("../models/courseModel");
 const logger      = require("../utils/logger");
+const GuestEnrollment = require("../models/guestEnrollmentModel");
+const CheckoutOtp = require("../models/checkoutOtpModel");
+const jwt = require("jsonwebtoken");
+const { sendOTPEmail } = require("../utils/sendEmail");
 
 const razorpay = new Razorpay({
   key_id:     process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
+
+const checkoutTokenFromRequest = (req) => {
+  const token = req.body?.verificationToken;
+  if (!token) throw new Error("Email verification is required.");
+  const payload = jwt.verify(token, process.env.JWT_SECRET_KEY);
+  if (payload.purpose !== "guest-course-checkout") throw new Error("Invalid checkout verification.");
+  return payload;
+};
+
+const sendGuestCheckoutOtp = async (req, res) => {
+  try {
+    const { fullName, email, mobile } = req.body || {};
+    const cleanEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
+    const cleanName = typeof fullName === "string" ? fullName.trim() : "";
+    const cleanMobile = typeof mobile === "string" ? mobile.replace(/\D/g, "") : "";
+    if (cleanName.length < 2 || cleanName.length > 100 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail) || !/^\d{10}$/.test(cleanMobile)) {
+      return res.status(400).json({ success: false, message: "Enter a valid full name, email, and 10-digit mobile number." });
+    }
+    const otp = crypto.randomInt(100000, 1000000).toString();
+    const otpHash = crypto.createHmac("sha256", process.env.JWT_SECRET_KEY).update(`${cleanEmail}:${otp}`).digest("hex");
+    await CheckoutOtp.deleteMany({ email: cleanEmail });
+    await CheckoutOtp.create({ email: cleanEmail, fullName: cleanName, mobile: cleanMobile, otpHash, expiresAt: new Date(Date.now() + 10 * 60 * 1000) });
+    await sendOTPEmail(cleanEmail, otp);
+    return res.status(200).json({ success: true, message: "Verification code sent to your email." });
+  } catch (error) {
+    logger.error("sendGuestCheckoutOtp error:", error);
+    return res.status(500).json({ success: false, message: "Could not send verification code. Please try again." });
+  }
+};
+
+const verifyGuestCheckoutOtp = async (req, res) => {
+  try {
+    const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
+    const otp = typeof req.body?.otp === "string" ? req.body.otp.trim() : "";
+    if (!email || !/^\d{6}$/.test(otp)) return res.status(400).json({ success: false, message: "Enter your email and the 6-digit code." });
+    const record = await CheckoutOtp.findOne({ email, expiresAt: { $gt: new Date() } }).sort({ createdAt: -1 }).select("+otpHash");
+    if (!record) return res.status(400).json({ success: false, message: "Code expired. Request a new one." });
+    if (record.attempts >= 5) return res.status(429).json({ success: false, message: "Too many incorrect attempts. Request a new code." });
+    const attemptedHash = crypto.createHmac("sha256", process.env.JWT_SECRET_KEY).update(`${email}:${otp}`).digest("hex");
+    const isMatch = crypto.timingSafeEqual(Buffer.from(attemptedHash, "hex"), Buffer.from(record.otpHash, "hex"));
+    if (!isMatch) {
+      record.attempts += 1;
+      await record.save();
+      return res.status(400).json({ success: false, message: `Incorrect code. ${5 - record.attempts} attempt(s) remaining.` });
+    }
+    await CheckoutOtp.deleteMany({ email });
+    const verificationToken = jwt.sign({ purpose: "guest-course-checkout", email, fullName: record.fullName, mobile: record.mobile }, process.env.JWT_SECRET_KEY, { expiresIn: "30m" });
+    return res.status(200).json({ success: true, message: "Email verified.", verificationToken });
+  } catch (error) {
+    logger.error("verifyGuestCheckoutOtp error:", error);
+    return res.status(400).json({ success: false, message: "Could not verify the code. Please request another." });
+  }
+};
+
+const createGuestOrder = async (req, res) => {
+  try {
+    let identity;
+    try { identity = checkoutTokenFromRequest(req); }
+    catch { return res.status(401).json({ success: false, message: "Verify your email before continuing." }); }
+    const { courseId, mode } = req.body || {};
+    if (!courseId || !["Online", "Offline"].includes(mode)) return res.status(400).json({ success: false, message: "Choose a valid course mode." });
+    const course = await courseModel.findById(courseId);
+    if (!course) return res.status(404).json({ success: false, message: "Course not found." });
+    if (course.mode !== "Hybrid" && course.mode !== mode) return res.status(400).json({ success: false, message: `This course is offered in ${course.mode} mode.` });
+    const amount = Number(mode === "Online" ? (course.online_fee ?? course.fee) : (course.fee ?? course.online_fee));
+    if (!Number.isFinite(amount) || amount <= 0) return res.status(400).json({ success: false, message: "This course does not have a payable fee for the selected mode." });
+    const receipt = `g_${Date.now().toString(36)}_${crypto.randomBytes(5).toString("hex")}`;
+    const order = await razorpay.orders.create({ amount: Math.round(amount * 100), currency: "INR", receipt, notes: { courseId: course._id.toString(), mode, email: identity.email } });
+    await GuestEnrollment.create({ fullName: identity.fullName, email: identity.email, mobile: identity.mobile, courseId: course._id, courseName: course.courseName, mode, amount, orderId: order.id, paymentStatus: "pending", status: "pending" });
+    return res.status(200).json({ success: true, order: { id: order.id, amount: order.amount, currency: order.currency }, key: process.env.RAZORPAY_KEY_ID });
+  } catch (error) {
+    logger.error("createGuestOrder error:", error);
+    return res.status(400).json({ success: false, message: error?.error?.description || "Could not create payment order." });
+  }
+};
+
+const enrollGuestFree = async (req, res) => {
+  try {
+    let identity;
+    try { identity = checkoutTokenFromRequest(req); }
+    catch { return res.status(401).json({ success: false, message: "Verify your email before continuing." }); }
+    const { courseId, mode } = req.body || {};
+    if (!courseId || !["Online", "Offline"].includes(mode)) return res.status(400).json({ success: false, message: "Choose a valid course mode." });
+    const course = await courseModel.findById(courseId);
+    if (!course) return res.status(404).json({ success: false, message: "Course not found." });
+    if (course.mode !== "Hybrid" && course.mode !== mode) return res.status(400).json({ success: false, message: `This course is offered in ${course.mode} mode.` });
+    const amount = Number(mode === "Online" ? (course.online_fee ?? course.fee ?? 0) : (course.fee ?? course.online_fee ?? 0));
+    if (amount !== 0) return res.status(400).json({ success: false, message: "This course is not free in the selected mode." });
+    const enrollment = await GuestEnrollment.create({ fullName: identity.fullName, email: identity.email, mobile: identity.mobile, courseId: course._id, courseName: course.courseName, mode, amount: 0, paymentStatus: "free", status: "active", purchasedAt: new Date() });
+    return res.status(201).json({ success: true, message: "Enrollment confirmed.", data: { courseName: enrollment.courseName } });
+  } catch (error) {
+    logger.error("enrollGuestFree error:", error);
+    return res.status(500).json({ success: false, message: "Could not complete enrollment." });
+  }
+};
+
+const verifyGuestPayment = async (req, res) => {
+  try {
+    const { razorpay_order_id: orderId, razorpay_payment_id: paymentId, razorpay_signature: signature } = req.body || {};
+    if (!orderId || !paymentId || typeof signature !== "string") return res.status(400).json({ success: false, message: "Missing payment verification fields." });
+    const expected = crypto.createHmac("sha256", process.env.RAZORPAY_KEY_SECRET).update(`${orderId}|${paymentId}`).digest("hex");
+    if (signature.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) return res.status(400).json({ success: false, message: "Payment verification failed." });
+    const enrollment = await GuestEnrollment.findOneAndUpdate({ orderId, paymentStatus: "pending" }, { paymentId, signature, paymentStatus: "paid", status: "active", purchasedAt: new Date() }, { new: true });
+    if (!enrollment) {
+      const alreadyPaid = await GuestEnrollment.findOne({ orderId, paymentId, paymentStatus: "paid" });
+      if (alreadyPaid) return res.status(200).json({ success: true, message: "Payment already verified." });
+      return res.status(404).json({ success: false, message: "Enrollment order not found." });
+    }
+    return res.status(200).json({ success: true, message: "Payment verified. Your enrollment is confirmed.", data: { courseName: enrollment.courseName, fullName: enrollment.fullName } });
+  } catch (error) {
+    logger.error("verifyGuestPayment error:", error);
+    return res.status(500).json({ success: false, message: "Could not verify payment." });
+  }
+};
 
 // ─────────────────────────────────────────────
 // @desc    Create a Razorpay order (step 1 of payment)
@@ -302,22 +420,23 @@ const razorpayWebhook = async (req, res) => {
     const payload = webhook.payload?.payment?.entity;
 
     if (event === "payment.captured" && payload) {
-      await Enrollment.findOneAndUpdate(
-        { orderId: payload.order_id },
-        {
+      const paidUpdate = {
           paymentId:     payload.id,
           paymentStatus: "paid",
           status:        "active",
           purchasedAt:   new Date(),
-        }
-      );
+      };
+      await Promise.all([
+        Enrollment.findOneAndUpdate({ orderId: payload.order_id }, paidUpdate),
+        GuestEnrollment.findOneAndUpdate({ orderId: payload.order_id }, paidUpdate),
+      ]);
     }
 
     if (event === "payment.failed" && payload) {
-      await Enrollment.findOneAndUpdate(
-        { orderId: payload.order_id },
-        { paymentStatus: "failed", status: "cancelled" }
-      );
+      await Promise.all([
+        Enrollment.findOneAndUpdate({ orderId: payload.order_id }, { paymentStatus: "failed", status: "cancelled" }),
+        GuestEnrollment.findOneAndUpdate({ orderId: payload.order_id }, { paymentStatus: "failed", status: "cancelled" }),
+      ]);
     }
 
     return res.status(200).json({ success: true });
@@ -392,6 +511,11 @@ module.exports = {
   createOrder,
   verifyPayment,
   enrollFree,
+  sendGuestCheckoutOtp,
+  verifyGuestCheckoutOtp,
+  createGuestOrder,
+  enrollGuestFree,
+  verifyGuestPayment,
   razorpayWebhook,
   refundPayment,
 };

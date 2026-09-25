@@ -105,8 +105,9 @@ function EnrollmentsTable({ enrollments, loading, onStatusClick, onRefund, onDel
   return enrollments.map((e) => (
     <tr key={e._id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors last:border-0">
       <td className="px-4 py-3">
-        <div className="font-semibold text-slate-800">{userName(e.userId)}</div>
-        <div className="text-[11px] text-slate-400">{userEmail(e.userId)}</div>
+        <div className="font-semibold text-slate-800">{e.guestCheckout ? e.userId?.name : userName(e.userId)}</div>
+        <div className="text-[11px] text-slate-400">{userEmail(e.userId)}{e.guestCheckout ? " · Email verified" : ""}</div>
+        {(e.userId?.contactNo || e.mobile) && <div className="text-[11px] text-slate-500">Mobile: {e.userId?.contactNo || e.mobile}</div>}
       </td>
       <td className="px-4 py-3 text-slate-700 font-medium">{courseName(e.courseId)}</td>
       <td className="px-4 py-3 text-slate-600">{e.amount ? inr(e.amount) : "—"}</td>
@@ -120,6 +121,7 @@ function EnrollmentsTable({ enrollments, loading, onStatusClick, onRefund, onDel
       </td>
       <td className="px-4 py-3">
         <div className="flex flex-wrap gap-1.5">
+          {e.guestCheckout ? <span className="text-[11px] text-slate-400">Guest checkout</span> : <>
           <button
             onClick={() => onStatusClick(e._id, e.status)}
             className="px-2.5 py-1 text-[11px] font-semibold bg-white border border-slate-300 hover:border-violet-400 text-slate-600 hover:text-violet-600 rounded-lg transition-colors shadow-sm"
@@ -140,6 +142,7 @@ function EnrollmentsTable({ enrollments, loading, onStatusClick, onRefund, onDel
           >
             Delete
           </button>
+          </>}
         </div>
       </td>
     </tr>

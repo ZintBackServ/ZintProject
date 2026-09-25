@@ -31,19 +31,32 @@ const applyAdmission = async (req, res) => {
       utrNumber,
     } = req.body;
 
-    const userId = req.user._id;
-    const name   = studentName || `${req.user.firstName} ${req.user.lastName || ""}`.trim();
-    const email  = inputEmail || req.user.email;
+    const userId = req.user?._id;
+    const name   = studentName || `${req.user?.firstName || ""} ${req.user?.lastName || ""}`.trim();
+    const email  = inputEmail || req.user?.email;
 
     if (!courseId || !mongoose.Types.ObjectId.isValid(courseId)) {
       return res.status(400).json({ success: false, msg: "Valid courseId is required." });
     }
+    if (typeof name !== "string" || name.trim().length < 2 || typeof email !== "string" || !/^\S+@\S+\.\S+$/.test(email.trim()) || typeof mobileNumber !== "string" || !/^\d{10}$/.test(mobileNumber.replace(/\D/g, ""))) {
+      return res.status(400).json({ success: false, msg: "Valid student name, email and 10-digit mobile number are required." });
+    }
 
     const course = await courseModel.findById(courseId);
     if (!course) return res.status(404).json({ success: false, msg: "Course not found." });
+    const selectedMode = courseMode || "Online";
+    if (!["Online", "Offline"].includes(selectedMode) || (course.mode !== "Hybrid" && course.mode !== selectedMode)) {
+      return res.status(400).json({ success: false, msg: "Selected learning mode is not available for this course." });
+    }
+    const courseFee = Number(selectedMode === "Online" ? (course.online_fee ?? course.fee ?? 0) : (course.fee ?? course.online_fee ?? 0));
+
+    const duplicateFilter = userId ? { userId, courseId } : { email: email.trim().toLowerCase(), courseId, userId: { $exists: false } };
+    if (await Admission.exists(duplicateFilter)) {
+      return res.status(409).json({ success: false, msg: "An admission application already exists for this course and email." });
+    }
 
     const admission = await Admission.create({
-      userId,
+      ...(userId ? { userId } : {}),
       studentName: name,
       name,
       fatherName,
@@ -55,8 +68,8 @@ const applyAdmission = async (req, res) => {
       address,
       dob,
       courseId,
-      courseMode: courseMode || "Online",
-      totalFee: totalFee !== undefined ? Number(totalFee) : (course.fee || 0),
+      courseMode: selectedMode,
+      totalFee: courseFee,
       batchTime,
       batchStartTime,
       batchEndTime,
@@ -128,7 +141,7 @@ const getAdmissionById = async (req, res) => {
 
     if (!admission) return res.status(404).json({ success: false, msg: "Admission not found." });
 
-    const isOwner = admission.userId._id.toString() === req.user._id.toString();
+    const isOwner = Boolean(admission.userId?._id && admission.userId._id.toString() === req.user._id.toString());
     if (!isOwner && req.userRole !== "admin") {
       return res.status(403).json({ success: false, msg: "Access denied." });
     }

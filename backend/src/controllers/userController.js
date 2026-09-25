@@ -86,6 +86,7 @@ async function validation(key, data, reply) {
 // ── OTP brute-force constants ────────────────────────────────────────────────
 const MAX_OTP_ATTEMPTS  = 5;
 const OTP_LOCK_DURATION = 15 * 60 * 1000; // 15 minutes
+const MAX_RESET_OTP_ATTEMPTS = 5;
 
 // ────────────────────────────────────────────────────────────────────────────
 // 1. Sign Up (local) — whitelists fields, sends OTP
@@ -142,6 +143,55 @@ const signUpUser = async (req, res) => {
       const field = Object.keys(error.keyValue || {})[0] || "field";
       return res.status(409).json({ success: false, msg: `${field} already exists.` });
     }
+    return res.status(500).json({ success: false, msg: "Internal Server Error" });
+  }
+};
+
+// Admin provisions student credentials; students verify their email when changing password.
+const createStudentAccount = async (req, res) => {
+  try {
+    const { firstName, lastName = "", email, contactNo, password } = req.body || {};
+    if (typeof firstName !== "string" || typeof email !== "string" || typeof password !== "string" || typeof lastName !== "string" || (contactNo !== undefined && typeof contactNo !== "string") || !firstName.trim() || !email.trim() || !password) {
+      return res.status(400).json({ success: false, msg: "First name, email and password are required." });
+    }
+    const cleanEmail = email.trim().toLowerCase();
+    const rawContact = typeof contactNo === "string" ? contactNo.trim() : "";
+    let cleanContact = rawContact.replace(/\D/g, "");
+    if (cleanContact.length === 11 && cleanContact.startsWith("0")) cleanContact = cleanContact.slice(1);
+    if (cleanContact.length === 12 && cleanContact.startsWith("91")) cleanContact = cleanContact.slice(2);
+    if (!validators.firstName(firstName.trim()) || (lastName.trim() && !validators.lastName(lastName.trim()))) {
+      return res.status(400).json({ success: false, msg: "Enter a valid student name." });
+    }
+    if (!isValidEmail(cleanEmail)) return res.status(400).json({ success: false, msg: "Enter a valid email address." });
+    if (!isValidPassword(password)) return res.status(400).json({ success: false, msg: "Password must be 8–20 characters with uppercase, lowercase, number & special character." });
+    if (rawContact && !validators.contactNo(cleanContact)) {
+      return res.status(400).json({ success: false, msg: "Enter a valid 10-digit Indian mobile number. A leading 0 or +91 country code is accepted." });
+    }
+
+    const contactVariants = cleanContact ? [cleanContact, `0${cleanContact}`, `91${cleanContact}`, `+91${cleanContact}`] : [];
+    const [emailExists, contactExists] = await Promise.all([
+      userModel.exists({ email: cleanEmail }),
+      contactVariants.length ? userModel.exists({ contactNo: { $in: contactVariants } }) : null,
+    ]);
+    if (emailExists || contactExists) {
+      const fields = { email: Boolean(emailExists), contactNo: Boolean(contactExists) };
+      const conflicts = [fields.email && "Email", fields.contactNo && "mobile number"].filter(Boolean);
+      return res.status(409).json({ success: false, code: "STUDENT_ALREADY_EXISTS", fields, msg: `A student account already exists with this ${conflicts.join(" and ")}.` });
+    }
+
+    const user = await userModel.create({
+      firstName: firstName.trim(), lastName: lastName.trim(), email: cleanEmail,
+      ...(rawContact ? { contactNo: cleanContact } : {}),
+      password: await bcrypt.hash(password, 10), role: "user", authProvider: "local", isEmailVerified: true,
+    });
+    return res.status(201).json({ success: true, msg: "Student account created.", data: { _id: user._id, firstName: user.firstName, lastName: user.lastName, email: user.email, contactNo: user.contactNo } });
+  } catch (error) {
+    if (error.code === 11000) {
+      const fields = { email: Boolean(error.keyValue?.email), contactNo: Boolean(error.keyValue?.contactNo) };
+      const conflict = fields.email ? "Email" : fields.contactNo ? "mobile number" : "Account detail";
+      return res.status(409).json({ success: false, code: "STUDENT_ALREADY_EXISTS", fields, msg: `${conflict} is already linked to a student account.` });
+    }
+    logger.error("createStudentAccount error:", error);
     return res.status(500).json({ success: false, msg: "Internal Server Error" });
   }
 };
@@ -262,14 +312,7 @@ const loginUser = async (req, res) => {
     }
 
     const user = await userModel.findOne({ email }).select("+password");
-    if (!user) return res.status(404).json({ success: false, msg: "User Not Found" });
-
-    if (user.authProvider === "google" && !user.password) {
-      return res.status(400).json({
-        success: false,
-        msg: "This account uses Google Sign-In. Please login with Google.",
-      });
-    }
+    if (!user || !user.password) return res.status(401).json({ success: false, msg: "Incorrect email or password." });
     if (!user.isEmailVerified) {
       return res.status(403).json({
         success: false,
@@ -279,7 +322,7 @@ const loginUser = async (req, res) => {
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ success: false, msg: "Incorrect Password" });
+      return res.status(401).json({ success: false, msg: "Incorrect email or password." });
     }
 
     await setTokenCookie(res, user);
@@ -486,11 +529,7 @@ const forgotPassword = async (req, res) => {
     const user = await userModel.findOne({ email: cleanEmail });
 
     if (!user) {
-      return res.status(404).json({ success: false, msg: "No user found with this email address. Please check your email or sign up." });
-    }
-
-    if (user.authProvider === "google") {
-      return res.status(400).json({ success: false, msg: "This account uses Google Sign-In. Please click 'Continue with Google'." });
+      return res.status(200).json({ success: true, msg: "If an account exists for that email, a password reset code has been sent." });
     }
 
     const otp       = generateOTP();
@@ -498,13 +537,15 @@ const forgotPassword = async (req, res) => {
 
     user.resetOtp         = otp;
     user.resetOtpExpiry   = otpExpiry;
+    user.resetOtpAttempts = 0;
+    user.resetOtpLockedUntil = null;
     user.resetToken       = undefined;
     user.resetTokenExpiry = undefined;
     await user.save();
 
     await sendPasswordResetEmail(user.email, otp);
 
-    return res.status(200).json({ success: true, msg: "OTP sent to your email!" });
+    return res.status(200).json({ success: true, msg: "If an account exists for that email, a password reset code has been sent." });
   } catch (error) {
     logger.error("forgotPassword error:", error);
     return res.status(500).json({ success: false, msg: error.message || "Failed to send OTP email." });
@@ -521,17 +562,29 @@ const verifyResetOTP = async (req, res) => {
 
     const user = await userModel
       .findOne({ email: email.toLowerCase().trim() })
-      .select("+resetOtp +resetOtpExpiry +resetToken +resetTokenExpiry");
+      .select("+resetOtp +resetOtpExpiry +resetOtpAttempts +resetOtpLockedUntil +resetToken +resetTokenExpiry");
 
     if (!user) return res.status(404).json({ success: false, msg: "User not found." });
     if (!user.resetOtp || !user.resetOtpExpiry) {
       return res.status(400).json({ success: false, msg: "No OTP found. Please request a new one." });
     }
+    if (user.resetOtpLockedUntil && user.resetOtpLockedUntil > new Date()) {
+      const remaining = Math.ceil((user.resetOtpLockedUntil - Date.now()) / 60000);
+      return res.status(429).json({ success: false, msg: `Too many failed attempts. Try again in ${remaining} minute(s).` });
+    }
     if (new Date() > user.resetOtpExpiry) {
       return res.status(400).json({ success: false, msg: "OTP has expired. Please request a new one." });
     }
     if (user.resetOtp !== otp) {
-      return res.status(400).json({ success: false, msg: "Invalid OTP. Please try again." });
+      user.resetOtpAttempts = (user.resetOtpAttempts || 0) + 1;
+      if (user.resetOtpAttempts >= MAX_RESET_OTP_ATTEMPTS) {
+        user.resetOtpAttempts = 0;
+        user.resetOtpLockedUntil = new Date(Date.now() + OTP_LOCK_DURATION);
+        await user.save();
+        return res.status(429).json({ success: false, msg: "Too many failed attempts. Account locked for 15 minutes." });
+      }
+      await user.save();
+      return res.status(400).json({ success: false, msg: `Invalid OTP. ${MAX_RESET_OTP_ATTEMPTS - user.resetOtpAttempts} attempt(s) remaining.` });
     }
 
     // OTP valid — generate a short-lived reset token (15 minutes)
@@ -540,6 +593,8 @@ const verifyResetOTP = async (req, res) => {
 
     user.resetOtp         = undefined;
     user.resetOtpExpiry   = undefined;
+    user.resetOtpAttempts = 0;
+    user.resetOtpLockedUntil = null;
     user.resetToken       = resetToken;
     user.resetTokenExpiry = resetTokenExpiry;
     await user.save();
@@ -573,7 +628,7 @@ const resetPassword = async (req, res) => {
 
     const matchedUser = await userModel
       .findOne({ resetToken })
-      .select("+password +resetToken +resetTokenExpiry");
+      .select("+password +resetToken +resetTokenExpiry +sessionToken");
 
     if (!matchedUser) {
       return res.status(400).json({ success: false, msg: "Invalid or expired reset token." });
@@ -583,6 +638,8 @@ const resetPassword = async (req, res) => {
     }
 
     matchedUser.password          = await bcrypt.hash(newPassword, 10);
+    matchedUser.authProvider      = "local";
+    matchedUser.sessionToken      = crypto.randomBytes(32).toString("hex");
     matchedUser.resetToken        = undefined;
     matchedUser.resetTokenExpiry  = undefined;
     await matchedUser.save();
@@ -597,6 +654,7 @@ const resetPassword = async (req, res) => {
 
 module.exports = {
   signUpUser,
+  createStudentAccount,
   loginUser,
   logoutUser,
   verifyOTP,

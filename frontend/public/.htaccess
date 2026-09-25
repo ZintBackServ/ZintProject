@@ -16,4 +16,27 @@
   Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
   Header always set X-Frame-Options "SAMEORIGIN"
   Header always set Content-Security-Policy "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; script-src 'self' https://checkout.razorpay.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://api.zintinstitute.in https://checkout.razorpay.com; frame-src https://api.razorpay.com https://checkout.razorpay.com https://www.google.com https://www.youtube-nocookie.com; upgrade-insecure-requests"
+
+  # Vite build assets have content hashes in their filenames and can be cached
+  # for a year. Keep the app shell and service worker revalidating so updates apply.
+  Header always set Cache-Control "public, max-age=31536000, immutable" env=immutable_asset
+</IfModule>
+
+<IfModule mod_setenvif.c>
+  SetEnvIf Request_URI "^/assets/" immutable_asset
+</IfModule>
+
+<IfModule mod_headers.c>
+  <FilesMatch "^(?:index\.html|sw\.js|workbox-[^/]+\.js)$">
+    Header always set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+</IfModule>
+
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType image/webp "access plus 7 days"
+  ExpiresByType image/jpeg "access plus 7 days"
+  ExpiresByType image/png "access plus 7 days"
+  ExpiresByType image/svg+xml "access plus 7 days"
+  ExpiresByType font/woff2 "access plus 30 days"
 </IfModule>

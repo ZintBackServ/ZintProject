@@ -141,17 +141,7 @@ function Home() {
   const [heroIndex, setHeroIndex] = useState(0);
   const [events, setEvents] = useState([]);
   const [eventsLoading, setEventsLoading] = useState(true);
-  const [isPaused, setIsPaused] = useState(false);
   const navigate = useNavigate();
-
-  // Auto-advance hero slides with pause-on-hover
-  useEffect(() => {
-    if (isPaused) return;
-    const timer = setInterval(() => {
-      setHeroIndex((i) => (i + 1) % heroSlides.length);
-    }, 6000);
-    return () => clearInterval(timer);
-  }, [isPaused]);
 
   // Fetch latest 5 events for the Events card
   useEffect(() => {
@@ -254,11 +244,7 @@ function Home() {
         <div className="grid gap-5 lg:grid-cols-12 lg:gap-6 items-stretch">
 
           {/* ==================== LEFT HERO SHOWCASE (7 cols) ==================== */}
-          <div 
-            onMouseEnter={() => setIsPaused(true)}
-            onMouseLeave={() => setIsPaused(false)}
-            className="lg:col-span-7 h-full flex flex-col"
-          >
+          <div className="lg:col-span-7 h-full flex flex-col">
             <div 
               className="relative flex flex-col justify-between h-full rounded-2xl sm:rounded-3xl p-5 sm:p-7 lg:p-8 overflow-hidden border border-white/10 shadow-2xl shadow-purple-950/60 backdrop-blur-2xl transition-all duration-300 hover:border-purple-500/30"
               style={{

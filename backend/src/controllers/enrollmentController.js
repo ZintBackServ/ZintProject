@@ -1,4 +1,5 @@
 const Enrollment = require("../models/enrollmentModel");
+const GuestEnrollment = require("../models/guestEnrollmentModel");
 
 // ─────────────────────────────────────────────
 // @desc    Get all enrollments (admin) or own (user)
@@ -13,9 +14,26 @@ const getEnrollments = async (req, res) => {
     if (req.query.paymentStatus) filter.paymentStatus = req.query.paymentStatus;
 
     const enrollments = await Enrollment.find(filter)
-       .populate("userId", "firstName email")
+       .populate("userId", "firstName lastName email contactNo")
       .populate("courseId", "courseName courseImage fee")
       .sort({ createdAt: -1 });
+
+    if (req.user.role === "admin") {
+      const guestFilter = {};
+      if (req.query.status) guestFilter.status = req.query.status;
+      if (req.query.paymentStatus) guestFilter.paymentStatus = req.query.paymentStatus;
+      const guestEnrollments = await GuestEnrollment.find(guestFilter)
+        .populate("courseId", "courseName courseImage fee")
+        .sort({ createdAt: -1 });
+      enrollments.push(...guestEnrollments.map((entry) => ({
+        ...entry.toObject(),
+        userId: { name: entry.fullName, email: entry.email, contactNo: entry.mobile },
+        studentName: entry.fullName,
+        name: entry.fullName,
+        guestCheckout: true,
+      })));
+      enrollments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    }
 
     res.status(200).json({
       success: true,

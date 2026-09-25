@@ -15,3 +15,12 @@ export function toHttps(url) {
   // Replace http:// with https:// only for known CDN domains to be safe
   return url.replace(/^http:\/\//i, "https://");
 }
+
+/** Return a smaller, modern-format Cloudinary derivative for card thumbnails. */
+export function toCloudinaryThumbnail(url, width = 640) {
+  const secureUrl = toHttps(url);
+  if (!secureUrl || !secureUrl.includes("res.cloudinary.com/") || !secureUrl.includes("/image/upload/")) {
+    return secureUrl;
+  }
+  return secureUrl.replace("/image/upload/", `/image/upload/f_auto,q_auto,w_${width},c_limit/`);
+}

@@ -101,6 +101,16 @@ const userSchema = new mongoose.Schema(
       type: Date,
       select: false,
     },
+    resetOtpAttempts: {
+      type: Number,
+      default: 0,
+      select: false,
+    },
+    resetOtpLockedUntil: {
+      type: Date,
+      default: null,
+      select: false,
+    },
     resetToken: {
       type: String,
       select: false,

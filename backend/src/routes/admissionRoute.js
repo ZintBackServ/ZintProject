@@ -10,9 +10,11 @@ const {
 
 const authentication = require("../middlewares/authMiddleware");
 const authorization  = require("../middlewares/authorization");
+const rateLimit = require("express-rate-limit");
+const publicAdmissionLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 8, standardHeaders: true, legacyHeaders: false, message: { success: false, msg: "Too many applications. Please try again later." } });
 
 // Logged-in users
-router.post("/apply",      authentication, applyAdmission);
+router.post("/apply",      publicAdmissionLimiter, applyAdmission);
 router.get("/",            authentication, getAdmissions);
 router.get("/:id",         authentication, getAdmissionById);
 
