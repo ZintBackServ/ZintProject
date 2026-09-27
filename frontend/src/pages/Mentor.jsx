@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { toHttps } from "../utils/imgUrl";
+import { toCloudinaryThumbnail } from "../utils/imgUrl";
 import { Award, Briefcase, GraduationCap, Sparkles } from "lucide-react";
 
 const Mentor = () => {
@@ -107,8 +107,12 @@ const Mentor = () => {
               {/* Mentor Image */}
               <div className="relative w-full h-52 overflow-hidden bg-slate-900">
                 <img
-                  src={toHttps(item.profileImage)}
+                  src={toCloudinaryThumbnail(item.profileImage, 400)}
                   alt={item.mentorName}
+                  width="280"
+                  height="208"
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
                   onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80"; }}
                 />

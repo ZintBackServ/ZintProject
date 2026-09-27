@@ -28,5 +28,11 @@ export function googleAuthUrl() {
  */
 export function toHttps(url) {
   if (!url || typeof url !== "string") return url;
-  return url.replace(/^http:\/\//i, "https://");
+  let normalized = url.replace(/^http:\/\//i, "https://");
+  if (normalized.includes("res.cloudinary.com/") && normalized.includes("/image/upload/")) {
+    if (!/\/image\/upload\/[^/]*[fwqc]_/.test(normalized)) {
+      normalized = normalized.replace("/image/upload/", "/image/upload/f_auto,q_auto/");
+    }
+  }
+  return normalized;
 }

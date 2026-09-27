@@ -88,7 +88,7 @@ const Courses = () => {
       </div>
 
       {/* LAYOUT */}
-      <div className="flex w-full px-4 py-6 gap-5">
+      <div className="flex flex-col md:flex-row w-full max-w-7xl mx-auto px-3 sm:px-4 py-6 gap-5">
 
         {/* SIDEBAR */}
         <aside className={`${sidebarOpen ? "block" : "hidden"} md:block w-full md:w-56 flex-shrink-0`}>

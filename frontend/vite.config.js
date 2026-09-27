@@ -109,6 +109,8 @@ export default defineConfig(({ mode }) => ({
   build: {
     // Disable module preloading links to avoid browser preloaded warning logs in inspect
     modulePreload: false,
+    cssCodeSplit: true,
+    minify: 'esbuild',
     // Target modern browsers — eliminates legacy JS polyfill overhead (~20 KiB)
     target: 'esnext',
     rollupOptions: {
@@ -116,12 +118,12 @@ export default defineConfig(({ mode }) => ({
         // Manual chunk splitting — prevents vendor code duplication across routes
         manualChunks(id) {
           if (id.includes('node_modules')) {
+            if (id.includes('react/') || id.includes('react-dom/')) return 'react-core'
             if (id.includes('react-router') || id.includes('react-router-dom')) return 'router'
-            if (id.includes('lucide-react'))   return 'icons'
-            if (id.includes('react-icons'))    return 'icons'
-            if (id.includes('three'))          return 'three'
-            if (id.includes('@react-oauth'))   return 'google-auth'
-            if (id.includes('react') || id.includes('react-dom')) return 'react-vendor'
+            if (id.includes('lucide-react')) return 'lucide-icons'
+            if (id.includes('react-icons')) return 'react-icons'
+            if (id.includes('three')) return 'three'
+            if (id.includes('@react-oauth')) return 'google-auth'
             return 'vendor'
           }
         },

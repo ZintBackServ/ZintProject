@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { toHttps } from "../utils/api";
+import { toCloudinaryThumbnail, toHttps } from "../utils/imgUrl";
 
 /**
  * Base URL of the backend API.
@@ -17,7 +17,7 @@ const API = import.meta.env.VITE_API_URL;
  * Change this single value to speed up / slow down the whole flow.
  * Example: 5000 = 5 seconds, 1000 = 1 second.
  */
-const POPUP_DELAY_MS = 5000;
+const POPUP_DELAY_MS = 10000;
 
 /**
  * NotificationPopup
@@ -190,8 +190,10 @@ export default function NotificationPopup() {
           {current.image && (
             <div className="relative w-full max-h-[60vh] bg-slate-950 flex items-center justify-center overflow-hidden">
               <img
-                src={toHttps(current.image)}
+                src={toCloudinaryThumbnail(current.image, 480)}
                 alt={current.title || "Notification"}
+                width="384"
+                height="480"
                 loading="lazy"
                 decoding="async"
                 className="w-full h-auto max-h-[60vh] object-contain"

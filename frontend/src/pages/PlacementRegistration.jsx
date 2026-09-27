@@ -264,8 +264,8 @@ function EnrollModal({ onClose }) {
 
   useEffect(() => {
     (async () => {
-      const token = localStorage.getItem("token");
-          if (!token) { setProfileLoading(false); return; }
+
+
       try {
         const res = await safeFetch(PROFILE_URL);
         const user = res?.data;

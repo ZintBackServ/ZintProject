@@ -1,6 +1,20 @@
 <IfModule mod_rewrite.c>
   RewriteEngine On
 
+  # Block hidden files and directories (like .git, .env, etc.)
+  RewriteRule "(^|/)\.(?!well-known)" - [F,L]
+
+  # Block sensitive file extensions
+  <FilesMatch "(^\.env|\.git|\.bak|\.config|\.sql|\.json|\.yml|\.yaml|\.log|\.md)$">
+    <IfModule mod_authz_core.c>
+      Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+      Order deny,allow
+      Deny from all
+    </IfModule>
+  </FilesMatch>
+
   # Serve existing assets and directories normally.
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d
@@ -15,6 +29,7 @@
   Header always set Referrer-Policy "strict-origin-when-cross-origin"
   Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
   Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
   Header always set Content-Security-Policy "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; script-src 'self' https://checkout.razorpay.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://api.zintinstitute.in https://checkout.razorpay.com; frame-src https://api.razorpay.com https://checkout.razorpay.com https://www.google.com https://www.youtube-nocookie.com; upgrade-insecure-requests"
 
   # Vite build assets have content hashes in their filenames and can be cached

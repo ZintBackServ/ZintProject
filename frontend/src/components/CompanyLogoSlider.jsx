@@ -140,6 +140,8 @@ function LogoCard({ company }) {
         <img
           src={company.logo}
           alt={`${company.name} logo`}
+          width="85"
+          height="24"
           loading="lazy"
           decoding="async"
           className="max-h-5 sm:max-h-6 max-w-[85px] object-contain opacity-70 group-hover:opacity-100 brightness-0 invert group-hover:brightness-100 group-hover:invert-0 transition-all duration-300"

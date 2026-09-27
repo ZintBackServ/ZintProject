@@ -1,6 +1,7 @@
 // pages/CoursePricing.jsx
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { loadRazorpay } from "../../utils/loadRazorpay";
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -272,6 +273,12 @@ export default function CoursePricing() {
       }
 
       const { order, key } = orderData;
+
+      if (!(await loadRazorpay())) {
+        showToast("Payment checkout could not load. Please try again.", "error");
+        setPayLoading(false);
+        return;
+      }
 
       // ── Step 2: Open Razorpay ──────────────────────────────────────────────
       const options = {

@@ -5,38 +5,62 @@ import { Star, CheckCircle2, ChevronLeft, ChevronRight, Quote, MessageSquareQuot
 const reviews = [
   {
     id: 1, name: "Shivam Savita", initials: "SS", rating: 5,
-    course: "MERN Stack Development", date: "2 days ago",
-    text: "I learned multicloud DevOps and Full-Stack development at Zint Institute. The mentor's teaching style is clear and 100% practical, which made complex cloud and API concepts easy to implement in live projects.",
+    course: "MERN Stack Development", date: "3 days ago",
+    text: "I am currently pursuing my internship at ZINT Institute. The concepts are explained clearly with practical examples, which makes learning easier and more interesting. The trainers are supportive and always help with doubts and practical work. I really like the institute's focus on real-time projects and hands-on industry exposure. Eligible students also receive updates about placement opportunities and recruitment drives. My overall experience at ZINT has been very positive.",
     gradient: "from-pink-500 to-purple-600",
   },
   {
-    id: 2, name: "Rishi Chauhan", initials: "RC", rating: 5,
+    id: 2, name: "Kirti", initials: "RC", rating: 5,
     course: "Data Science & AI", date: "1 week ago",
-    text: "I completed the Python and Data Science course. The faculty focused heavily on real-world industrial datasets and machine learning algorithms. Gained hands-on experience through regular assignments.",
+    text: "I am currently pursuing AI and Machine Learning training at ZINT Institute. The concepts are explained clearly with practical examples, which makes learning easier and more interesting. The trainers are supportive and always help with doubts and practical work. I really like the institute's focus on modern technologies and career development. Eligible students also receive updates about placement opportunities and recruitment drives. My overall experience at ZINT has been very positive.",
     gradient: "from-purple-600 to-indigo-600",
   },
   {
-    id: 3, name: "Priya Sharma", initials: "PS", rating: 5,
-    course: "Full Stack Web Dev", date: "3 days ago",
-    text: "Best institute in Gwalior for software training. The syllabus is completely aligned with tech recruitment standards and the placement team helped me get placed within 2 months!",
-    gradient: "from-fuchsia-500 to-pink-600",
+    id: 2, name: "Uzma Khan", initials: "RC", rating: 5,
+    course: "Data Analyst", date: "1 week ago",
+    text: "I am currently pursuing the Data Analyst course at ZINT Institute. My experience here has been really good. The trainers explain Excel, SQL, Power BI, and data analysis concepts in a simple and practical way. I am getting regular opportunities to practice and improve my skills. ZINT also provides career guidance and shares relevant job opportunities and placement drive updates with eligible students. I am happy with my decision to join ZINT Institute.",
+    gradient: "from-purple-600 to-indigo-600",
   },
   {
-    id: 4, name: "Anuj Dubey", initials: "AD", rating: 4.5,
-    course: "Java Backend Engineering", date: "5 days ago",
-    text: "Top-notch faculty for Java and Spring Boot. The practical project labs gave me deep confidence in building scalable REST APIs and handling database migrations.",
+    id: 2, name: "Umang Gupta", initials: "RC", rating: 5,
+    course: "Full Stack Development", date: "2 week ago",
+    text: "I am currently pursuing Full Stack Development at ZINT Institute, and my learning experience has been excellent. The trainers explain frontend and backend concepts step by step with practical examples and projects. I have seen a good improvement in my coding and problem-solving skills. The institute also focuses on career development and keeps eligible students updated about placement drives and job opportunities. I would definitely recommend ZINT to students who want to build a career in development.",
+    gradient: "from-purple-600 to-indigo-600",
+  },
+  {
+    id: 2, name: "Palak Sharma", initials: "RC", rating: 5,
+    course: "Tally Prime with GST & Advanced Excel", date: "1 week ago",
+    text: "I joined ZINT Institute for the Tally Prime with GST and Advanced Excel courses, and my experience has been really good. The trainers provided practical training and explained accounting, GST, Tally, and Excel concepts in a simple and effective way.I am happy to share that I have recently been selected for an Accountant position in Gwalior with a package of ₹2.64 LPA through ZINT Institute. The skills and practical knowledge I gained during my training at ZINT played an important role in helping me get this opportunity.I am thankful to the entire ZINT Institute team and my trainers for their guidance, support, and valuable training. I am really happy with my decision to join ZINT Institute.",
+    gradient: "from-purple-600 to-indigo-600",
+  },
+  {
+    id: 2, name: "Adishwar Jain", initials: "RC", rating: 5,
+    course: "Full Stack Development", date: "4 months ago",
+    text: "I joined ZINT Institute to learn Full Stack Development and build a strong career in the IT industry. The training at ZINT helped me develop strong skills in frontend and backend development through practical learning and real-world projects.The trainers explain every concept in a simple and easy-to-understand way and provide proper guidance whenever needed. With regular practice and practical training, my coding skills and confidence improved significantly.I am happy to share that I got selected at HCL Technologies with a package of ₹7.48 LPA. The skills, practical knowledge, and confidence I gained during my Full Stack Development training at ZINT played an important role in achieving this opportunity.I am truly thankful to the entire ZINT Institute team and my trainers for their continuous guidance and support. I am very happy that I chose ZINT to start and build my career in Full Stack Development.",
+    gradient: "from-purple-600 to-indigo-600",
+  },
+
+  {
+    id: 3, name: "Garima Maheshwari", initials: "PS", rating: 5,
+    course: "Java Core to Advanced", date: "9 days ago",
+    text: "I joined ZINT Institute for the Java Core to Advanced course, and my experience has been very good. The trainers explain concepts from basic to advanced in a simple and practical way. Regular coding practice helped me improve my programming skills and confidence. The faculty are supportive and always help clear doubts. I am happy with my decision to join ZINT Institute for learning Java.",
+  },
+  {
+    id: 4, name: "Pratiksha", initials: "AD", rating: 4.5,
+    course: "Graphics Designing", date: "2 days ago",
+    text: "I am pursuing Graphics Designing at ZINT Institute and I am really enjoying the learning experience. The course provides practical training in Photoshop, Illustrator, CorelDRAW, and important design concepts. I get opportunities to work on different projects, which has helped me improve my creativity and designing skills. The trainers are experienced and provide proper guidance whenever required. ZINT is a good choice for students who want to build creative and professional skills.",
     gradient: "from-violet-600 to-purple-600",
   },
   {
-    id: 5, name: "Anjali Mehta", initials: "AM", rating: 5,
-    course: "Data Analytics & Tally", date: "2 weeks ago",
-    text: "Outstanding learning atmosphere. The instructors guide you through every doubt patiently. The placement support is exceptional — received multiple interview calls right after course completion.",
+    id: 5, name: "Hitendra Johri", initials: "AM", rating: 5,
+    course: "MERN Stack Development", date: "2 weeks ago",
+    text: "I am currently pursuing MERN Stack Development at ZINT Institute. The training is well structured and focuses on practical learning. I am learning frontend, backend, databases, and modern development concepts through hands-on practice and projects. The trainers are experienced and supportive, and they help whenever I have doubts. ZINT also provides career guidance and regularly shares job opportunities and placement drive updates with eligible students. My experience has been really positive.",
     gradient: "from-pink-500 to-rose-600",
   },
   {
-    id: 6, name: "Satyam Purohit", initials: "SP", rating: 5,
-    course: "Cloud & DevOps", date: "1 month ago",
-    text: "The labs on Docker, Linux, and AWS exceeded my expectations. The mentors bring real industry experience, making every classroom session deeply valuable.",
+    id: 6, name: "Deepali", initials: "SP", rating: 5,
+    course: "Digital Marketing", date: "3 month ago",
+    text: "I am currently pursuing Digital Marketing at ZINT Institute. The training is practical and covers important digital marketing tools, strategies, and real-world applications. The trainers explain everything clearly and provide good guidance during practical sessions. I have learned many new skills and gained more confidence. ZINT also keeps eligible students updated about job openings and placement opportunities through student groups. Overall, I am very happy with my experience at ZINT Institute.",
     gradient: "from-purple-500 to-sky-500",
   },
 ];
@@ -104,7 +128,7 @@ function ReviewCard({ review }) {
           <StarRating rating={review.rating} />
           <Quote className="h-7 w-7 text-purple-200 group-hover:text-[#B11FA8]/30 transition-colors" />
         </div>
-        <p className="text-slate-700 text-sm sm:text-base leading-relaxed mb-6 line-clamp-4">
+        <p className="text-slate-700 text-sm sm:text-base leading-relaxed mb-6 line-clamp-12">
           "{review.text}"
         </p>
       </div>

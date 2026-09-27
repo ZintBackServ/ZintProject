@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { toHttps } from "../utils/imgUrl";
+import { toCloudinaryThumbnail } from "../utils/imgUrl";
 
 function Card({ data }) {
   const navigate = useNavigate();
@@ -21,10 +21,13 @@ function Card({ data }) {
       {/* ── Image & Badges ── */}
       <div className="relative w-full h-48 overflow-hidden bg-gradient-to-br from-pink-50 to-purple-50">
         <img
-          src={toHttps(data.courseImage)}
+          src={toCloudinaryThumbnail(data.courseImage, 500)}
           alt={data.courseName}
+          width="400"
+          height="192"
           className="w-full h-full object-full group-hover:scale-105 transition-transform duration-500 ease-out"
           loading="lazy"
+          decoding="async"
         />
         
         {/* Gradient Overlay for better contrast */}

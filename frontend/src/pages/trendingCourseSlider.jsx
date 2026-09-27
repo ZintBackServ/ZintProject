@@ -145,7 +145,7 @@ function CourseCard({ course, onKnowMore }) {
 
   return (
     <div
-      className="flex-none w-[17rem] sm:w-[19rem] snap-start rounded-xl overflow-hidden flex flex-col transition-all duration-300 cursor-default"
+      className="flex-none w-[18rem] sm:w-[23rem] snap-start rounded-xl overflow-hidden flex flex-col transition-all duration-300 cursor-default"
       style={{
         background:   "white",
         border:       `1px solid ${hovered ? "#38BDF8" : "#e5e7eb"}`,
@@ -162,7 +162,7 @@ function CourseCard({ course, onKnowMore }) {
         style={{ background: "linear-gradient(90deg, #38BDF8, #B026B5)" }} />
 
       {/* ── Course Image ── */}
-      <div className="relative w-full h-40 sm:h-44 overflow-hidden">
+      <div className="relative w-full h-40 sm:h-44 overflow-hidden bg-slate-50">
         <img
           src={toCloudinaryThumbnail(course.courseImage, 640)}
           alt={course.courseName}
@@ -171,8 +171,7 @@ function CourseCard({ course, onKnowMore }) {
           loading="lazy"
           decoding="async"
           fetchPriority="low"
-          className="w-full h-full object-cover transition-transform duration-500"
-          style={{ transform: hovered ? "scale(1.05)" : "scale(1)" }}
+          className="w-full h-full object-full"
           onError={e => { e.target.src = "https://placehold.co/400x240/111827/B026B5?text=Course"; }}
         />
 
@@ -268,5 +267,4 @@ function KnowMoreBtn({ onClick }) {
     </SpecularButton>
   );
 }
-
 

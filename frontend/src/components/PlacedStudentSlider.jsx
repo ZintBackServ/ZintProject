@@ -181,6 +181,8 @@ function StudentCard({ student }) {
             <img
               src={toCloudinaryThumbnail(student.profileImage, 400)}
               alt={`${student.name} - Placed student`}
+              width="195"
+              height="176"
               className="w-full h-full object-cover object-top transition-transform duration-700 ease-out group-hover:scale-105"
               loading="lazy"
               decoding="async"

@@ -6,6 +6,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import OnlineTrainingSection from "../../components/OnlineTrainingSection";
 import MyDetailsView from "../../components/MyDetailsView";
+import { loadRazorpay } from "../../utils/loadRazorpay";
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -594,7 +595,11 @@ export default function UserDashboard() {
     }
   };
 
-  const openRazorpay = useCallback(({ order, key, courseTitle }) => {
+  const openRazorpay = useCallback(async ({ order, key, courseTitle }) => {
+    if (!(await loadRazorpay())) {
+      showToast("Payment checkout could not load. Please try again.", "error");
+      return;
+    }
     const options = {
       key,
       amount:      order.amount,

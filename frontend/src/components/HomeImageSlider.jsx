@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Img1  from "../assets/HomePoster1.webp";
 import Img2  from "../assets/HomePoster2.webp";
 import Img3  from "../assets/HomePoster3.webp";
 import Img4  from "../assets/HomePoster4.webp";
-import Img5  from "../assets/HomePoster55.webp";
+import Img5  from "../assets/HomePoster5.webp";
 import Img6  from "../assets/HomePoster6.webp";
 import Img7  from "../assets/HomePoster7.webp";
 import Img8  from "../assets/HomePoster8.webp";
@@ -12,8 +12,7 @@ import Img10 from "../assets/HomePoster10.webp";
 import Img11 from "../assets/HomePoster11.webp";
 import Img12 from "../assets/HomePoster12.webp";
 import Img13 from "../assets/HomePoster13.webp";
-import Img14 from "../assets/HomePoster14.webp";
-import Img15 from "../assets/HomePoster15.webp";
+
 
 const images = [
   { src: Img1,  alt: "Zint Institute - Admissions Open 2024" },
@@ -29,23 +28,11 @@ const images = [
   { src: Img11, alt: "Zint Institute - Guest Lecture" },
   { src: Img12, alt: "Zint Institute - Industry Visit" },
   { src: Img13, alt: "Zint Institute - Graduation Day" },
-  { src: Img14, alt: "Zint Institute - Seminar" },
-  { src: Img15, alt: "Zint Institute - Annual Function" },
+
 ];
 
 function AutoSlider() {
   const [current, setCurrent] = useState(0);
-  const [isHovered, setIsHovered] = useState(false);
-
-  // pause on hover, auto-advance every 3s
-  useEffect(() => {
-    if (isHovered) return;
-    const interval = setInterval(() => {
-      setCurrent((prev) => (prev === images.length - 1 ? 0 : prev + 1));
-    }, 7000);
-    return () => clearInterval(interval);
-  }, [isHovered]);
-
   const prevSlide = () =>
     setCurrent(current === 0 ? images.length - 1 : current - 1);
   const nextSlide = () =>
@@ -53,17 +40,15 @@ function AutoSlider() {
 
   return (
     <div
-      className="relative mx-auto aspect-[5/2] w-full overflow-hidden bg-slate-950"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      className="relative mx-auto w-full overflow-hidden aspect-[1920/768] bg-[#0a020f]"
     >
       <img
-        src={images[current].src}
+        src={current === 0 ? "/home-hero.webp" : images[current].src}
         alt={images[current].alt}
-        width="1200"
-        height="480"
-        className="absolute inset-0 h-full w-full object-cover object-center"
-        loading={current === 0 ? "eager" : "lazy"}
+        width="1920"
+        height="768"
+        className="w-full h-auto block select-none"
+        loading="eager"
         fetchPriority={current === 0 ? "high" : "auto"}
         decoding="async"
       />

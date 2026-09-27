@@ -324,10 +324,10 @@ function Home() {
                 {/* Trust Metrics & Student Avatars */}
                 <div className="flex items-center gap-3">
                   <div className="flex -space-x-2 overflow-hidden">
-                    <img width="28" height="28" className="inline-block h-7 w-7 rounded-full ring-2 ring-purple-900 object-cover" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80" alt="Student" />
-                    <img width="28" height="28" className="inline-block h-7 w-7 rounded-full ring-2 ring-purple-900 object-cover" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80" alt="Student" />
-                    <img width="28" height="28" className="inline-block h-7 w-7 rounded-full ring-2 ring-purple-900 object-cover" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80" alt="Student" />
-                    <img width="28" height="28" className="inline-block h-7 w-7 rounded-full ring-2 ring-purple-900 object-cover" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&q=80" alt="Student" />
+                    <img width="28" height="28" loading="lazy" decoding="async" className="inline-block h-7 w-7 rounded-full ring-2 ring-purple-900 object-cover" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80" alt="Student" />
+                    <img width="28" height="28" loading="lazy" decoding="async" className="inline-block h-7 w-7 rounded-full ring-2 ring-purple-900 object-cover" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80" alt="Student" />
+                    <img width="28" height="28" loading="lazy" decoding="async" className="inline-block h-7 w-7 rounded-full ring-2 ring-purple-900 object-cover" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80" alt="Student" />
+                    <img width="28" height="28" loading="lazy" decoding="async" className="inline-block h-7 w-7 rounded-full ring-2 ring-purple-900 object-cover" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&q=80" alt="Student" />
                   </div>
                   <div className="text-[11px]">
                     <div className="flex items-center gap-1 font-bold text-white leading-tight">

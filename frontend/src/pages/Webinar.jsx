@@ -95,6 +95,8 @@ export default function Webinar() {
   });
 
   const [webinars, setWebinars] = useState([]);
+  const [webinarLoadError, setWebinarLoadError] = useState("");
+  const [webinarRetry, setWebinarRetry] = useState(0);
   const [categories, setCategories] = useState([{ id: "all", label: "All Sessions" }]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -108,15 +110,25 @@ export default function Webinar() {
   const [openFaqIndex, setOpenFaqIndex] = useState(0);
 
   useEffect(() => {
-    // 1. Fetch Webinars
+    let cancelled = false;
+    setLoading(true);
+    setWebinarLoadError("");
     fetch(apiUrl("/webinar"))
-      .then((response) => response.json().then((data) => ({ response, data })))
-      .then(({ response, data }) => {
-        if (!response.ok) throw new Error(data.message);
-        setWebinars(data.webinars || []);
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || `Server returned ${response.status}`);
+        return data;
       })
-      .catch(() => setWebinars([]))
-      .finally(() => setLoading(false));
+      .then((data) => {
+        if (!cancelled) setWebinars(data.webinars || []);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setWebinars([]);
+          setWebinarLoadError("We couldn't connect to the webinar service. Please try again shortly.");
+        }
+      })
+      .finally(() => { if (!cancelled) setLoading(false); });
 
     // 2. Fetch Categories from Category API
     fetch(apiUrl("/category/getAllCategories"))
@@ -131,7 +143,8 @@ export default function Webinar() {
         }
       })
       .catch(() => {});
-  }, []);
+    return () => { cancelled = true; };
+  }, [webinarRetry]);
 
   // Compute all unique category tabs dynamically (API categories + categories on existing webinars)
   const activeCategoryTabs = useMemo(() => {
@@ -403,6 +416,16 @@ export default function Webinar() {
             <div className="py-24 text-center">
               <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-purple-200 border-t-[#8d179f]" />
               <p className="mt-4 text-sm font-semibold text-slate-500">Loading live webinars...</p>
+            </div>
+          ) : webinarLoadError ? (
+            <div className="my-8 rounded-3xl border border-amber-200 bg-amber-50 p-8 text-center">
+              <h3 className="text-lg font-bold text-slate-900">Webinars are temporarily unavailable</h3>
+              <p className="mt-2 text-sm text-slate-600">{webinarLoadError}</p>
+              <button
+                type="button"
+                onClick={() => setWebinarRetry((attempt) => attempt + 1)}
+                className="mt-4 rounded-xl bg-purple-700 px-4 py-2 text-sm font-bold text-white hover:bg-purple-800"
+              >Try again</button>
             </div>
           ) : visibleWebinars.length === 0 ? (
             /* Empty State */

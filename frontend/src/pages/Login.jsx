@@ -510,17 +510,8 @@ export default function Login() {
 
                 {/* Password */}
                 <div>
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="mb-2">
                     <label className="text-sm font-medium" style={{ color: "#d1d5db" }}>Password</label>
-                    <button
-                      type="button"
-                      onClick={openForgotPassword}
-                      className="text-xs transition-colors"
-                      style={{ color: "#53BFEA" }}
-                      onMouseEnter={e => e.currentTarget.style.color = "#7dd3fc"}
-                      onMouseLeave={e => e.currentTarget.style.color = "#53BFEA"}>
-                      Forgot password?
-                    </button>
                   </div>
                   <div className="relative">
                     <input
@@ -545,6 +536,17 @@ export default function Login() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                         </svg>
                       )}
+                    </button>
+                  </div>
+                  <div className="mt-2 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={openForgotPassword}
+                      className="py-1 text-xs transition-colors"
+                      style={{ color: "#53BFEA" }}
+                      onMouseEnter={e => e.currentTarget.style.color = "#7dd3fc"}
+                      onMouseLeave={e => e.currentTarget.style.color = "#53BFEA"}>
+                      Forgot password?
                     </button>
                   </div>
                 </div>

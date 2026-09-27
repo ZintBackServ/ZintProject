@@ -525,7 +525,7 @@ function Navbar() {
 
           {/* Logo */}
           <Link to="/" className="shrink-0">
-            <img src={zintLogo} alt="Zint Logo" className="h-10 sm:h-11 md:h-12 w-auto max-w-[160px] md:max-w-[200px] object-contain" />
+            <img src={zintLogo} alt="Zint Logo" width="160" height="48" fetchPriority="high" loading="eager" className="h-10 sm:h-11 md:h-12 w-auto max-w-[160px] md:max-w-[200px] object-contain" />
           </Link>
 
           {/* Search — below lg this grows to fill all remaining space between

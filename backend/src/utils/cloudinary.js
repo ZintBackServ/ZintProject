@@ -17,8 +17,11 @@ const uploadOnCloudinary = async (localFilePath, resourceType = "auto") => {
       secure: true, // always return HTTPS URLs
     });
 
-    // Prefer secure_url (HTTPS); fall back to url only as a last resort
-    const secureUrl = response.secure_url || response.url;
+    // Prefer secure_url (HTTPS) with auto format and quality
+    let secureUrl = response.secure_url || response.url;
+    if (secureUrl && secureUrl.includes("/image/upload/") && !secureUrl.includes("/image/upload/f_auto")) {
+      secureUrl = secureUrl.replace("/image/upload/", "/image/upload/f_auto,q_auto/");
+    }
     console.log("file is uploaded on cloudinary", secureUrl);
 
     if (fs.existsSync(localFilePath)) {
@@ -26,7 +29,7 @@ const uploadOnCloudinary = async (localFilePath, resourceType = "auto") => {
     }
 
     // Expose secure_url as .url so all existing controller code gets HTTPS automatically
-    return { ...response, url: secureUrl };
+    return { ...response, url: secureUrl, secure_url: secureUrl };
   } catch (error) {
     console.log("Cloudinary Error:", error?.message || error);
     if (fs.existsSync(localFilePath)) {

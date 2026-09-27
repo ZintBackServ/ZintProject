@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { DataContext } from "../context/DataContext";
 import { FaFacebook, FaPhoneAlt, FaInstagramSquare, FaYoutube, FaLinkedin } from "react-icons/fa";
@@ -50,6 +50,7 @@ const ColTitle = ({ children }) => (
 
 // ── Footer ────────────────────────────────────────
 const Footer = () => {
+  const [showMap, setShowMap] = useState(false);
   const navigate = useNavigate();
   const { data, loading } = useContext(DataContext);
   const courses = data?.courses || [];
@@ -256,13 +257,18 @@ const Footer = () => {
                 }} />
                 Zint Institute, Gwalior
               </div>
-              <iframe
+              {showMap ? <iframe
                 title="Zint Institute Campus Location"
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3579.4530243343556!2d78.16774307509867!3d26.21446578974916!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3976c69c7a4b2c63%3A0x444afa05bee254e7!2sZINT%20INSTITUTE!5e0!3m2!1sen!2sin!4v1779522543218!5m2!1sen!2sin"
                 style={{ width: "100%", height: "100%", border: 0 }}
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
-              />
+              /> : <button
+                type="button"
+                onClick={() => setShowMap(true)}
+                aria-label="Load interactive map for Zint Institute, Gwalior"
+                style={{ width: "100%", height: "100%", border: 0, background: "linear-gradient(135deg, #f7eaf7, #e8f7fd)", color: DarkPurple, fontWeight: 600, cursor: "pointer" }}
+              >Load interactive map</button>}
             </div>
           </div>
 
