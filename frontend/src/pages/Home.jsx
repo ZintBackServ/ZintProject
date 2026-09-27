@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   ChevronLeft, 
@@ -17,23 +17,25 @@ import {
   Users
 } from "lucide-react";
 import { lazy, Suspense } from "react";
-import ImageSlider from "../components/HomeImageSlider";
-import LatestUpdates from "../components/LatestUpdates";
+import ImageSlider from "../components/sliders/HomeImageSlider";
+import LatestUpdates from "../components/shared/LatestUpdates";
 import CourseSlider from "./trendingCourseSlider";
-import Antigravity from "./Antigravity";
 import { usePageMeta } from "../hooks/usePageMeta";
-import CardSpread from "../components/CardSpread";
+import CardSpread from "../components/ui/CardSpread";
+import { DataContext } from "../context/DataContext";
+
+const Antigravity = lazy(() => import("./Antigravity"));
 
 // Lazy-loaded below-the-fold components (code split to improve FCP/LCP)
-const CompanyLogo           = lazy(() => import("../components/CompanyLogoSlider"));
-const PlacedStudentsSlider  = lazy(() => import("../components/PlacedStudentSlider"));
-const VideoLectures         = lazy(() => import("../components/VideoLectures"));
-const Location              = lazy(() => import("../components/Location"));
-const Reviews               = lazy(() => import("../components/Reviews"));
-const ContactUS             = lazy(() => import("../components/ContactUS"));
-const FAQ                   = lazy(() => import("../components/FAQ"));
+const CompanyLogo           = lazy(() => import("../components/sliders/CompanyLogoSlider"));
+const PlacedStudentsSlider  = lazy(() => import("../components/sliders/PlacedStudentSlider"));
+const VideoLectures         = lazy(() => import("../components/shared/VideoLectures"));
+const Location              = lazy(() => import("../components/shared/Location"));
+const Reviews               = lazy(() => import("../components/shared/Reviews"));
+const ContactUS             = lazy(() => import("./ContactUs"));
+const FAQ                   = lazy(() => import("../components/shared/FAQ"));
 const Mentor                = lazy(() => import("./Mentor"));
-const OurValues             = lazy(() => import("../components/OurValues"));
+const OurValues             = lazy(() => import("../components/shared/OurValues"));
 
 // Brand Identity Palette
 const BRAND = {
@@ -139,39 +141,18 @@ function Home() {
   );
   
   const [heroIndex, setHeroIndex] = useState(0);
-  const [events, setEvents] = useState([]);
-  const [eventsLoading, setEventsLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Fetch latest 5 events for the Events card
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/event/allEvent`);
-        const data = await res.json();
+  // Consume events from the shared DataContext — no extra network call needed
+  const { data: ctxData, loading: ctxLoading } = useContext(DataContext);
+  const eventsLoading = ctxLoading;
 
-        if (res.ok && Array.isArray(data.events)) {
-          const startOfToday = new Date();
-          startOfToday.setHours(0, 0, 0, 0);
-
-          const upcomingFive = data.events
-            .filter((e) => e.date && new Date(e.date) >= startOfToday)
-            .sort((a, b) => new Date(a.date) - new Date(b.date))
-            .slice(0, 5);
-          setEvents(upcomingFive);
-        } else {
-          setEvents([]);
-        }
-      } catch (error) {
-        console.log("Failed to fetch events:", error);
-        setEvents([]);
-      } finally {
-        setEventsLoading(false);
-      }
-    };
-
-    fetchEvents();
-  }, []);
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+  const events = (ctxData?.events || [])
+    .filter((e) => e.date && new Date(e.date) >= startOfToday)
+    .sort((a, b) => new Date(a.date) - new Date(b.date))
+    .slice(0, 5);
 
   const prevSlide = () => setHeroIndex((i) => (i - 1 + heroSlides.length) % heroSlides.length);
   const nextSlide = () => setHeroIndex((i) => (i + 1) % heroSlides.length);
@@ -253,15 +234,17 @@ function Home() {
             >
               {/* Antigravity floating particles effect */}
               <div className="absolute inset-0 pointer-events-none z-0 opacity-60">
-                <Antigravity
-                  count={60}
-                  magnetRadius={8}
-                  particleSize={1.2}
-                  lerpSpeed={0.06}
-                  color="#B11FA8"
-                  autoAnimate={false}
-                  fieldStrength={10}
-                />
+                <Suspense fallback={null}>
+                  <Antigravity
+                    count={60}
+                    magnetRadius={8}
+                    particleSize={1.2}
+                    lerpSpeed={0.06}
+                    color="#B11FA8"
+                    autoAnimate={false}
+                    fieldStrength={10}
+                  />
+                </Suspense>
               </div>
 
               {/* Decorative Subtle Gradient Orb */}

@@ -99,7 +99,9 @@ const getAllCourse = async (req, res) => {
   try {
     const courses = await courseModel
       .find()
-      .populate("category");
+      .select("courseName courseImage fee online_fee duration mode trending category rating language startDate about")
+      .populate("category", "categoryName")
+      .lean();
     return res.status(200).json({ msg: "Courses fetched successfully", courses });
   } catch (error) {
     console.log(error);
@@ -116,7 +118,8 @@ const getCourseById = async (req, res) => {
 
     const course = await courseModel
       .findById(id)
-      .populate("category", "categoryName");
+      .populate("category", "categoryName")
+      .lean();
     if (!course)
       return res.status(404).json({ msg: "Course not found" });
 

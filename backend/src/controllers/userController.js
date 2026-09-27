@@ -504,13 +504,49 @@ const deleteUser = async (req, res) => {
 // ────────────────────────────────────────────────────────────────────────────
 const getMyProfile = async (req, res) => {
   try {
-    const userId = req.user?._id || req.user?.id;
-    if (!userId) return res.status(401).json({ success: false, msg: "Unauthorized" });
+    let token = req.cookies?.token;
+    if (!token) {
+      const authHeader = req.headers["authorization"];
+      if (authHeader && authHeader.startsWith("Bearer ")) {
+        token = authHeader.split(" ")[1];
+      }
+    }
 
-    const user = await userModel.findById(userId);
-    if (!user) return res.status(404).json({ success: false, msg: "User not found" });
+    // Unauthenticated guest — return null cleanly without a 401 console error
+    if (!token) {
+      return res.status(200).json({ success: true, data: null, loggedIn: false });
+    }
 
-    return res.status(200).json({ success: true, msg: "Profile fetched successfully", data: user });
+    let decodedToken;
+    try {
+      decodedToken = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    } catch (err) {
+      // Token invalid or expired — treat as guest
+      return res.status(200).json({ success: true, data: null, loggedIn: false });
+    }
+
+    const user = await userModel.findById(decodedToken.userId).select("+sessionToken");
+    if (!user) {
+      return res.status(200).json({ success: true, data: null, loggedIn: false });
+    }
+
+    // Single-session check
+    if (!user.sessionToken || decodedToken.sessionToken !== user.sessionToken) {
+      return res.status(401).json({
+        success: false,
+        code: "SESSION_SUPERSEDED",
+        msg: "Your account was logged in from another device. Please log in again.",
+      });
+    }
+
+    // Strip internal sensitive fields before returning
+    const safeUser = user.toObject();
+    delete safeUser.password;
+    delete safeUser.sessionToken;
+    delete safeUser.resetOtp;
+    delete safeUser.resetOtpExpiry;
+
+    return res.status(200).json({ success: true, msg: "Profile fetched successfully", data: safeUser, loggedIn: true });
   } catch (error) {
     logger.error("getMyProfile error:", error);
     return res.status(500).json({ success: false, msg: "Internal Server Error" });

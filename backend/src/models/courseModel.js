@@ -15,7 +15,7 @@ const courseSchema = new mongoose.Schema(
     fee:        { type: Number },        // offline fee
     online_fee: { type: Number },
     about:      { type: String, trim: true },
-    trending:   { type: Boolean, default: false },
+    trending:   { type: Boolean, default: false, index: true },
     mode: {
       type: String,
       required: true,
@@ -25,6 +25,7 @@ const courseSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",
       required: true,
+      index: true,
     },
     startDate: { type: Date },
     language:  { type: String, default: "Hinglish (English + Hindi)" },

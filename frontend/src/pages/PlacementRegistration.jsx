@@ -1,4 +1,4 @@
-import PlacedStudent from "../components/PlacedStudentSlider"
+import PlacedStudent from "../components/sliders/PlacedStudentSlider"
 import { useContext, useEffect, useRef, useState } from "react";
 import { DataContext } from "../context/DataContext";
 import placementImg from "../assets/placementImg2.webp"

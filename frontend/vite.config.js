@@ -72,9 +72,7 @@ export default defineConfig(({ mode }) => ({
   ],
   optimizeDeps: {
     // Pre-bundle all react-icons subpackages used in lazy-loaded routes.
-    // Without this, Vite re-optimizes them on first import causing 504 errors.
     include: [
-      'react-[#md]',
       'react-icons/md',
       'react-icons/pi',
       'react-icons/fi',
@@ -115,16 +113,13 @@ export default defineConfig(({ mode }) => ({
     target: 'esnext',
     rollupOptions: {
       output: {
-        // Manual chunk splitting — prevents vendor code duplication across routes
+        // Efficient vendor chunking — allows route-level tree-shaking for icons
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            if (id.includes('react/') || id.includes('react-dom/')) return 'react-core'
-            if (id.includes('react-router') || id.includes('react-router-dom')) return 'router'
-            if (id.includes('lucide-react')) return 'lucide-icons'
-            if (id.includes('react-icons')) return 'react-icons'
-            if (id.includes('three')) return 'three'
-            if (id.includes('@react-oauth')) return 'google-auth'
-            return 'vendor'
+            if (id.includes('react/') || id.includes('react-dom/')) return 'react-core';
+            if (id.includes('react-router') || id.includes('react-router-dom')) return 'router';
+            if (id.includes('@react-oauth')) return 'google-auth';
+            return 'vendor';
           }
         },
       },

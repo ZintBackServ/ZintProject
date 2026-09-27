@@ -2,26 +2,40 @@ import { useCallback, useEffect, useRef, useMemo, useState } from "react";
 import { SessionContext } from "./sessionContext";
 import { apiUrl } from "../utils/api";
 
-async function fetchCurrentUser() {
-  const res = await fetch(apiUrl("/user/me"), { credentials: "include" });
+let currentUserPromise = null;
 
-  // ── Single-session enforcement ─────────────────────────────────────────────
-  if (res.status === 401) {
-    const data = await res.json().catch(() => ({}));
-    if (data?.code === "SESSION_SUPERSEDED") {
-      // Signal to the Login page that we were kicked out
-      sessionStorage.setItem(
-        "auth_notice",
-        "Your account was signed in on another device. You have been logged out."
-      );
-      return "SESSION_SUPERSEDED";  // special sentinel
+async function fetchCurrentUser(signal) {
+  if (currentUserPromise) return currentUserPromise;
+
+  currentUserPromise = (async () => {
+    try {
+      const res = await fetch(apiUrl("/user/me"), { credentials: "include", signal });
+
+      // ── Single-session enforcement ─────────────────────────────────────────────
+      if (res.status === 401) {
+        const data = await res.json().catch(() => ({}));
+        if (data?.code === "SESSION_SUPERSEDED") {
+          // Signal to the Login page that we were kicked out
+          sessionStorage.setItem(
+            "auth_notice",
+            "Your account was signed in on another device. You have been logged out."
+          );
+          return "SESSION_SUPERSEDED";  // special sentinel
+        }
+        return null;
+      }
+
+      if (!res.ok) return null;
+      const data = await res.json().catch(() => null);
+      return data?.success ? data.data : null;
+    } catch {
+      return null;
+    } finally {
+      currentUserPromise = null;
     }
-    return null;
-  }
+  })();
 
-  if (!res.ok) return null;
-  const data = await res.json();
-  return data.success ? data.data : null;
+  return currentUserPromise;
 }
 
 export function AuthProvider({ children }) {

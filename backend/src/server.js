@@ -16,6 +16,7 @@ const errorHandler   = require("./middlewares/errorHandler");
 const csrfProtection = require("./middlewares/csrfProtection");
 const fs             = require("fs");
 const path           = require("path");
+const compression    = require("./middlewares/compressionMiddleware");
 
 // ── Route imports ─────────────────────────────────────────────────────────────
 const userRoutes                    = require("./routes/userRoute");
@@ -42,10 +43,11 @@ const studentDetailRoutes           = require("./routes/studentDetailRoute");
 
 const { initWhatsApp }              = require("./services/whatsappService");
 const { initCronJobs }              = require("./services/cronService");
+const { globalApiLimiter }          = require("./middlewares/rateLimiter");
 
 const cors           = require("cors");
 
-// ── HTTP Security Headers (Helmet) ───────────────────────────────────────────
+// ── HTTP Security Headers (Helmet & HSTS) ────────────────────────────────────
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -57,8 +59,16 @@ app.use(
       },
     },
     crossOriginResourcePolicy: { policy: "cross-origin" },
+    hsts: {
+      maxAge: 31536000, // 1 year
+      includeSubDomains: true,
+      preload: true,
+    },
   })
 );
+
+// ── Global API Rate Limiter ──────────────────────────────────────────────────
+app.use(globalApiLimiter);
 
 // ── Webhook: MUST come before body parsers ────────────────────────────────────
 app.use("/api/payments/webhook", express.raw({ type: "application/json" }));
@@ -72,6 +82,7 @@ const corsOptions = {
   credentials: true,   // required for cookies
 };
 app.use(cors(corsOptions));
+app.use(compression);
 
 // ── Body Parsers ──────────────────────────────────────────────────────────────
 // Limit raised to 50 MB — course/event forms include large text fields (syllabus,

@@ -1,23 +1,23 @@
 import React, { lazy, Suspense } from "react";
 import { Routes, Route, useLocation, Navigate } from "react-router-dom";
-import Navbar from "./components/Navbar";
-import TopInfo from "./pages/TopInfo";
-import Footer from "./pages/Footer";
+import Navbar from "./components/layout/Navbar";
+import TopInfo from "./components/layout/TopInfo";
+import Footer from "./components/layout/Footer";
 import DataProvider from "./context/DataProvider";
-import { AdminRoute, PrivateRoute } from "./components/ProtectedRoute";
-import NotificationPopup from "./components/Notification";
-import ScrollToTop from "./components/ScrollToTop";
-import Loading from "./components/Loading";
+import { AdminRoute, PrivateRoute } from "./components/auth/ProtectedRoute";
+import NotificationPopup from "./components/ui/Notification";
+import ScrollToTop from "./components/layout/ScrollToTop";
+import Loading from "./components/ui/Loading";
 
 // ── Eagerly loaded (Home page main view) ────────────────────────────────────
 import Home from "./pages/Home";
 
 // ── Lazy-loaded routes (split into separate JS chunks) ─────────────────────
-const ContactUS            = lazy(() => import("./components/ContactUS"));
-const MagicBento           = lazy(() => import("./pages/MagicBento"));
+const ContactUS            = lazy(() => import("./pages/ContactUs"));
+const MagicBento           = lazy(() => import("./components/shared/MagicBento"));
 const Antigravity          = lazy(() => import("./pages/Antigravity"));
-const VideoLectures        = lazy(() => import("./components/VideoLectures"));
-const PlacedStudent        = lazy(() => import("./components/PlacedStudentSlider"));
+const VideoLectures        = lazy(() => import("./components/shared/VideoLectures"));
+const PlacedStudent        = lazy(() => import("./components/sliders/PlacedStudentSlider"));
 
 // ── Lazy-loaded routes (split into separate JS chunks) ─────────────────────
 const Courses              = lazy(() => import("./pages/Courses"));
@@ -32,12 +32,12 @@ const PlacementRegistration = lazy(() => import("./pages/PlacementRegistration")
 const LatestJobUpdates     = lazy(() => import("./pages/LatestJobUpdates"));
 const GoogleAuthSuccess    = lazy(() => import("./pages/Googleauthsuccess"));
 
-// ── Components used as routes ──────────────────────────────────────────────
-const Admission         = lazy(() => import("./components/Admission"));
-const PrivacyPolicy     = lazy(() => import("./components/PrivacyPolicy"));
-const RefundPolicy      = lazy(() => import("./components/RefundPolicy"));
-const TermsConditions   = lazy(() => import("./components/TermsConditions"));
-const Careers           = lazy(() => import("./components/Careers"));
+// ── Pages and Legal Routes ──────────────────────────────────────────────────
+const Admission         = lazy(() => import("./pages/Admission"));
+const PrivacyPolicy     = lazy(() => import("./pages/legal/PrivacyPolicy"));
+const RefundPolicy      = lazy(() => import("./pages/legal/RefundPolicy"));
+const TermsConditions   = lazy(() => import("./pages/legal/TermsConditions"));
+const Careers           = lazy(() => import("./pages/Careers"));
 const ApplyCertificate  = lazy(() => import("./pages/ApplyCertificate"));
 const OnlineTest        = lazy(() => import("./pages/OnlineTest"));
 const Services          = lazy(() => import("./pages/Services"));

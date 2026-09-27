@@ -126,7 +126,7 @@ const addPlacedStudent = async (req, res) => {
 
 const getAllPlacedStudent = async (req, res) => {
     try{
-        const placedStudents = await placedStudentModel.find();
+        const placedStudents = await placedStudentModel.find().sort({ createdAt: -1 }).lean();
         return res.status(200).json({
              msg: "Placed Students Fetched Successfully",  
              totalPlacedStudents: placedStudents.length,

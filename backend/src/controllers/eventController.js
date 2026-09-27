@@ -86,7 +86,7 @@ const addEvent = async (req, res) => {
 
 const getAllEvent = async (req, res) => {
     try {
-        const events = await eventModel.find();
+        const events = await eventModel.find().sort({ date: 1 }).lean();
         if (events.length === 0) {
             return res.status(400).json({ msg: "no events found" });
         }

@@ -1,13 +1,13 @@
 import { useEffect, useRef } from "react";
-import PlacedStudent from "../components/PlacedStudentSlider";
-import WhyZint from "../components/WhyZint";
+import PlacedStudent from "../components/sliders/PlacedStudentSlider";
+import WhyZint from "../components/shared/WhyZint";
 import Mentor from "../pages/Mentor";
 import { FaIndustry } from "react-icons/fa";
 import { FaComputer } from "react-icons/fa6";
 import { SiCodementor } from "react-icons/si";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { Eye, Target, ShieldCheck, Star, Lightbulb } from "lucide-react";
-import aboutPoster from "../assets/aboutposter.png";
+import aboutPoster from "../assets/aboutposter.webp";
 
 /* ── CSS keyframes injected once ── */
 const KEYFRAMES = `

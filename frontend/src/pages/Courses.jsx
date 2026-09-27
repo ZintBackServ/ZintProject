@@ -1,7 +1,7 @@
 import { useEffect, useState, useContext } from "react";
 import { useLocation } from "react-router-dom";
-import Card from "../components/Card";
-import Loading from "../components/Loading";
+import Card from "../components/ui/Card";
+import Loading from "../components/ui/Loading";
 import { DataContext } from "../context/DataContext";
 import { usePageMeta } from "../hooks/usePageMeta";
 
@@ -18,29 +18,9 @@ const Courses = () => {
   const [activeCategory, setActiveCategory] = useState(navState?.activeCategory ?? null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const [categories, setCategories] = useState([]);
-  const [categoriesLoading, setCategoriesLoading] = useState(true);
-
-  //Fetch all categories from the API 
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        setCategoriesLoading(true);
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/category/getAllCategories`);
-        const data = await res.json();
-        // Adjust this line if your API wraps the array differently
-        // e.g. data.categories or data.data
-        const list = data?.categories ?? data?.data ?? data ?? [];
-        setCategories(Array.isArray(list) ? list : []);
-      } catch (err) {
-        console.error("Failed to fetch categories:", err);
-        setCategories([]);
-      } finally {
-        setCategoriesLoading(false);
-      }
-    };
-    fetchCategories();
-  }, []);
+  // Consume categories from DataContext — already fetched globally, no extra request
+  const categories = data?.categories || [];
+  const categoriesLoading = loading;
 
   // ── Apply navigation state (e.g. from Footer links) ────────────────
   useEffect(() => {

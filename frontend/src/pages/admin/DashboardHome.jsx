@@ -1,6 +1,5 @@
-import { useContext, useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
-import { DataContext } from "../../context/DataContext";
 import DashboardAnalytics from "../../components/admin/DashboardAnalytics";
 
 const API = import.meta.env.VITE_API_URL;
@@ -78,15 +77,11 @@ function SectionHeader({ title, to, linkLabel }) {
 
 /* ═══════════════════════════════════════════════ MAIN COMPONENT ══ */
 function DashboardHome() {
-  const { data } = useContext(DataContext);
-
   const [greeting, setGreeting]       = useState("Good morning");
   const [currentTime, setCurrentTime] = useState(new Date());
   const [liveData, setLiveData]       = useState({});
   const [loadingLive, setLoadingLive] = useState(true);
-
-  const courses    = data?.courses    || [];
-  const categories = data?.categories || [];
+  const isFetchingRef                 = useRef(false);
 
   useEffect(() => {
     const h = new Date().getHours();
@@ -95,43 +90,67 @@ function DashboardHome() {
     return () => clearInterval(t);
   }, []);
 
-  const fetchLiveData = useCallback(async () => {
+  const fetchLiveData = useCallback(async (signal) => {
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
     setLoadingLive(true);
-    const [
-      mentorsRes, placedRes, usersRes,
-      enrollRes, eventRegRes, ratingsRes,
-      enquiryRes, notifRes, internRes, placementRegRes,
-    ] = await Promise.all([
-      fetchJSON(`${API}/mentor/allMentor`),
-      fetchJSON(`${API}/placedStudent/allPlacedStudent`),
-      fetchJSON(`${API}/user/allUsers`),
-      fetchJSON(`${API}/api/enrollments`),
-      fetchJSON(`${API}/eventRegistration/all`),
-      fetchJSON(`${API}/rating/all`),
-      fetchJSON(`${API}/enquiry/allEnquiries`),
-      fetchJSON(`${API}/notification/all`),
-      fetchJSON(`${API}/internshipRegistration/allInternshipRegistrations`),
-      fetchJSON(`${API}/placementRegistration/allPlacementRegistrations`),
-    ]);
+    const opts = signal ? { signal } : {};
 
-    setLiveData({
-      mentors:        mentorsRes?.mentors       || mentorsRes?.data       || [],
-      placedStudents: placedRes?.placedStudents || placedRes?.data        || [],
-      users:          usersRes?.users           || usersRes?.data         || [],
-      enrollments:    enrollRes?.enrollments    || enrollRes?.data        || [],
-      eventReg:       eventRegRes?.registrations|| eventRegRes?.data      || [],
-      ratings:        ratingsRes?.ratings       || ratingsRes?.data       || [],
-      enquiries:      enquiryRes?.enquiries     || enquiryRes?.data       || [],
-      notifications:  notifRes?.notifications   || notifRes?.data         || [],
-      internshipReg:  internRes?.registrations  || internRes?.data        || [],
-      placementReg:   placementRegRes?.registrations || placementRegRes?.data || [],
-    });
-    setLoadingLive(false);
+    try {
+      const [
+        coursesRes, categoriesRes,
+        mentorsRes, placedRes, usersRes,
+        enrollRes, eventRegRes, ratingsRes,
+        enquiryRes, notifRes, internRes, placementRegRes,
+      ] = await Promise.all([
+        fetchJSON(`${API}/course/getAllCourse`, opts),
+        fetchJSON(`${API}/category/getAllCategories`, opts),
+        fetchJSON(`${API}/mentor/allMentor`, opts),
+        fetchJSON(`${API}/placedStudent/allPlacedStudent`, opts),
+        fetchJSON(`${API}/user/allUsers`, opts),
+        fetchJSON(`${API}/api/enrollments`, opts),
+        fetchJSON(`${API}/eventRegistration/all`, opts),
+        fetchJSON(`${API}/rating/all`, opts),
+        fetchJSON(`${API}/enquiry/allEnquiries`, opts),
+        fetchJSON(`${API}/notification/all`, opts),
+        fetchJSON(`${API}/internshipRegistration/allInternshipRegistrations`, opts),
+        fetchJSON(`${API}/placementRegistration/allPlacementRegistrations`, opts),
+      ]);
+
+      setLiveData({
+        courses:        coursesRes?.courses       || coursesRes?.data       || (Array.isArray(coursesRes) ? coursesRes : []),
+        categories:     categoriesRes?.categories || categoriesRes?.data    || (Array.isArray(categoriesRes) ? categoriesRes : []),
+        mentors:        mentorsRes?.mentors       || mentorsRes?.data       || [],
+        placedStudents: placedRes?.placedStudents || placedRes?.data        || [],
+        users:          usersRes?.users           || usersRes?.data         || [],
+        enrollments:    enrollRes?.enrollments    || enrollRes?.data        || [],
+        eventReg:       eventRegRes?.registrations|| eventRegRes?.data      || [],
+        ratings:        ratingsRes?.ratings       || ratingsRes?.data       || [],
+        enquiries:      enquiryRes?.enquiries     || enquiryRes?.data       || [],
+        notifications:  notifRes?.notifications   || notifRes?.data         || [],
+        internshipReg:  internRes?.registrations  || internRes?.data        || [],
+        placementReg:   placementRegRes?.registrations || placementRegRes?.data || [],
+      });
+    } catch (err) {
+      if (err?.name !== "AbortError") {
+        console.error("fetchLiveData error:", err);
+      }
+    } finally {
+      isFetchingRef.current = false;
+      setLoadingLive(false);
+    }
   }, []);
 
-  useEffect(() => { fetchLiveData(); }, [fetchLiveData]);
+  useEffect(() => {
+    const controller = new AbortController();
+    fetchLiveData(controller.signal);
+    return () => {
+      controller.abort();
+    };
+  }, [fetchLiveData]);
 
   const {
+    courses = [], categories = [],
     mentors = [], placedStudents = [], users = [],
     enrollments = [], eventReg = [], ratings = [],
     enquiries = [], internshipReg = [], placementReg = [],

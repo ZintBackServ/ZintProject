@@ -55,7 +55,7 @@ const addMentor = async (req, res) =>{
 
 const getAllMentor = async (req, res) => {
     try{
-        const mentors = await mentorModel.find();
+        const mentors = await mentorModel.find().lean();
         return res.status(200).json({
              msg: "Mentors Fetched Successfully",  
              totalMentor: mentors.length,

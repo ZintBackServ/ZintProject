@@ -1,7 +1,7 @@
 import { useContext, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { DataContext } from "../context/DataContext";
-import SpecularButton from "../components/SpecularButton";
+import SpecularButton from "../components/ui/SpecularButton";
 import { toCloudinaryThumbnail } from "../utils/imgUrl";
 
 

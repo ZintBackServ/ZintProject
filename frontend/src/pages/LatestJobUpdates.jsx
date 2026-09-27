@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { BriefcaseBusiness, CalendarDays, MapPin, Phone, Search, X } from "lucide-react";
 import { apiUrl, toHttps } from "../utils/api";
-import latestJobImg from "../assets/latestJob.jpeg";
+import latestJobImg from "../assets/latestJob.webp";
 
 const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 

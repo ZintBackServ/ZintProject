@@ -1,30 +1,13 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useContext } from "react";
+import { DataContext } from "../context/DataContext";
 import { toCloudinaryThumbnail } from "../utils/imgUrl";
 import { Award, Briefcase, GraduationCap, Sparkles } from "lucide-react";
 
 const Mentor = () => {
-  const [mentors, setMentors] = useState([]);
+  const { data } = useContext(DataContext);
+  const mentors = data?.mentors || [];
   const scrollRef = useRef();
   const intervalRef = useRef();
-
-  useEffect(() => {
-    const fetchMentors = async () => {
-      try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/mentor/allMentor`);
-        if (!res.ok) {
-          setMentors([]);
-          return;
-        }
-        const data = await res.json();
-        setMentors(Array.isArray(data?.mentors) ? data.mentors : []);
-      } catch (err) {
-        console.error("Error fetching mentors:", err);
-        setMentors([]);
-      }
-    };
-
-    fetchMentors();
-  }, []);
 
   // Auto scroll
   useEffect(() => {

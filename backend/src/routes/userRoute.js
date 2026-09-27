@@ -78,7 +78,7 @@ router.get(
 );
 
 // ── Protected Routes ──────────────────────────────────────────────────────────
-router.get("/me",                authentication, getMyProfile);
+router.get("/me",                getMyProfile);
 router.put("/UpdateUser/:id",    authentication, UpdateUser);
 
 // Admin only

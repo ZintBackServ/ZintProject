@@ -6,6 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#7c3aed" />
 
+    <!-- LCP Hero Image Preload (Zero Resource Load Delay) -->
+    <link
+      rel="preload"
+      as="image"
+      imagesrcset="/homeposters/HomePoster1-sm.webp 720w, /homeposters/HomePoster1-md.webp 1200w, /homeposters/HomePoster1.webp 1920w"
+      imagesizes="100vw"
+      fetchpriority="high"
+      type="image/webp"
+    />
+
     <!-- Google Search Console Verification -->
     <meta name="google-site-verification" content="Ix8XGaRYhRno9lcnOcUng9PoMVLE5Zk5l14Fo4CzmKY" />
 
@@ -40,7 +50,7 @@
     <meta name="apple-mobile-web-app-title" content="Zint Institute" />
     <link rel="apple-touch-icon" href="/favicon.png" />
     <link rel="manifest" href="/manifest.json" />
-    <link rel="preload" as="image" href="/home-hero.webp" fetchpriority="high" type="image/webp" />
+
 
     <!-- Google Structured Data (JSON-LD) for Rich Snippets & Search Knowledge Graph -->
     <script type="application/ld+json">

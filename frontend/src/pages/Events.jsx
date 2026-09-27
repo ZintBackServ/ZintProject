@@ -2,13 +2,13 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaSearch } from "react-icons/fa";
 import { useAuth as useAuthContext } from "../hooks/useAuth";
-import EventImgSlider from "../components/EventImgSlider";
-import eventImg1 from "../assets/zintRojgarImg3.webp";
-import eventImg2 from "../assets/zintRojgarImg2.webp";
-import eventImg3 from "../assets/zintRojgarMission2026.webp";
+import EventImgSlider from "../components/sliders/EventImgSlider";
+import eventImg1 from "../assets/events/zintRojgarImg3.webp";
+import eventImg2 from "../assets/events/zintRojgarImg2.webp";
+import eventImg3 from "../assets/events/zintRojgarMission2026.webp";
 import { usePageMeta } from "../hooks/usePageMeta";
 import { toHttps } from "../utils/imgUrl";
-import StaggeredText from "../components/StaggeredText";
+import StaggeredText from "../components/ui/StaggeredText";
 
 const API_URL      = `${import.meta.env.VITE_API_URL}/event/allEvent`;
 const REGISTER_URL = `${import.meta.env.VITE_API_URL}/eventRegistration/add`;

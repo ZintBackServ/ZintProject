@@ -11,7 +11,7 @@ import {
 } from "react-icons/fi";
 import { HiOutlineAcademicCap } from "react-icons/hi";
 import { MdOutlineVerified } from "react-icons/md";
-import Loading from "../components/Loading";
+import Loading from "../components/ui/Loading";
 import { toHttps } from "../utils/imgUrl";
 
 /* ═══════════════════════════════════════════════════════
@@ -658,7 +658,7 @@ function formatAboutText(aboutText) {
 export default function CourseDetail() {
   const { id }   = useParams();
   const navigate = useNavigate();
-  const { data } = useContext(DataContext);
+  const { data, loading: contextLoading } = useContext(DataContext);
   const { user } = useAuth();
   const isLoggedIn = !!user;
 
@@ -683,8 +683,25 @@ export default function CourseDetail() {
   const [curriculumError, setCurriculumError]         = useState("");
   const [curriculumSuccess, setCurriculumSuccess]     = useState("");
 
-  // Resolve course before any effects that depend on it.
-  const course = data?.courses?.find(c => String(c._id) === String(id));
+  const [fetchedCourse, setFetchedCourse] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(true);
+  const contextCourse = data?.courses?.find(c => String(c._id) === String(id));
+  const course = fetchedCourse || contextCourse;
+
+  useEffect(() => {
+    let active = true;
+    if (id) {
+      fetch(`${import.meta.env.VITE_API_URL}/course/getCourseById/${id}`)
+        .then(r => (r.ok ? r.json() : null))
+        .then(res => {
+          if (active && res?.course) {
+            setFetchedCourse(res.course);
+          }
+        })
+        .catch(() => {});
+    }
+    return () => { active = false; };
+  }, [id]);
 
   // Populate user data into rating & curriculum form when logged in
   useEffect(() => {
@@ -877,7 +894,7 @@ export default function CourseDetail() {
   };
 
   // ── Loading / not-found guards (kept AFTER all hooks so hook order stays stable) ──
-  if (!data?.courses) {
+  if (!course && (contextLoading || detailLoading)) {
     return <Loading />;
   }
 

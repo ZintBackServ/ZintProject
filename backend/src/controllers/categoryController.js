@@ -38,7 +38,8 @@ const getAllCategories = async (req, res) => {
     const categories = await categoryModel
       .find({ isActive: { $ne: false } })
       .sort({ displayOrder: 1, createdAt: 1 })
-      .populate("courses", "courseName fee mode trending courseImage");
+      .populate("courses", "courseName fee mode trending courseImage")
+      .lean();
     return res.status(200).json({ msg: "Categories fetched successfully", categories });
   } catch (error) {
     console.log(error);

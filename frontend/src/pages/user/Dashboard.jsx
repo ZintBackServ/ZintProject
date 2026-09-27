@@ -4,8 +4,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
-import OnlineTrainingSection from "../../components/OnlineTrainingSection";
-import MyDetailsView from "../../components/MyDetailsView";
+import OnlineTrainingSection from "../../components/shared/OnlineTrainingSection";
+import MyDetailsView from "../../components/shared/MyDetailsView";
 import { loadRazorpay } from "../../utils/loadRazorpay";
 
 const API = import.meta.env.VITE_API_URL;

@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import OnlineTrainingSection from "../components/OnlineTrainingSection";
+import OnlineTrainingSection from "../components/shared/OnlineTrainingSection";
 
 export default function OnlineClassesTimetable() {
   const [toast, setToast] = useState(null);
