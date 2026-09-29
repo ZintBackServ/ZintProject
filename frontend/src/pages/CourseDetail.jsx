@@ -1,4 +1,4 @@
-import { useContext, useState, useEffect } from "react";
+import { useContext, useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { DataContext } from "../context/DataContext";
 import { useAuth } from "../hooks/useAuth";
@@ -627,26 +627,42 @@ export default function CourseDetail() {
 
   const [fetchedCourse, setFetchedCourse] = useState(null);
   const [detailLoading, setDetailLoading] = useState(true);
+  const isFetchingCourseRef = useRef(false);
+  const lastFetchedIdRef = useRef(null);
+
   const contextCourse = data?.courses?.find(c => String(c._id) === String(id) || String(c.slug) === String(id));
   const course = fetchedCourse || contextCourse;
 
   useEffect(() => {
-    let active = true;
-    if (id) {
-      setDetailLoading(true);
-      fetch(`${import.meta.env.VITE_API_URL}/course/getCourseById/${id}`)
-        .then(r => (r.ok ? r.json() : null))
-        .then(res => {
-          if (active) {
-            if (res?.course) setFetchedCourse(res.course);
-            setDetailLoading(false);
-          }
-        })
-        .catch(() => {
-          if (active) setDetailLoading(false);
-        });
-    }
-    return () => { active = false; };
+    if (!id) return;
+    if (lastFetchedIdRef.current === id && isFetchingCourseRef.current) return;
+
+    isFetchingCourseRef.current = true;
+    lastFetchedIdRef.current = id;
+    setDetailLoading(true);
+
+    const controller = new AbortController();
+
+    fetch(`${import.meta.env.VITE_API_URL}/course/getCourseById/${id}`, {
+      signal: controller.signal,
+    })
+      .then(r => (r.ok ? r.json() : null))
+      .then(res => {
+        if (res?.course) setFetchedCourse(res.course);
+        setDetailLoading(false);
+      })
+      .catch(err => {
+        if (err.name !== "AbortError") {
+          setDetailLoading(false);
+        }
+      })
+      .finally(() => {
+        isFetchingCourseRef.current = false;
+      });
+
+    return () => {
+      controller.abort();
+    };
   }, [id]);
 
   // Canonical Slug Redirect (If accessed via MongoDB ObjectId and slug exists, replace URL to SEO slug)
@@ -712,11 +728,18 @@ export default function CourseDetail() {
   }, [user]);
 
   // Fetch real reviews & stats for this course
-  const fetchReviews = async () => {
-    if (!course?.courseName) return;
+  const isFetchingReviewsRef = useRef(false);
+  const lastFetchedCourseNameRef = useRef(null);
+
+  const fetchReviews = async (signal) => {
+    const courseName = course?.courseName;
+    if (!courseName) return;
     setReviewsLoading(true);
     try {
-      const res = await safeFetch(`${RATING_URL}/target/${encodeURIComponent(course.courseName)}?targetType=course`);
+      const res = await safeFetch(
+        `${RATING_URL}/target/${encodeURIComponent(courseName)}?targetType=course`,
+        { signal }
+      );
       const list = res?.ratings || res?.data || [];
       const visibleList = list.filter(r => r.isVisible !== false);
       setReviews(visibleList);
@@ -737,16 +760,31 @@ export default function CourseDetail() {
         distribution: res?.distribution || dist,
       });
     } catch (err) {
-      console.log("Error fetching ratings:", err);
-      setReviews([]);
-      setRatingStats({ avgRating: 0, totalRatings: 0, distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } });
+      if (err.name !== "AbortError") {
+        console.log("Error fetching ratings:", err);
+        setReviews([]);
+        setRatingStats({ avgRating: 0, totalRatings: 0, distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } });
+      }
     } finally {
       setReviewsLoading(false);
+      isFetchingReviewsRef.current = false;
     }
   };
 
   useEffect(() => {
-    fetchReviews();
+    const courseName = course?.courseName;
+    if (!courseName) return;
+    if (lastFetchedCourseNameRef.current === courseName && isFetchingReviewsRef.current) return;
+
+    isFetchingReviewsRef.current = true;
+    lastFetchedCourseNameRef.current = courseName;
+
+    const controller = new AbortController();
+    fetchReviews(controller.signal);
+
+    return () => {
+      controller.abort();
+    };
   }, [course?.courseName]);
 
   const handleOpenReviewModal = () => {
