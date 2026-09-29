@@ -592,7 +592,7 @@ function EventReviewsSection({ eventsList, isLoggedIn, authLoading, user, onRequ
 // ── Main ──────────────────────────────────────────────────────────────────────
 export default function EventPage() {
   usePageMeta(
-    "Events",
+    "Tech Workshops, Seminars & Events in Gwalior | Zint Institute",
     "Upcoming and past events at Zint Computer Education Institute, Gwalior — workshops, seminars, scholarship programs and more."
   );
   const { isLoggedIn, authLoading, user } = useAuth();

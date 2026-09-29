@@ -193,7 +193,7 @@ function CoursesDropdown() {
                       {filteredCourses.map((course) => (
                         <div
                           key={course._id}
-                          onClick={() => { navigate(`/courses/${course._id}`); setOpen(false); }}
+                          onClick={() => { navigate(`/courses/${course.slug || course._id}`); setOpen(false); }}
                           className="group flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer hover:bg-purple-50 transition-colors"
                         >
                           <div className="w-7 h-7 rounded-md bg-purple-100 flex items-center justify-center shrink-0 group-hover:bg-purple-200 transition-colors">
@@ -323,7 +323,7 @@ function MobileCoursesAccordion({ onNavigate }) {
                   filteredCourses.map((course) => (
                     <button
                       key={course._id}
-                      onClick={() => { navigate(`/courses/${course._id}`); onNavigate(); }}
+                      onClick={() => { navigate(`/courses/${course.slug || course._id}`); onNavigate(); }}
                       className="w-full text-left flex items-start gap-2 px-3 py-2.5 rounded-lg text-sm text-gray-700 hover:text-purple-700 hover:bg-white transition-colors border-b border-gray-100 last:border-0"
                     >
                       <div className="w-5 h-5 rounded bg-purple-100 flex items-center justify-center shrink-0 mt-0.5">
@@ -384,7 +384,7 @@ function CourseSearch({ onNavigate }) {
   const hiddenCount = results.length - INITIAL_LIMIT;
 
   const handleSelect = (course) => {
-    navigate(`/courses/${course._id}`);
+    navigate(`/courses/${course.slug || course._id}`);
     setQuery("");
     setOpen(false);
     onNavigate?.();

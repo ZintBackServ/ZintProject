@@ -11,6 +11,7 @@ const courseSchema = new mongoose.Schema(
     courseCurriculum:  { type: String, trim: true },
     courseCertificate: { type: String, trim: true },
     courseName: { type: String, required: true, trim: true, index: true },
+    slug:       { type: String, trim: true, lowercase: true, index: true, sparse: true },
     duration:   { type: String, trim: true },
     fee:        { type: Number },        // offline fee
     online_fee: { type: Number },

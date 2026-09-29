@@ -109,10 +109,14 @@ function FeatureCard({ icon: Icon, iconBg, title, body, delay = 0, className = "
 
 /* ── Main About component ── */
 function About() {
-  usePageMeta(
-    "About Us",
-    "Learn about Zint Computer Education Institute — ISO 9001:2015 Certified institute in Gwalior. Our vision, mission, expert mentors and placement success story."
-  );
+  usePageMeta({
+    title: "About Zint Computer Education Institute Gwalior | ISO 9001:2015 Certified",
+    description:
+      "Zint Computer Education Institute is Gwalior's leading ISO 9001:2015 certified IT training center. Over 10,000 students trained, 95%+ placement rate, 50+ certified programs, expert mentors & industry partnerships. Your tech career starts here.",
+    keywords:
+      "Zint Institute about, Zint Computer Education Institute Gwalior, ISO 9001 certified institute Gwalior, best computer institute Gwalior, IT training center Gwalior, placement record Gwalior, top coaching center Gwalior, computer education Madhya Pradesh, tech institute Gwalior, IT coaching Gwalior, computer training Gwalior MP",
+    canonicalPath: "/about",
+  });
 
   const visRef = useReveal();
   const missRef = useReveal();

@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useContext } from "react";
 import { DataContext } from "../context/DataContext";
+import { usePageMeta } from "../hooks/usePageMeta";
+import { buildBreadcrumbSchema, setStructuredData, removeStructuredData } from "../utils/schemaGenerator";
 import {
   User, Mail, Phone, BookOpen,
   Monitor, MessageSquare, Send, CheckCircle2,
@@ -55,6 +57,24 @@ function CopyButton({ text }) {
 }
 
 export default function ContactPage() {
+  usePageMeta({
+    title: "Contact Zint Institute Gwalior | Free Counselling & Admission Enquiry",
+    description:
+      "Contact Zint Computer Education Institute in Gwalior for free career counselling, admission enquiry, course details & fee structure. Call: +91 8965975222. Campus: Gwalior, Madhya Pradesh.",
+    keywords:
+      "contact Zint Institute, Zint Institute Gwalior address, admission enquiry Gwalior, free counselling IT course Gwalior, computer institute contact Gwalior, Zint phone number, Zint Institute location, IT training near me Gwalior, computer coaching contact Gwalior, Zint helpline",
+    canonicalPath: "/contact",
+  });
+
+  useEffect(() => {
+    const breadcrumbs = buildBreadcrumbSchema([
+      { name: "Home", url: "/" },
+      { name: "Contact Us", url: "/contact" },
+    ]);
+    if (breadcrumbs) setStructuredData("contact-breadcrumb", breadcrumbs);
+    return () => removeStructuredData("contact-breadcrumb");
+  }, []);
+
   const [activeTab, setActiveTab] = useState("enquiry");
 
   const { data: contextData, loading: contextLoading } = useContext(DataContext);

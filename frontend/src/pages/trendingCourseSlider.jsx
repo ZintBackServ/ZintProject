@@ -80,7 +80,7 @@ export default function CourseSlider() {
           <CourseCard
             key={course._id}
             course={course}
-            onKnowMore={() => navigate(`/courses/${course._id}`)}
+            onKnowMore={() => navigate(`/courses/${course.slug || course._id}`)}
           />
         ))}
       </div>

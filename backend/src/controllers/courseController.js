@@ -12,6 +12,24 @@ async function validation(key, value, reply) {
   }
 }
 
+const generateSlug = async (courseName, currentCourseId = null) => {
+  const baseSlug = courseName
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/[\s_-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  let uniqueSlug = baseSlug || "course";
+  let counter = 1;
+
+  while (await courseModel.findOne({ slug: uniqueSlug, ...(currentCourseId ? { _id: { $ne: currentCourseId } } : {}) })) {
+    uniqueSlug = `${baseSlug}-${counter++}`;
+  }
+  return uniqueSlug;
+};
+
 // ── POST /addCourse ──────────────────────────────────────────────────────────
 const addCourse = async (req, res) => {
   try {
@@ -63,9 +81,13 @@ const addCourse = async (req, res) => {
       courseCurriculumUrl = pdf.url;
     }
 
-    // 6. Build and save course
+    // 6. Generate unique slug
+    const slug = await generateSlug(req.body.courseName);
+
+    // 7. Build and save course
     const courseData = {
       ...req.body,
+      slug,
       courseImage: courseImage.url,
       trending: req.body.trending === "true",
       ...(req.body.fee        !== undefined && { fee: Number(req.body.fee) }),
@@ -76,7 +98,7 @@ const addCourse = async (req, res) => {
 
     const course = await courseModel.create(courseData);
 
-    // 7. Push course _id into category.courses[]
+    // 8. Push course _id into category.courses[]
     await categoryModel.findByIdAndUpdate(
       categoryId,
       { $push: { courses: course._id } }
@@ -99,7 +121,7 @@ const getAllCourse = async (req, res) => {
   try {
     const courses = await courseModel
       .find()
-      .select("courseName courseImage fee online_fee duration mode trending category rating language startDate about")
+      .select("courseName slug courseImage fee online_fee duration mode trending category rating language startDate about")
       .populate("category", "categoryName")
       .lean();
     return res.status(200).json({ msg: "Courses fetched successfully", courses });
@@ -109,17 +131,24 @@ const getAllCourse = async (req, res) => {
   }
 };
 
-// ── GET /getCourseById/:id ────────────────────────────────────────────────────
+// ── GET /getCourseById/:id (Supports both Mongo ObjectId and SEO slug) ───────────
 const getCourseById = async (req, res) => {
   try {
     const { id } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(id))
-      return res.status(400).json({ msg: "Invalid Id" });
+    if (!id || typeof id !== "string")
+      return res.status(400).json({ msg: "Course identifier is required" });
+
+    const isObjectId = mongoose.Types.ObjectId.isValid(id);
+    const query = isObjectId
+      ? { $or: [{ _id: id }, { slug: id }] }
+      : { slug: id.toLowerCase().trim() };
 
     const course = await courseModel
-      .findById(id)
+      .findOne(query)
       .populate("category", "categoryName")
+      .populate("mentors")
       .lean();
+
     if (!course)
       return res.status(404).json({ msg: "Course not found" });
 
@@ -179,6 +208,10 @@ const updateCourse = async (req, res) => {
       ...(req.body.fee         !== undefined && { fee: Number(req.body.fee) }),
       ...(req.body.online_fee  !== undefined && { online_fee: Number(req.body.online_fee) }),
     };
+
+    if (req.body.courseName) {
+      courseData.slug = await generateSlug(req.body.courseName, id);
+    }
 
     if (req.files?.courseImage) {
       const img = await uploadOnCloudinary(req.files.courseImage[0].path);

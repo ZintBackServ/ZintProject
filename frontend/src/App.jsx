@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from "react";
+import React, { lazy, Suspense, useEffect } from "react";
 import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import Navbar from "./components/layout/Navbar";
 import TopInfo from "./components/layout/TopInfo";
@@ -52,7 +52,32 @@ const AdminRatingDashboard = lazy(() => import("./pages/admin/Rating").then(m =>
 
 function App() {
   const { pathname } = useLocation();
-  const isPortal = pathname.startsWith("/user/") || pathname.startsWith("/admin/");
+  const isPortal = pathname.startsWith("/user/") || pathname.startsWith("/admin/") || pathname.startsWith("/auth/") || pathname.includes("/fee");
+
+  // Enforce noindex and clean private title for non-public routes
+  useEffect(() => {
+    if (
+      pathname.startsWith("/admin") ||
+      pathname.startsWith("/user") ||
+      pathname.startsWith("/auth") ||
+      pathname.includes("/fee")
+    ) {
+      let pageTitle = "Portal | Zint Institute";
+      if (pathname.startsWith("/admin")) pageTitle = "Admin Dashboard | Zint Institute";
+      else if (pathname.startsWith("/user")) pageTitle = "Student Portal | Zint Institute";
+      else if (pathname.includes("/fee")) pageTitle = "Fee Checkout | Zint Institute";
+
+      document.title = pageTitle;
+
+      let robotsMeta = document.querySelector('meta[name="robots"]');
+      if (!robotsMeta) {
+        robotsMeta = document.createElement("meta");
+        robotsMeta.setAttribute("name", "robots");
+        document.head.appendChild(robotsMeta);
+      }
+      robotsMeta.setAttribute("content", "noindex, nofollow");
+    }
+  }, [pathname]);
 
   return (
     <DataProvider>

@@ -23,8 +23,7 @@ import CourseSlider from "./trendingCourseSlider";
 import { usePageMeta } from "../hooks/usePageMeta";
 import CardSpread from "../components/ui/CardSpread";
 import { DataContext } from "../context/DataContext";
-
-const Antigravity = lazy(() => import("./Antigravity"));
+import { buildFaqSchema, setStructuredData, removeStructuredData } from "../utils/schemaGenerator";
 
 // Lazy-loaded below-the-fold components (code split to improve FCP/LCP)
 const CompanyLogo           = lazy(() => import("../components/sliders/CompanyLogoSlider"));
@@ -36,6 +35,7 @@ const ContactUS             = lazy(() => import("./ContactUs"));
 const FAQ                   = lazy(() => import("../components/shared/FAQ"));
 const Mentor                = lazy(() => import("./Mentor"));
 const OurValues             = lazy(() => import("../components/shared/OurValues"));
+const Antigravity           = lazy(() => import("./Antigravity"));
 
 // Brand Identity Palette
 const BRAND = {
@@ -135,10 +135,49 @@ const quickStats = [
 ];
 
 function Home() {
-  usePageMeta(
-    "Home",
-    "Zint Computer Education Institute, Gwalior — ISO 9001:2015 Certified. Courses in Software, Hardware, Networking, AI, Tally & more. 100% Placement Support."
-  );
+  usePageMeta({
+    title: "Best IT Training Institute in Gwalior | MERN, Python, Java Courses | Zint Institute",
+    description:
+      "Zint Computer Education Institute — #1 ISO 9001:2015 certified IT institute in Gwalior. Expert-led courses in MERN Full Stack, Python, Java, Data Science, AI/ML, Digital Marketing, DCA & PGDCA. 100% placement support. Enroll Now!",
+    keywords:
+      "best IT institute Gwalior, computer coaching Gwalior, MERN course Gwalior, Python training Gwalior, Java course Gwalior, Full Stack development Gwalior, data science course Gwalior, AI ML course Gwalior, DCA Gwalior, PGDCA Gwalior, CPCT coaching Gwalior, web development course Gwalior, digital marketing institute Gwalior, graphic design course Gwalior, computer institute near me Gwalior, IT training center Gwalior, best computer institute Madhya Pradesh, Zint Institute, Zint Computer Education Institute, placement guarantee Gwalior, internship program Gwalior",
+    canonicalPath: "/",
+  });
+
+  useEffect(() => {
+    const faqSchema = buildFaqSchema([
+      {
+        q: "What courses does Zint Institute offer in Gwalior?",
+        a: "Zint Institute offers 50+ job-ready certification courses including MERN Full Stack Web Development, Python, Java, Data Science, AI/ML, Digital Marketing, Graphic Design, Web Design, Hardware & Networking, Tally, PGDCA, DCA, CPCT and other IT training programs in Gwalior."
+      },
+      {
+        q: "Is Zint Institute the best IT training institute in Gwalior?",
+        a: "Zint Computer Education Institute is ISO 9001:2015 certified, has trained 10,000+ students, maintains a 95%+ placement record, and holds a 4.9/5 Google rating — making it one of the top-rated computer institutes in Gwalior, Madhya Pradesh."
+      },
+      {
+        q: "Does Zint Institute provide placement assistance?",
+        a: "Yes. Zint Institute provides 100% placement assistance to eligible students through job drives, interview preparation, resume building, and partnerships with leading tech companies across India."
+      },
+      {
+        q: "What is the fee for MERN Full Stack course in Gwalior at Zint?",
+        a: "Course fees at Zint Institute vary by program. Contact us at +91 8965975222 or visit our campus in Gwalior for the latest fee structure, scholarships, and EMI options."
+      },
+      {
+        q: "Does Zint Institute offer internship programs in Gwalior?",
+        a: "Yes. Zint Institute offers paid and certified internship programs in MERN Stack, Python, AI/ML, Data Science, Java, and Digital Marketing with real-world projects and placement support."
+      },
+      {
+        q: "Are Zint Institute courses suitable for beginners?",
+        a: "Yes. All courses at Zint Institute are designed for both beginners and learners with prior knowledge. Training is practical, project-based, and delivered in Hinglish (Hindi + English) for easy understanding."
+      },
+      {
+        q: "Where is Zint Computer Education Institute located in Gwalior?",
+        a: "Zint Computer Education Institute is located in Gwalior, Madhya Pradesh, India. Contact: +91 8965975222 | Email: info@zinstitute.in."
+      }
+    ]);
+    if (faqSchema) setStructuredData("home-faq-schema", faqSchema);
+    return () => removeStructuredData("home-faq-schema");
+  }, []);
   
   const [heroIndex, setHeroIndex] = useState(0);
   const navigate = useNavigate();

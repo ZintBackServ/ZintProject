@@ -36,7 +36,9 @@ export default defineConfig(({ mode }) => ({
         globPatterns: ['**/*.{css,html,ico,woff,woff2}'],
         navigateFallbackDenylist: [
           /^\/user\/auth\/google/,
-          /^\/(user|course|mentor|placedStudent|event|eventRegistration|api|rating|notification|category|updates|enquiry|timeTable|internshipRegistration|placementRegistration|admission)/,
+          /^\/sitemap\.xml/,
+          /^\/robots\.txt/,
+          /^\/(user|course|mentor|placedStudent|event|eventRegistration|api|rating|notification|category|updates|enquiry|timeTable|internshipRegistration|placementRegistration|admission|trainingRegistration|job-updates|student-detail)/,
         ],
         runtimeCaching: [
           {
@@ -93,11 +95,11 @@ export default defineConfig(({ mode }) => ({
 
       // All other backend API paths — serve index.html for browser navigations (SPA),
       // proxy to Express for fetch/XHR requests
-      '^/(api|user|course|mentor|placedStudent|event|eventRegistration|rating|notification|category|updates|enquiry|timeTable|internshipRegistration|placementRegistration|admission|trainingRegistration)': {
+      '^/(api|user|course|mentor|placedStudent|event|eventRegistration|rating|notification|category|updates|enquiry|timeTable|internshipRegistration|placementRegistration|admission|trainingRegistration|job-updates|student-detail|sitemap\\.xml)': {
         target: 'http://localhost:2000',
         changeOrigin: true,
         bypass(req) {
-          if (req.headers.accept?.includes('text/html')) {
+          if (req.headers.accept?.includes('text/html') && !req.url.includes('sitemap.xml')) {
             return '/index.html'; // React SPA handles all HTML navigations
           }
         },
@@ -113,12 +115,12 @@ export default defineConfig(({ mode }) => ({
     target: 'esnext',
     rollupOptions: {
       output: {
-        // Efficient vendor chunking — allows route-level tree-shaking for icons
         manualChunks(id) {
           if (id.includes('node_modules')) {
             if (id.includes('react/') || id.includes('react-dom/')) return 'react-core';
             if (id.includes('react-router') || id.includes('react-router-dom')) return 'router';
             if (id.includes('@react-oauth')) return 'google-auth';
+            if (id.includes('lucide-react')) return 'lucide-icons';
             return 'vendor';
           }
         },

@@ -141,10 +141,14 @@ const arrow = {
 
 // ── Main component ────────────────────────────────
 export default function ZInstituteInternship() {
-  usePageMeta(
-    "Internship",
-    "Apply for internships at Zint Computer Education Institute, Gwalior. AI, ML, MERN Stack, Data Analytics, Java & Python internship programs with certificate."
-  );
+  usePageMeta({
+    title: "IT Internship Program in Gwalior | MERN, Python, AI/ML, Java | Zint Institute",
+    description:
+      "Apply for paid & certified IT internship programs at Zint Computer Education Institute, Gwalior. Hands-on real projects in MERN Stack, Python, AI/ML, Data Science, Java & Digital Marketing. Get industry experience & placement support.",
+    keywords:
+      "internship Gwalior, IT internship Gwalior, MERN stack internship, Python internship Gwalior, AI ML internship Gwalior, data science internship, Java internship Gwalior, software development internship Gwalior, computer science internship, tech internship Madhya Pradesh, internship with certificate Gwalior, free internship Gwalior, paid internship Gwalior, Zint internship, internship program 2025",
+    canonicalPath: "/internship",
+  });
   const [form, setForm]         = useState({ name:"", email:"", phone:"", degree:"", courseCategory:"", course:"", duration:"" });
   const [submitted, setSubmitted]   = useState(false);
   const [categories, setCategories] = useState([]);

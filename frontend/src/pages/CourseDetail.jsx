@@ -2,6 +2,8 @@ import { useContext, useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { DataContext } from "../context/DataContext";
 import { useAuth } from "../hooks/useAuth";
+import { usePageMeta } from "../hooks/usePageMeta";
+import { buildCourseSchema, buildBreadcrumbSchema, setStructuredData, removeStructuredData } from "../utils/schemaGenerator";
 import { PiCertificate } from "react-icons/pi";
 import {
   FiShare2, FiDownload, FiCheck, FiStar,
@@ -399,258 +401,198 @@ function CurriculumDownloadModal({
 }
 
 
-/* ── Format Course About / Overview text with Rich Visual Formatting ── */
+/* ── Format Course About / Overview text — preserves original formatting ── */
 function formatAboutText(aboutText) {
   if (!aboutText) return null;
 
-  // 1. Intelligent Pre-processing: insert section breaks if sections are stuck together inline
-  let processed = aboutText;
+  /* ── Normalize line endings ── */
+  const raw = aboutText.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
 
-  // Add double line breaks before known major headings if missing
-  processed = processed.replace(
-    /(?<!^|\n\n)(?=(?:What is [^\n:-]+(?:Course)?\s*:-|Digital Marketing Course Description|Course Description|Demand for|Job Opportunities|Best Suited For|Who Should Take|Who Should Join|Career Scope|Career Roles|Potential Roles)(?:\s*[:-–]|\b))/gi,
-    "\n\n"
-  );
+  /* ── Inline markdown renderer: **bold** ── */
+  function renderInline(text) {
+    const parts = text.split(/(\*\*[^*]+\*\*|__[^_]+__)/g);
+    return parts.map((p, i) => {
+      if (/^\*\*|^__/.test(p)) {
+        const inner = p.replace(/^\*\*|^__|(\*\*$)|(__$)/g, "");
+        return <strong key={i} className="font-semibold text-slate-900">{inner}</strong>;
+      }
+      return p;
+    });
+  }
 
-  // Split text into distinct blocks
-  const blocks = processed.split("\n\n").map((b) => b.trim()).filter(Boolean);
+  /* ── Split into lines, detect special blocks (lists, headings, skill paths)
+     and fall back to preserving whitespace for plain prose ── */
+  const lines = raw.split("\n");
+
+  // Group consecutive lines into blocks separated by blank lines
+  const blocks = [];
+  let block = [];
+  for (const line of lines) {
+    if (line.trim() === "") {
+      if (block.length > 0) { blocks.push(block); block = []; }
+    } else {
+      block.push(line);
+    }
+  }
+  if (block.length > 0) blocks.push(block);
 
   return (
-    <div className="space-y-8">
-      {blocks.map((block, idx) => {
-        // --- 1. TARGET AUDIENCE ("Best Suited For" / "Who Should Join") ---
-        if (/best suited for|who should (take|join)|target audience/i.test(block)) {
-          const titleMatch = block.match(/^(best suited for|who should (?:take|join)|target audience)[^|\n•-]*/i);
-          const rawTitle = titleMatch ? titleMatch[0].trim() : "Best Suited For";
-          const contentStr = block.slice(rawTitle.length).replace(/^[:-–\s]+/, "");
+    <div className="space-y-2">
+      {blocks.map((blockLines, bIdx) => {
+        const firstLine = blockLines[0].trim();
 
-          const items = contentStr
-            .split(/\||•|;|\n/)
-            .map((s) => s.trim().replace(/^[-•]\s*/, ""))
-            .filter(Boolean);
-
-          const getPersonaIcon = (item) => {
-            const lower = item.toLowerCase();
-            if (lower.includes("student") || lower.includes("pass") || lower.includes("10th") || lower.includes("12th")) return "🎓";
-            if (lower.includes("graduate") || lower.includes("college")) return "🏫";
-            if (lower.includes("job") || lower.includes("seeker")) return "💼";
-            if (lower.includes("business") || lower.includes("owner")) return "🚀";
-            if (lower.includes("freelancer")) return "💻";
-            if (lower.includes("entrepreneur") || lower.includes("founder")) return "💡";
-            return "🎯";
-          };
-
+        /* ── Markdown heading: # ## ### ── */
+        const mdH = firstLine.match(/^(#{1,3})\s+(.+)/);
+        if (mdH) {
+          const rest = blockLines.slice(1).join("\n").trim();
           return (
-            <div
-              key={idx}
-              className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900 p-6 sm:p-8 text-white shadow-xl shadow-purple-950/20 border border-purple-800/40"
-            >
-              {/* Background ambient light */}
-              <div className="pointer-events-none absolute -top-16 -right-16 w-48 h-48 bg-pink-500/20 rounded-full blur-2xl" />
-              <div className="pointer-events-none absolute -bottom-16 -left-16 w-48 h-48 bg-purple-500/20 rounded-full blur-2xl" />
+            <div key={bIdx}>
+              <h3 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2.5 mb-1">
+                <span className="w-1 h-5 rounded-full bg-gradient-to-b from-[#E91E8C] to-[#B11FA8] flex-shrink-0" />
+                {renderInline(mdH[2])}
+              </h3>
+              {rest && (
+                <p className="text-slate-800 text-sm sm:text-[15px] leading-7 whitespace-pre-wrap">
+                  {renderInline(rest)}
+                </p>
+              )}
+            </div>
+          );
+        }
 
-              <div className="relative z-10">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-pink-500 to-purple-500 flex items-center justify-center text-white text-lg shadow-lg shadow-pink-500/30">
-                    <FiTarget />
+        /* ── Skill pathway block: contains -> or → ── */
+        const joined = blockLines.join(" ");
+        if (joined.includes("->") || joined.includes("→")) {
+          const skills = joined.replace(/^[^:]*:\s*/, "").split(/->|→/).map((s) => s.trim()).filter(Boolean);
+          return (
+            <div key={bIdx} className="p-4 rounded-2xl bg-gradient-to-r from-purple-50 via-pink-50 to-blue-50 border border-purple-200">
+              <p className="text-xs font-bold uppercase tracking-widest text-purple-700 mb-3 flex items-center gap-2">
+                <FiZap className="text-[#E91E8C]" /> Learning Pathway
+              </p>
+              <div className="flex flex-wrap items-center gap-2">
+                {skills.map((skill, sIdx) => (
+                  <div key={sIdx} className="flex items-center gap-2">
+                    <span className="px-3 py-1.5 rounded-xl bg-white border border-purple-200 text-xs sm:text-sm font-semibold text-slate-800 shadow-sm hover:border-[#E91E8C] hover:text-[#E91E8C] transition-all">
+                      {skill}
+                    </span>
+                    {sIdx < skills.length - 1 && <span className="text-purple-400 font-bold">→</span>}
                   </div>
-                  <div>
-                    <h3 className="text-lg sm:text-xl font-black text-white tracking-tight">
-                      {rawTitle.replace(/[:-–]+$/, "")}
-                    </h3>
-                    <p className="text-xs text-purple-200/80">Tailored learning path for diverse career goals</p>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap gap-2.5 mt-5">
-                  {items.map((item, i) => (
-                    <div
-                      key={i}
-                      className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/15 text-white font-bold text-xs sm:text-sm shadow-sm hover:scale-[1.03] transition-all cursor-default"
-                    >
-                      <span className="text-base">{getPersonaIcon(item)}</span>
-                      <span>{item}</span>
-                    </div>
-                  ))}
-                </div>
+                ))}
               </div>
             </div>
           );
         }
 
-        // --- 2. JOB OPPORTUNITIES / CAREER ROLES ---
-        if (/job opportunities|career roles|career scope|potential roles/i.test(block)) {
-          const titleMatch = block.match(/^(job opportunities|career roles|career scope|potential roles)[^•\n-]*/i);
-          const rawTitle = titleMatch ? titleMatch[0].trim() : "Job Opportunities";
-          const contentStr = block.slice(rawTitle.length).replace(/^[:-–\s]+/, "");
-
-          const roles = contentStr
-            .split(/•|-|\n|;/)
-            .map((s) => s.trim())
-            .filter(Boolean);
-
+        /* ── Bullet / numbered list block ── */
+        const listLines = blockLines.filter((l) => /^\s*[-•*]\s|^\s*\d+\.\s/.test(l));
+        if (listLines.length >= 2 && listLines.length === blockLines.length) {
+          const heading = ""; // no inline heading for pure list blocks
           return (
-            <div
-              key={idx}
-              className="rounded-3xl bg-gradient-to-b from-purple-50/80 via-pink-50/40 to-white p-6 sm:p-8 border border-purple-100 shadow-sm"
-            >
-              <div className="flex items-center justify-between flex-wrap gap-3 mb-5">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-600 to-pink-600 flex items-center justify-center text-white text-lg shadow-md shadow-purple-500/20">
+            <ul key={bIdx} className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {listLines.map((line, lIdx) => {
+                const clean = line.replace(/^\s*[-•*]\s*|\s*\d+\.\s*/, "").trim();
+                return (
+                  <li key={lIdx} className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100 text-sm text-slate-800">
+                    <span className="mt-0.5 w-5 h-5 rounded-full bg-purple-100 text-purple-700 flex-shrink-0 flex items-center justify-center text-xs font-bold">✓</span>
+                    <span className="leading-relaxed">{renderInline(clean)}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          );
+        }
+
+        /* ── Job roles / career section ── */
+        if (/job opportunities|career roles|career scope|potential roles/i.test(joined)) {
+          const roles = blockLines
+            .flatMap((l) => l.split(/[•;]|-(?=\s)/))
+            .map((s) => s.trim().replace(/^(job opportunities|career roles|career scope|potential roles)[^a-z]*/i, "").replace(/^[-•*]\s*/, ""))
+            .filter((s) => s.length > 2);
+          if (roles.length > 0) {
+            return (
+              <div key={bIdx} className="rounded-3xl bg-gradient-to-b from-purple-50 via-pink-50/50 to-white p-5 sm:p-6 border border-purple-100 shadow-sm">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-purple-600 to-pink-600 flex items-center justify-center text-white shadow-md">
                     <FiBriefcase />
                   </div>
                   <div>
-                    <h3 className="text-lg sm:text-xl font-extrabold text-slate-900">
-                      {rawTitle.replace(/[:-–]+$/, "")}
-                    </h3>
-                    <p className="text-xs text-slate-500">In-demand career profiles after course completion</p>
+                    <h3 className="text-base font-extrabold text-slate-900">Job Opportunities</h3>
+                    <p className="text-xs text-slate-500">In-demand roles after completion</p>
                   </div>
                 </div>
-                {roles.length > 0 && (
-                  <span className="px-3 py-1 rounded-full bg-purple-100 text-purple-800 text-xs font-black uppercase tracking-wider">
-                    {roles.length} High-Growth Roles
-                  </span>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                {roles.map((role, rIdx) => (
-                  <div
-                    key={rIdx}
-                    className="flex items-center gap-3 p-3.5 rounded-2xl bg-white border border-purple-100/90 shadow-sm hover:border-pink-300 hover:shadow-md hover:-translate-y-0.5 transition-all group"
-                  >
-                    <div className="w-8 h-8 rounded-xl bg-pink-100 text-[#E91E8C] flex items-center justify-center font-bold text-xs group-hover:bg-[#E91E8C] group-hover:text-white transition-colors">
-                      💼
-                    </div>
-                    <span className="text-xs sm:text-sm font-bold text-slate-800 group-hover:text-[#E91E8C] transition-colors">
-                      {role}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          );
-        }
-
-        // --- 3. MARKET DEMAND & BENEFITS / BULLET LISTS ---
-        if (/demand for|course is valuable|why learn|key benefits/i.test(block) || block.includes("•")) {
-          // Separate introductory text from bullet points
-          const intro = block.split(/•/)[0]?.replace(/^[-•]/, "").trim();
-
-          const bullets = block
-            .split("\n")
-            .flatMap((line) => line.split("•"))
-            .map((s) => s.trim().replace(/^[-•]\s*/, ""))
-            .filter((s) => s.length > 5 && !/^(demand for|the course is valuable because)/i.test(s));
-
-          const icons = ["⚡", "📈", "🚀", "🎯", "🌐", "💻", "💡", "✨", "📊", "🏆"];
-
-          return (
-            <div key={idx} className="space-y-4">
-              {intro && (
-                <div className="p-5 rounded-2xl bg-slate-50/80 border border-slate-200/80">
-                  <h3 className="text-base sm:text-lg font-extrabold text-slate-900 flex items-center gap-2 mb-2">
-                    <FiTrendingUp className="text-[#E91E8C]" />
-                    Market Demand &amp; Value
-                  </h3>
-                  <p className="text-slate-600 text-sm leading-relaxed font-medium">
-                    {intro.replace(/^demand for[^\n:-]*[:-–]?/i, "").trim() || intro}
-                  </p>
-                </div>
-              )}
-
-              {bullets.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                  {bullets.map((point, pIdx) => (
-                    <div
-                      key={pIdx}
-                      className="flex items-start gap-3 p-4 rounded-2xl bg-white border border-slate-100 shadow-sm hover:border-purple-200 hover:bg-purple-50/20 transition-all group"
-                    >
-                      <div className="w-8 h-8 rounded-xl bg-purple-100/80 text-purple-700 flex items-center justify-center flex-shrink-0 font-bold text-sm group-hover:scale-110 transition-transform">
-                        {icons[pIdx % icons.length]}
-                      </div>
-                      <span className="text-xs sm:text-sm font-semibold text-slate-700 leading-snug group-hover:text-slate-900 mt-1">
-                        {point}
-                      </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+                  {roles.map((role, rIdx) => (
+                    <div key={rIdx} className="flex items-center gap-2.5 p-3 rounded-2xl bg-white border border-purple-100 shadow-sm hover:border-pink-300 transition-all group">
+                      <div className="w-7 h-7 rounded-lg bg-pink-50 text-[#E91E8C] flex items-center justify-center text-xs group-hover:bg-[#E91E8C] group-hover:text-white transition-colors">💼</div>
+                      <span className="text-xs sm:text-sm font-semibold text-slate-800 group-hover:text-[#E91E8C] transition-colors">{role}</span>
                     </div>
                   ))}
                 </div>
-              )}
-            </div>
-          );
+              </div>
+            );
+          }
         }
 
-        // --- 4. SKILL PATHWAY (e.g. Python -> SQL -> Data Analysis) ---
-        if (block.includes("->") || block.includes("→")) {
-          const skills = block
-            .replace(/^.*?:/i, "")
-            .split(/->|→/)
-            .map((s) => s.trim())
-            .filter(Boolean);
-
-          return (
-            <div
-              key={idx}
-              className="my-5 p-5 rounded-2xl bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-blue-500/10 border border-purple-200/80 shadow-sm"
-            >
-              <p className="text-xs font-extrabold uppercase tracking-wider text-purple-900 mb-3.5 flex items-center gap-2">
-                <FiZap className="text-[#E91E8C]" /> Core Skill &amp; Technology Pathway
-              </p>
-              <div className="flex flex-wrap items-center gap-2.5">
-                {skills.map((skill, sIdx) => (
-                  <div key={sIdx} className="flex items-center gap-2.5">
-                    <span className="px-4 py-2 rounded-xl bg-white border border-purple-200 text-xs sm:text-sm font-extrabold text-slate-800 shadow-sm hover:border-[#E91E8C] hover:text-[#E91E8C] transition-all">
-                      {skill}
-                    </span>
-                    {sIdx < skills.length - 1 && (
-                      <span className="text-purple-400 font-black text-sm">→</span>
-                    )}
+        /* ── Who should join / Target audience ── */
+        if (/best suited for|who should (take|join)|target audience/i.test(joined)) {
+          const items = blockLines
+            .flatMap((l) => l.split(/[|•;]|-(?=\s)/))
+            .map((s) => s.trim().replace(/^(best suited for|who should (?:take|join)|target audience)[^a-z]*/i, "").replace(/^[-•*]\s*/, ""))
+            .filter((s) => s.length > 2);
+          if (items.length > 0) {
+            return (
+              <div key={bIdx} className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900 p-5 sm:p-7 text-white shadow-xl border border-purple-800/40">
+                <div className="pointer-events-none absolute -top-12 -right-12 w-40 h-40 bg-pink-500/20 rounded-full blur-2xl" />
+                <div className="pointer-events-none absolute -bottom-12 -left-12 w-40 h-40 bg-purple-500/20 rounded-full blur-2xl" />
+                <div className="relative z-10">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-pink-500 to-purple-500 flex items-center justify-center text-white shadow-lg"><FiTarget /></div>
+                    <h3 className="text-base font-extrabold text-white">Who Should Join</h3>
                   </div>
-                ))}
+                  <div className="flex flex-wrap gap-2">
+                    {items.map((item, i) => (
+                      <div key={i} className="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/15 text-white font-medium text-sm transition-all">
+                        <span>🎯</span><span>{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
-            </div>
-          );
+            );
+          }
         }
 
-        // --- 5. OVERVIEW / DESCRIPTION CARDS ("What is...", "Course Description...") ---
-        const isHeaderOnly =
-          block.length < 90 &&
-          (block.endsWith("?") || /^(what|why|how|who|about|features|overview|highlights)/i.test(block));
+        /* ── DEFAULT: render the block exactly as typed, preserving whitespace ── */
+        const text = blockLines.join("\n");
+        // Check if first line alone looks like a short heading (no period, short, title-cased)
+        const isStandaloneHeading =
+          blockLines.length === 1 &&
+          firstLine.length < 80 &&
+          !firstLine.includes(". ") &&
+          /^[A-Z]/.test(firstLine);
 
-        if (isHeaderOnly) {
+        if (isStandaloneHeading) {
           return (
-            <div key={idx} className="pt-2">
-              <h3 className="text-lg sm:text-xl font-black text-slate-900 flex items-center gap-2.5">
-                <span className="w-1.5 h-6 rounded-full bg-gradient-to-b from-[#E91E8C] to-[#B11FA8]" />
-                {block}
-              </h3>
-            </div>
+            <h3 key={bIdx} className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2.5 pt-1">
+              <span className="w-1 h-5 rounded-full bg-gradient-to-b from-[#E91E8C] to-[#B11FA8] flex-shrink-0" />
+              {renderInline(firstLine)}
+            </h3>
           );
         }
 
-        // Default: Render as styled card paragraph with optional duration extraction
-        const durationMatch = block.match(/(?:this is a\s+)?(\d+\s*(?:months?|weeks?|days?)\s*course)/i);
-        const durationPill = durationMatch ? durationMatch[1] : null;
-
+        // Plain prose — render with whitespace-pre-wrap to honour the author's formatting
         return (
-          <div
-            key={idx}
-            className="p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-pink-50/50 via-purple-50/30 to-white border border-pink-100/80 shadow-sm relative"
-          >
-            {durationPill && (
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-100 text-[#E91E8C] text-xs font-black uppercase tracking-wider mb-3">
-                <FiClock className="text-xs" /> {durationPill}
-              </div>
-            )}
-            <p className="text-slate-700 text-sm sm:text-base leading-relaxed font-medium">
-              {block}
-            </p>
-          </div>
+          <p key={bIdx} className="text-slate-800 text-sm sm:text-[15px] leading-7 whitespace-pre-wrap">
+            {renderInline(text)}
+          </p>
         );
       })}
     </div>
   );
 }
+
+
+
 
 /* ─────────────────────────────────────────────
    MAIN COMPONENT
@@ -685,23 +627,72 @@ export default function CourseDetail() {
 
   const [fetchedCourse, setFetchedCourse] = useState(null);
   const [detailLoading, setDetailLoading] = useState(true);
-  const contextCourse = data?.courses?.find(c => String(c._id) === String(id));
+  const contextCourse = data?.courses?.find(c => String(c._id) === String(id) || String(c.slug) === String(id));
   const course = fetchedCourse || contextCourse;
 
   useEffect(() => {
     let active = true;
     if (id) {
+      setDetailLoading(true);
       fetch(`${import.meta.env.VITE_API_URL}/course/getCourseById/${id}`)
         .then(r => (r.ok ? r.json() : null))
         .then(res => {
-          if (active && res?.course) {
-            setFetchedCourse(res.course);
+          if (active) {
+            if (res?.course) setFetchedCourse(res.course);
+            setDetailLoading(false);
           }
         })
-        .catch(() => {});
+        .catch(() => {
+          if (active) setDetailLoading(false);
+        });
     }
     return () => { active = false; };
   }, [id]);
+
+  // Canonical Slug Redirect (If accessed via MongoDB ObjectId and slug exists, replace URL to SEO slug)
+  useEffect(() => {
+    if (course?.slug && id && id !== course.slug) {
+      navigate(`/courses/${course.slug}`, { replace: true });
+    }
+  }, [course?.slug, id, navigate]);
+
+  // Structured Data injection
+  useEffect(() => {
+    if (course) {
+      const courseSchema = buildCourseSchema(course);
+      if (courseSchema) setStructuredData("course-schema", courseSchema);
+
+      const breadcrumbs = buildBreadcrumbSchema([
+        { name: "Home", url: "/" },
+        { name: "Courses", url: "/courses" },
+        { name: course.courseName, url: `/courses/${course.slug || course._id}` },
+      ]);
+      if (breadcrumbs) setStructuredData("breadcrumb-schema", breadcrumbs);
+    }
+    return () => {
+      removeStructuredData("course-schema");
+      removeStructuredData("breadcrumb-schema");
+    };
+  }, [course]);
+
+  // Dynamic SEO Meta
+  const isLoaded = !detailLoading || !!course || !contextLoading;
+  usePageMeta({
+    title: course
+      ? `${course.courseName} Course in Gwalior | Zint Institute`
+      : !isLoaded
+      ? "Course Details | Zint Institute"
+      : "Course Not Found | Zint Institute",
+    description: course?.about
+      ? `Learn ${course.courseName} in Gwalior at Zint Institute. ${course.about.slice(0, 120).replace(/[#*_]/g, "")}... Expert mentors, certified curriculum & 100% placement support.`
+      : `Master ${course?.courseName || "skills"} in Gwalior at Zint Institute. Industry-certified course with hands-on projects, expert mentors & 100% placement assistance.`,
+    image: course?.courseImage,
+    canonicalPath: course?.slug ? `/courses/${course.slug}` : `/courses/${id}`,
+    noIndex: isLoaded && !course,
+    keywords: course
+      ? `${course.courseName} course Gwalior, ${course.courseName} training Gwalior, ${course.courseName} institute Gwalior, ${course.courseName} certification, learn ${course.courseName} Gwalior, best ${course.courseName} course Madhya Pradesh, Zint Institute ${course.courseName}, ${course.courseName} classes Gwalior, ${course.courseName} online offline Gwalior`
+      : null,
+  });
 
   // Populate user data into rating & curriculum form when logged in
   useEffect(() => {
@@ -1007,10 +998,10 @@ export default function CourseDetail() {
                   ({displayReviewCount})
                 </span>
                 <span className="text-gray-300">•</span>
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-full"
+                {/* <span className="text-xs font-semibold px-2.5 py-1 rounded-full"
                   style={{ background: `${GREEN}18`, color: "#15803d", border: `1px solid ${GREEN}33` }}>
                   ✓ 95% Placement Rate
-                </span>
+                </span> */}
               </div>
 
               {/* Desktop CTAs */}
@@ -1057,10 +1048,10 @@ export default function CourseDetail() {
                   className="w-full h-56 md:h-72 object-full group-hover:scale-105 transition-transform duration-500"
                   onError={e => { e.target.src = `https://placehold.co/500x288/111827/${PRIMARY.slice(1)}?text=Course`; }}
                 />
-                <div className="absolute top-4 right-4 text-white text-xs font-bold px-3 py-1.5 rounded-full"
+                {/* <div className="absolute top-4 right-4 text-white text-xs font-bold px-3 py-1.5 rounded-full"
                   style={{ background: GREEN }}>
                   ✓ 95% Placement
-                </div>
+                </div> */}
               </div>
 
               {/* Mobile price chip */}

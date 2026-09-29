@@ -7,8 +7,8 @@ function Card({ data }) {
   if (!data) return null;
 
   const handleCardClick = () => {
-    if (data._id) {
-      navigate(`/courses/${data._id}`);
+    if (data.slug || data._id) {
+      navigate(`/courses/${data.slug || data._id}`);
     }
   };
 

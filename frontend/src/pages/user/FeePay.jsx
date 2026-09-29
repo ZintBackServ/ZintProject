@@ -1,6 +1,7 @@
 // pages/CoursePricing.jsx
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { usePageMeta } from "../../hooks/usePageMeta";
 import { loadRazorpay } from "../../utils/loadRazorpay";
 
 const API = import.meta.env.VITE_API_URL;
@@ -146,6 +147,7 @@ function PlanCard({ title, icon, price, originalPrice, urgency, features, recomm
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 export default function CoursePricing() {
+  usePageMeta({ title: "Course Fee Payment | Zint Institute", noIndex: true });
   const { id }   = useParams();
   const navigate = useNavigate();
 

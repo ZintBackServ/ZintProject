@@ -40,6 +40,7 @@ const trainingRegistrationRoutes    = require("./routes/trainingRegistrationRout
 const webinarRoutes                 = require("./routes/webinarRoute");
 const jobUpdateRoutes               = require("./routes/jobUpdateRoute");
 const studentDetailRoutes           = require("./routes/studentDetailRoute");
+const sitemapRoutes                 = require("./routes/sitemapRoute");
 
 const { initWhatsApp }              = require("./services/whatsappService");
 const { initCronJobs }              = require("./services/cronService");
@@ -170,6 +171,7 @@ app.use("/trainingRegistration",    trainingRegistrationRoutes);
 app.use("/webinar",                 webinarRoutes);
 app.use("/job-updates",             jobUpdateRoutes);
 app.use("/student-detail",          studentDetailRoutes);
+app.use("/",                        sitemapRoutes);
 
 // ── Health check ──────────────────────────────────────────────────────────────
 app.get("/",          (req, res) => res.status(200).json({ msg: "Server is working fine!" }));

@@ -1,10 +1,13 @@
 User-agent: *
 Allow: /
 
-# Disallow admin and user-specific pages from indexing
+# Disallow private user portals, auth redirects, and admin areas
+Disallow: /admin
 Disallow: /admin/
-Disallow: /user/dashboard
+Disallow: /user/
 Disallow: /auth/
+Disallow: /login
+Disallow: /courses/*/fee
 
-# Sitemap location
+# Sitemap Index
 Sitemap: https://zintinstitute.in/sitemap.xml

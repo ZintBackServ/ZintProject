@@ -1,39 +1,53 @@
 import { useEffect, useState, useContext } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import Card from "../components/ui/Card";
 import Loading from "../components/ui/Loading";
 import { DataContext } from "../context/DataContext";
 import { usePageMeta } from "../hooks/usePageMeta";
+import { buildBreadcrumbSchema, setStructuredData, removeStructuredData } from "../utils/schemaGenerator";
 
 const Courses = () => {
-  usePageMeta(
-    "Courses",
-    "Explore all courses at Zint Computer Education Institute — Software, Hardware, Networking, AI, Tally, Steno & more. Practical, job-ready training in Gwalior."
-  );
+  usePageMeta({
+    title: "IT Courses in Gwalior: MERN Full Stack, Python, Java, DCA, PGDCA | Zint Institute",
+    description:
+      "Explore job-oriented IT and computer courses in Gwalior at Zint Institute — MERN Full Stack Development, Python, Java, Data Science, AI/ML, Web Design, Graphic Design, DCA & PGDCA with 100% Placement Support. Admission open 2025–26.",
+    keywords:
+      "MERN Full Stack course Gwalior, Python training Gwalior, Java course Gwalior, DCA Gwalior, PGDCA Gwalior, data science course Gwalior, web design course Gwalior, graphic design institute Gwalior, AI ML training Gwalior, digital marketing course Gwalior, CPCT coaching Gwalior, computer course Gwalior, IT courses near me, best computer course Gwalior, programming course Gwalior, software development training Gwalior, hardware networking Gwalior, Tally course Gwalior, Zint Institute courses",
+    canonicalPath: "/courses",
+  });
+
   const { data, loading } = useContext(DataContext);
   const location = useLocation();
   const navState = location.state;
 
-  // activeCategory now stores the category's _id
+  // activeCategory stores the category's _id
   const [activeCategory, setActiveCategory] = useState(navState?.activeCategory ?? null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Consume categories from DataContext — already fetched globally, no extra request
+  // Consume categories from DataContext
   const categories = data?.categories || [];
   const categoriesLoading = loading;
 
-  // ── Apply navigation state (e.g. from Footer links) ────────────────
   useEffect(() => {
     if (navState?.activeCategory !== undefined) setActiveCategory(navState.activeCategory);
     window.history.replaceState({}, document.title);
   }, [location.key]);
+
+  // Inject Breadcrumbs Schema
+  useEffect(() => {
+    const breadcrumbSchema = buildBreadcrumbSchema([
+      { name: "Home", url: "/" },
+      { name: "Courses in Gwalior", url: "/courses" },
+    ]);
+    if (breadcrumbSchema) setStructuredData("courses-breadcrumb", breadcrumbSchema);
+    return () => removeStructuredData("courses-breadcrumb");
+  }, []);
 
   const cards = data?.courses || [];
 
   if (loading) return <Loading />;
   if (!cards.length) return <h1 className="text-center mt-10">No courses available</h1>;
 
-  // course.category is a populated object — grab its id / name
   const getCatId = (c) => c.category?._id ?? "";
 
   const filteredCourses = cards.filter((c) =>
@@ -51,9 +65,21 @@ const Courses = () => {
   return (
     <div className="min-h-screen bg-gray-50">
 
-      {/* PAGE HEADER */}
-      <div className="bg-white border-b px-6 py-6 text-center">
-        <h1 className="text-3xl font-bold text-gray-900">Our Courses</h1>
+      {/* PAGE HEADER WITH ON-PAGE KEYWORDS */}
+      <div className="bg-white border-b px-6 py-8 text-center">
+        <div className="max-w-4xl mx-auto">
+          <nav aria-label="Breadcrumb" className="text-xs text-gray-500 mb-2">
+            <Link to="/" className="hover:text-purple-700">Home</Link>
+            <span className="mx-2">/</span>
+            <span className="text-purple-700 font-semibold">Courses</span>
+          </nav>
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-gray-900 tracking-tight">
+            Professional IT & Computer Courses in Gwalior
+          </h1>
+          <p className="mt-3 text-sm sm:text-base text-gray-600 max-w-2xl mx-auto leading-relaxed">
+            Gain industry-relevant tech skills with practical live project training, certified mentors, and 100% placement assistance at Zint Institute Gwalior.
+          </p>
+        </div>
       </div>
 
       {/* MOBILE toggle */}
@@ -118,18 +144,18 @@ const Courses = () => {
 
         {/* MAIN */}
         <main className="flex-1 min-w-0">
-          {/* Breadcrumb */}
+          {/* Breadcrumb info */}
           <div className="flex items-center justify-between mb-5 flex-wrap gap-2">
             <div className="flex items-center gap-2 flex-wrap">
               {activeCategory && (
-                <span className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">
-                  {activeCategoryName}
+                <span className="text-xs bg-purple-100 text-purple-700 px-3 py-1 rounded-full font-medium">
+                  Category: {activeCategoryName}
                 </span>
               )}
             </div>
             <p className="text-sm text-gray-500">
               <span className="font-semibold text-gray-800">{filteredCourses.length}</span>{" "}
-              course{filteredCourses.length !== 1 ? "s" : ""} found
+              course{filteredCourses.length !== 1 ? "s" : ""} available
             </p>
           </div>
 
@@ -154,4 +180,3 @@ const Courses = () => {
 };
 
 export default Courses;
-

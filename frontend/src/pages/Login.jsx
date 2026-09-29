@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
+import { usePageMeta } from "../hooks/usePageMeta";
 import { apiUrl } from "../utils/api";
 import Antigravity from "./Antigravity";
 
@@ -48,6 +49,7 @@ function OTPBoxes({ otp, setOtp, inputRefs }) {
 }
 
 export default function Login() {
+  usePageMeta({ title: "Sign In | Zint Institute", noIndex: true });
   const navigate = useNavigate();
   const { login } = useAuth();
   const [searchParams] = useSearchParams();

@@ -286,10 +286,14 @@ const LATEST_WORKSHOPS = [...WORKSHOPS_DATA].sort(
 );
 
 export default function Workshop() {
-  usePageMeta(
-    "Workshops & Campus Seminars",
-    "Explore interactive tech workshops and career guidance seminars conducted by Zint Computer Education Institute across top colleges and schools in Gwalior and Central India."
-  );
+  usePageMeta({
+    title: "Tech Workshops & Campus Seminars in Gwalior | Zint Institute",
+    description:
+      "Explore interactive tech workshops, campus seminars & career guidance sessions by Zint Computer Education Institute across Gwalior & Central India. Free workshops for students on AI, Web Dev, Python & more.",
+    keywords:
+      "tech workshop Gwalior, campus seminar Gwalior, free workshop IT Gwalior, coding workshop Gwalior, AI workshop students, Python workshop Gwalior, web development seminar, career guidance seminar Gwalior, Zint workshop, computer awareness program Gwalior",
+    canonicalPath: "/workshop",
+  });
 
   const [selectedId, setSelectedId] = useState(LATEST_WORKSHOPS[0].id);
   const [searchQuery, setSearchQuery] = useState("");
